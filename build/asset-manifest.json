@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/sum-app/static/css/main.f855e6bc.css",
-    "main.js": "/sum-app/static/js/main.36ca0834.js",
+    "main.js": "/sum-app/static/js/main.c343e76a.js",
     "static/js/488.ed9650b7.chunk.js": "/sum-app/static/js/488.ed9650b7.chunk.js",
     "index.html": "/sum-app/index.html",
     "main.f855e6bc.css.map": "/sum-app/static/css/main.f855e6bc.css.map",
-    "main.36ca0834.js.map": "/sum-app/static/js/main.36ca0834.js.map",
+    "main.c343e76a.js.map": "/sum-app/static/js/main.c343e76a.js.map",
     "488.ed9650b7.chunk.js.map": "/sum-app/static/js/488.ed9650b7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.f855e6bc.css",
-    "static/js/main.36ca0834.js"
+    "static/js/main.c343e76a.js"
   ]
 }

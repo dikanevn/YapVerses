@@ -4,11 +4,6 @@ import SimpleGridABI from './SimpleGridABI.json'; // Ваш ABI контракт
 import './App.css';
 
 const App = () => {
-  // Состояния для сумматора
-  const [num1, setNum1] = useState(0);
-  const [num2, setNum2] = useState(0);
-  const [sum, setSum] = useState(0);
-
   // Состояния для MetaMask и контракта
   const [account, setAccount] = useState(null);  // Адрес аккаунта
   const [balance, setBalance] = useState(0);     // Баланс
@@ -76,11 +71,6 @@ const App = () => {
     }
   };
 
-  // Функция для сложения чисел
-  const handleSum = () => {
-    setSum(num1 + num2);
-  };
-
   // Автоматическое подключение при загрузке
   useEffect(() => {
     if (window.ethereum) {
@@ -93,25 +83,7 @@ const App = () => {
 
   return (
     <div>
-      <h1>Сложение чисел и взаимодействие с контрактом</h1>
-
-      {/* Сложение чисел */}
-      <div>
-        <input
-          type="number"
-          value={num1}
-          onChange={(e) => setNum1(Number(e.target.value))}
-          placeholder="Число 1"
-        />
-        <input
-          type="number"
-          value={num2}
-          onChange={(e) => setNum2(Number(e.target.value))}
-          placeholder="Число 2"
-        />
-        <button onClick={handleSum}>Посчитать</button>
-      </div>
-      <h2>Результат сложения: {sum}</h2>
+      <h1>Simple Grid DApp</h1>
 
       {/* Подключение MetaMask */}
       <button onClick={connectWallet}>
