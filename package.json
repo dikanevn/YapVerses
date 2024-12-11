@@ -8,12 +8,12 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^4.2.4"
+    "web-vitals": "^4.2.4",
+    "web3": "^4.16.0"
   },
   "homepage": "http://dikanevn.github.io/sum-app",
   "scripts": {
-  "deploy": "git add build && git commit -m 'Deploy to GitHub Pages' && git push origin main",
-
+    "deploy": "git add build && git commit -m 'Deploy to GitHub Pages' && git push origin main",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

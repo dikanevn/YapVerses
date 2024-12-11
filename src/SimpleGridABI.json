@@ -1,134 +1,188 @@
 [
 	{
-		"anonymous": false,
-		"inputs": [
+		"inputs": [],
+		"name": "MaxBox",
+		"outputs": [
 			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
 				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "y",
+				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "BoxPlaced",
-		"type": "event"
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
-		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
 				"internalType": "uint256",
 				"name": "x",
 				"type": "uint256"
 			},
 			{
-				"indexed": false,
 				"internalType": "uint256",
 				"name": "y",
 				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "factorySettingsType",
+				"type": "string"
 			}
 		],
-		"name": "BoxRemoved",
-		"type": "event"
+		"name": "factorySettingsUpdate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
-		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
 				"internalType": "uint256",
 				"name": "x",
 				"type": "uint256"
 			},
 			{
-				"indexed": false,
 				"internalType": "uint256",
 				"name": "y",
 				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
 			}
 		],
-		"name": "CoalUpdated",
-		"type": "event"
+		"name": "getCell",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "content",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "tool",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "coalAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lastTimeChecked",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "man",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "ironAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "ironplateAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "componentsAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "factorySettings",
+						"type": "string"
+					}
+				],
+				"internalType": "struct SimpleGrid.Cell",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
-		"anonymous": false,
-		"inputs": [
+		"inputs": [],
+		"name": "getDepot",
+		"outputs": [
 			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "y",
-				"type": "uint256"
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "drillsAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "boxesAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "mansAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "furnaceAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "factoryAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "starttimee",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lastmeteoritTimeChecked",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "blocktimestamp",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "bulldozerAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "early",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct SimpleGrid.Depot",
+				"name": "",
+				"type": "tuple"
 			}
 		],
-		"name": "DrillPlaced",
-		"type": "event"
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
-		"anonymous": false,
-		"inputs": [
+		"inputs": [],
+		"name": "gridSize",
+		"outputs": [
 			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
 				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "y",
+				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "DrillRemoved",
-		"type": "event"
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
 		"inputs": [],
@@ -138,179 +192,24 @@
 		"type": "function"
 	},
 	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "y",
-				"type": "uint256"
-			}
-		],
-		"name": "ManPlasedDU",
-		"type": "event"
+		"inputs": [],
+		"name": "meteoritfunction",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
-		"anonymous": false,
-		"inputs": [
+		"inputs": [],
+		"name": "oreProbability",
+		"outputs": [
 			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
 				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "y",
+				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "ManPlasedLR",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "y",
-				"type": "uint256"
-			}
-		],
-		"name": "ManPlasedRL",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "y",
-				"type": "uint256"
-			}
-		],
-		"name": "ManPlasedUD",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "y",
-				"type": "uint256"
-			}
-		],
-		"name": "ManRemoved",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "y",
-				"type": "uint256"
-			}
-		],
-		"name": "OrePlaced",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "player",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "y",
-				"type": "uint256"
-			}
-		],
-		"name": "OreRemoved",
-		"type": "event"
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
 		"inputs": [
@@ -343,7 +242,61 @@
 				"type": "uint256"
 			}
 		],
+		"name": "placeBulldozer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "x",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "y",
+				"type": "uint256"
+			}
+		],
 		"name": "placeDrill",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "x",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "y",
+				"type": "uint256"
+			}
+		],
+		"name": "placeFactory",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "x",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "y",
+				"type": "uint256"
+			}
+		],
+		"name": "placeFurnace",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -433,7 +386,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "placeOre",
+		"name": "removeTool",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -442,16 +395,11 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "y",
+				"name": "decrementValue",
 				"type": "uint256"
 			}
 		],
-		"name": "removeBox",
+		"name": "starttimeeUpdate",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -460,16 +408,26 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "x",
+				"name": "fromX",
 				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
-				"name": "y",
+				"name": "fromY",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "toX",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "toY",
 				"type": "uint256"
 			}
 		],
-		"name": "removeDrill",
+		"name": "transferCoal",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -478,16 +436,26 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "x",
+				"name": "fromX",
 				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
-				"name": "y",
+				"name": "fromY",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "toX",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "toY",
 				"type": "uint256"
 			}
 		],
-		"name": "removeMan",
+		"name": "transferComponents",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -496,16 +464,82 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "x",
+				"name": "fromX",
 				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
-				"name": "y",
+				"name": "fromY",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "toX",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "toY",
 				"type": "uint256"
 			}
 		],
-		"name": "removeOre",
+		"name": "transferIron",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "fromX",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fromY",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "toX",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "toY",
+				"type": "uint256"
+			}
+		],
+		"name": "transferIronPlate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "fromX",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fromY",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "toX",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "toY",
+				"type": "uint256"
+			}
+		],
+		"name": "transferResourses",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -515,114 +549,6 @@
 		"name": "updateCoal",
 		"outputs": [],
 		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "y",
-				"type": "uint256"
-			}
-		],
-		"name": "getCell",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "content",
-						"type": "string"
-					},
-					{
-						"internalType": "bool",
-						"name": "drill",
-						"type": "bool"
-					},
-					{
-						"internalType": "bool",
-						"name": "box",
-						"type": "bool"
-					},
-					{
-						"internalType": "uint256",
-						"name": "coalAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "lastBlockChecked",
-						"type": "uint256"
-					},
-					{
-						"internalType": "string",
-						"name": "man",
-						"type": "string"
-					}
-				],
-				"internalType": "struct SimpleGrid.Cell",
-				"name": "",
-				"type": "tuple"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "gridSize",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "MaxBox",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "MaxDrill",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "oreProbability",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
 		"type": "function"
 	}
 ]
