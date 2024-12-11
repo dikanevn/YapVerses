@@ -31,6 +31,8 @@ contract SimpleGrid {
         uint256 lastmeteoritTimeChecked;
         uint256 blocktimestamp;
         uint256 bulldozerAmount;
+        uint256 early;
+
     }
     mapping(address => Grid) private grids;
     mapping(address => Depot) private depots;
@@ -53,7 +55,7 @@ contract SimpleGrid {
             }
         }
 
-        depots[msg.sender] = Depot(50, 50, 50, 50, 50, block.timestamp, 0, block.timestamp, 50);
+        depots[msg.sender] = Depot(50, 50, 50, 50, 50, block.timestamp, block.timestamp, block.timestamp, 50, 0);
 
     }
 
@@ -69,8 +71,8 @@ contract SimpleGrid {
 
     function starttimeeUpdate(uint256 decrementValue) external {
         Depot storage depot = depots[msg.sender];
-        require(decrementValue <= depot.lastmeteoritTimeChecked, "Decrement value exceeds starttimee");
-        require(decrementValue <= 1733874056, "max 100000");
+        require(decrementValue < depot.lastmeteoritTimeChecked, "Decrement value exceeds starttimee");
+        require(decrementValue < 1733874056, "max 100000");
         depot.lastmeteoritTimeChecked -= decrementValue;
     }
 
@@ -272,10 +274,10 @@ contract SimpleGrid {
         require((block.timestamp - depot.lastmeteoritTimeChecked) > mtime, "randommeteorit < mtime");
         bool didmeteorit = false;
         Grid storage grid = grids[msg.sender];
-     
-       uint256 iterationLimit = 173; // 1733874811
+        depot.early = block.timestamp - depot.lastmeteoritTimeChecked;
+       uint256 iterationLimit = 100; // 1733874811
         uint256 iterationCount = 0;
-        while (block.timestamp - depot.lastmeteoritTimeChecked > mtime && iterationCount < iterationLimit) {
+        while (block.timestamp - depot.lastmeteoritTimeChecked > mtime && iterationCount < iterationLimit ) {
 			uint256 k = 0;
 		    for (uint256 m = 0; m < gridSize; m++) {
             for (uint256 n = 0; n < gridSize; n++) {
@@ -295,6 +297,7 @@ contract SimpleGrid {
             uint256 y = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, x, i))) % gridSize;
             depot.lastmeteoritTimeChecked += mtime;
             if (keccak256(abi.encodePacked(grid.cells[x][y].content)) != keccak256(abi.encodePacked("Space"))) {
+             
 
                 didmeteorit = true;
                 //дальше рушим ячейку
@@ -324,7 +327,9 @@ contract SimpleGrid {
             }
             iterationCount++;
         }
+
         depot.blocktimestamp = block.timestamp;
+        depot.early = block.timestamp - depot.lastmeteoritTimeChecked;
     }
 
     function transferResourses(uint256 fromX, uint256 fromY, uint256 toX, uint256 toY) public {
