@@ -1466,6 +1466,36 @@ ${depot.theEndCount} - The End Count
 			}
 			setAction("getCell"); // Сбрасываем действие после выполнения
 		};
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 if (isUsingPrivateKey && !isKeyConfirmed) {
     return (
         <div
@@ -1487,19 +1517,19 @@ if (isUsingPrivateKey && !isKeyConfirmed) {
             <div
                 style={{
                     backgroundColor: '#000',
-                    border: '0.5px solid #fff',
-                    padding: '15px',
+                    border: '0.575px solid #fff', // Увеличено на 15%
+                    padding: '17.25px', // Увеличено на 15%
                     borderRadius: '0px',
                     textAlign: 'center',
-                    width: '220px',
+                    width: '253px', // Увеличено на 15%
                     boxSizing: 'border-box',
-                    boxShadow: '0px 0px 10px rgba(0,0,0,0.5)',
+                    boxShadow: '0px 0px 11.5px rgba(0,0,0,0.5)', // Увеличено на 15%
                 }}
             >
                 <p
                     style={{
-                        margin: '0 0 8px',
-                        fontSize: '13px',
+                        margin: '0 0 9.2px', // Увеличено на 15%
+                        fontSize: '14.95px', // Увеличено на 15%
                         color: '#ddd',
                     }}
                 >
@@ -1511,61 +1541,56 @@ if (isUsingPrivateKey && !isKeyConfirmed) {
                     placeholder="Приватный ключ"
                     value={userPrivateKey}
                     style={{
-                        width: '100%',
-                        padding: '5px 8px',
-                        marginBottom: '10px',
+                        width: '100%', // Увеличено на 15%
+                        padding: '5.75px 9.2px', // Увеличено на 15%
+                        marginBottom: '11.5px', // Увеличено на 15%
                         borderRadius: '0px',
-                        fontSize: '12px',
-                        border: '1px solid #444',
+                        fontSize: '13.8px', // Увеличено на 15%
+                        border: '1.15px solid #444', // Увеличено на 15%
                         backgroundColor: '#222',
                         color: '#fff',
                         boxSizing: 'border-box',
                     }}
                     onChange={(e) => setUserPrivateKey(e.target.value)}
                 />
-				
-				
-				
-<button
-    onClick={() => {
-        if (!userPrivateKey) {
-            alert('Введите приватный ключ.');
-        } else {
-            try {
-                const wallet = new ethers.Wallet(userPrivateKey, provider);
-                setPrivateSigner(wallet);
-                setIsKeyConfirmed(true);
-                console.log("Приватный ключ подтвержден и кошелек подключен.");
-            } catch (error) {
-                alert('Неверный приватный ключ.');
-                console.error("Ошибка при подключении кошелька:", error);
-            }
-        }
-    }}
-    style={{
-        backgroundColor: '#28a745',
-        color: 'white',
-        border: 'none',
-        padding: '6px 12px',
-        borderRadius: '0px',
-        fontSize: '12px',
-        cursor: 'pointer',
-        boxShadow: '0px 2px 4px rgba(0,0,0,0.3)',
-    }}
->
-    Подтвердить
-</button>
 
-				
-				
-				
+                <button
+                    onClick={() => {
+                        if (!userPrivateKey) {
+                            alert('Введите приватный ключ.');
+                        } else {
+                            try {
+                                const wallet = new ethers.Wallet(userPrivateKey, provider);
+                                setPrivateSigner(wallet);
+                                setIsKeyConfirmed(true);
+                                console.log("Приватный ключ подтвержден и кошелек подключен.");
+                            } catch (error) {
+                                alert('Неверный приватный ключ.');
+                                console.error("Ошибка при подключении кошелька:", error);
+                            }
+                        }
+                    }}
+                    style={{
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        border: 'none',
+                        padding: '6.9px 13.8px', // Увеличено на 15%
+                        borderRadius: '0px',
+                        fontSize: '13.8px', // Увеличено на 15%
+                        cursor: 'pointer',
+                        boxShadow: '0px 2.3px 4.6px rgba(0,0,0,0.3)', // Увеличено на 15%
+                    }}
+                >
+                    Подтвердить
+                </button>
+
                 <p
                     style={{
-                        marginTop: '10px',
-                        fontSize: '10px',
+                        marginTop: '11.5px', // Увеличено на 15%
+                        fontSize: '11.5px', // Увеличено на 15%
                         color: '#777',
                         textAlign: 'center',
-                        lineHeight: '1.2',
+                        lineHeight: '1.38', // Увеличено на 15%
                     }}
                 >
                     Нажимая "Подтвердить" Вы соглашаетесь с тем, что Вы сами хозяин своих
@@ -1578,20 +1603,20 @@ if (isUsingPrivateKey && !isKeyConfirmed) {
             <div
                 style={{
                     backgroundColor: '#000',
-                    border: '0.5px solid #555',
-                    marginTop: '20px',
-                    padding: '10px',
+                    border: '0.575px solid #555', // Увеличено на 15%
+                    marginTop: '23px', // Увеличено на 15%
+                    padding: '11.5px', // Увеличено на 15%
                     borderRadius: '0px',
                     textAlign: 'center',
-                    width: '220px',
+                    width: '253px', // Увеличено на 15%
                     boxSizing: 'border-box',
-                    boxShadow: '0px 0px 10px rgba(0,0,0,0.3)',
+                    boxShadow: '0px 0px 11.5px rgba(0,0,0,0.3)', // Увеличено на 15%
                 }}
             >
                 <p
                     style={{
-                        margin: '0 0 10px',
-                        fontSize: '12px',
+                        margin: '0 0 11.5px', // Увеличено на 15%
+                        fontSize: '13.8px', // Увеличено на 15%
                         color: '#aaa',
                     }}
                 >
@@ -1602,11 +1627,11 @@ if (isUsingPrivateKey && !isKeyConfirmed) {
                         backgroundColor: '#626300',
                         color: 'gray',
                         border: 'none',
-                        padding: '6px 12px',
+                        padding: '6.9px 13.8px', // Увеличено на 15%
                         borderRadius: '0px',
-                        fontSize: '12px',
+                        fontSize: '13.8px', // Увеличено на 15%
                         cursor: 'not-allowed',
-                        boxShadow: '0px 2px 4px rgba(0,0,0,0.3)',
+                        boxShadow: '0px 2.3px 4.6px rgba(0,0,0,0.3)', // Увеличено на 15%
                     }}
                     disabled
                 >
@@ -1618,20 +1643,20 @@ if (isUsingPrivateKey && !isKeyConfirmed) {
             <div
                 style={{
                     backgroundColor: '#000',
-                    border: '0.5px solid #444',
-                    marginTop: '20px',
-                    padding: '10px',
+                    border: '0.575px solid #444', // Увеличено на 15%
+                    marginTop: '23px', // Увеличено на 15%
+                    padding: '11.5px', // Увеличено на 15%
                     borderRadius: '0px',
                     textAlign: 'center',
-                    width: '220px',
+                    width: '253px', // Увеличено на 15%
                     boxSizing: 'border-box',
-                    boxShadow: '0px 0px 10px rgba(0,0,0,0.3)',
+                    boxShadow: '0px 0px 11.5px rgba(0,0,0,0.3)', // Увеличено на 15%
                 }}
             >
                 <p
                     style={{
-                        margin: '0 0 5px',
-                        fontSize: '12px',
+                        margin: '0 0 5.75px', // Увеличено на 15%
+                        fontSize: '13.8px', // Увеличено на 15%
                         color: '#bbb',
                     }}
                 >
@@ -1640,7 +1665,7 @@ if (isUsingPrivateKey && !isKeyConfirmed) {
                 <p
                     style={{
                         margin: '0',
-                        fontSize: '11px',
+                        fontSize: '12.65px', // Увеличено на 15%
                         color: '#777',
                     }}
                 >
@@ -1650,6 +1675,35 @@ if (isUsingPrivateKey && !isKeyConfirmed) {
         </div>
     );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
