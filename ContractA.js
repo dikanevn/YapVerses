@@ -223,7 +223,7 @@ function updateDepotInitialSettings(address user) internal {
         gridSize, // gridSize
         3,  // drillsAmount
         0,  // boxesAmount
-        5,  // mansAmount
+        4,  // mansAmount
         1,  // furnaceAmount
         2,  // factoryAmount
         0  // wallAmount

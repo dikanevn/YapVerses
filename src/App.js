@@ -35,8 +35,8 @@ let isNonceInitializing = false;
 		
 		
 		
-		const contractAddressAAA = "0x87f0DABb9DaDFA5D5A0AB1ee65488528B7B3CfB7";
-		const contractAddressBBB = "0x8EC8C04EF7E861CFD73Bf6614CeeF2211e21C9aa";
+		const contractAddressAAA = "0xA814D3EDFFC818E6A0865510bf76f5f21671B81B";
+		const contractAddressBBB = "0x7eeFFA495A0660D6C9cC9e6557438948774c0142";
 		
 		
 		
