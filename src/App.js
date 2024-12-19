@@ -36,7 +36,7 @@ let isNonceInitializing = false;
 		
 		
 		const contractAddressAAA = "0xA814D3EDFFC818E6A0865510bf76f5f21671B81B";
-		const contractAddressBBB = "0xb69A6E8962f9C78214d97753150e560Ab95966bF";
+		const contractAddressBBB = "0x25308f7B09CdE60bD04ea00bb248826Cd6Dd7b8E";
 		
 		
 		
@@ -1766,7 +1766,8 @@ return (
 					}
 					style = {
 						{
-							width: '43.19px',
+							width: '43.05px',
+height: '28.19px',
 							textRendering: 'auto',
 							color: 'buttontext',
 							letterSpacing: 'normal',
@@ -1790,7 +1791,6 @@ return (
 							borderImage: 'initial',
 							color: 'white',
 							letterSpacing: '0.410em',
-							fontSize: '19.8px'
 						}
 					} title="Эта кнопка отжимает другие кнопки."
 					>&nbsp;&nbsp;< /button>
@@ -1803,7 +1803,8 @@ return (
         setPause();
     }}
     style={{
-		fontSize: '19.8px',
+		width: '43.05px',
+height: '28.19px',
         borderStyle: isGamePaused === 1 ? "inset" : "outset", // Если пауза не активна
         backgroundColor: isGamePaused === 1 ? "blue" : "white", // Если пауза активна
         cursor: "pointer",
@@ -1817,7 +1818,8 @@ title="Да-да, пауза в блокчейне."> ⏸️ </button>
         unsetPause();
     }}
     style={{
-		fontSize: '19.8px',
+		width: '43.05px',
+height: '28.19px',
         borderStyle: isGamePaused === 0 ? "inset" : "outset", // Если пауза не активна
         backgroundColor: isGamePaused === 0 ? "blue" : "white", // Если пауза не активна
         cursor: "pointer",
@@ -1849,7 +1851,8 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.8px',					
+		width: '43.05px',
+height: '28.19px',					
 							borderStyle: getButtonborderStyle('removeTool'),
 							backgroundColor: getButtonColor("removeTool"),
 							cursor: "pointer"
@@ -1877,7 +1880,8 @@ title="Снять паузу."> ▶️ </button>
         }
     }}
     style={{
-		fontSize: '19.8px',
+		width: '43.05px',
+height: '28.19px',
         borderStyle: getButtonborderStyle('placeDrill'),
         backgroundColor: getButtonColor("placeDrill"),
         cursor: "pointer",
@@ -1910,7 +1914,8 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.8px',					
+		width: '43.05px',
+height: '28.19px',					
 							borderStyle: getButtonborderStyle('placeFurnace'),
 							backgroundColor: getButtonColor("placeFurnace"),
 							cursor: "pointer"
@@ -1935,7 +1940,8 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.8px',					
+		width: '43.05px',
+height: '28.19px',					
 							borderStyle: getButtonborderStyle('placeFactory'),
 							backgroundColor: getButtonColor("placeFactory"),
 							cursor: "pointer"
@@ -1960,7 +1966,8 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.8px',					
+		width: '43.05px',
+height: '28.19px',					
 							borderStyle: getButtonborderStyle('placeBulldozer'),
 							backgroundColor: getButtonColor("placeBulldozer"),
 							cursor: "pointer"
@@ -1988,7 +1995,8 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.8px',					
+		width: '43.05px',
+height: '28.19px',					
 							borderStyle: getButtonborderStyle('placeBox'),
 							backgroundColor: getButtonColor("placeBox"),
 							cursor: "pointer"
@@ -2008,7 +2016,8 @@ title="Снять паузу."> ▶️ </button>
         }
     }}
     style={{
-		fontSize: '19.8px',
+		width: '43.05px',
+height: '28.19px',
         borderStyle: getButtonborderStyle('placeWall'),
         backgroundColor: getButtonColor("placeWall"),
         cursor: "pointer",
@@ -2038,7 +2047,8 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.8px',					
+		width: '43.05px',
+height: '28.19px',					
 							borderStyle: getButtonborderStyle('placeManUD'),
 							backgroundColor: getButtonColor("placeManUD"),
 							cursor: "pointer"
@@ -2064,7 +2074,8 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.8px',					
+		width: '43.05px',
+height: '28.19px',					
 							borderStyle: getButtonborderStyle('placeManLR'),
 							backgroundColor: getButtonColor("placeManLR"),
 							cursor: "pointer"
@@ -2090,7 +2101,8 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.8px',					
+		width: '43.05px',
+height: '28.19px',					
 							borderStyle: getButtonborderStyle('placeManRL'),
 							backgroundColor: getButtonColor("placeManRL"),
 							cursor: "pointer"
@@ -2116,7 +2128,8 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.8px',					
+		width: '43.05px',
+height: '28.19px',					
 							borderStyle: getButtonborderStyle('placeManDU'),
 							backgroundColor: getButtonColor("placeManDU"),
 							cursor: "pointer"
@@ -2139,7 +2152,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-		fontSize: '19.8px',
+		width: '43.05px',
+height: '28.19px',
 							backgroundColor: getButtonColor("initializeGrid"),
 							cursor: "pointer"
 						}
@@ -2162,7 +2176,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-		fontSize: '19.8px',
+		width: '43.05px',
+height: '28.19px',
 							backgroundColor: getButtonColor("starttimeeUpdate"),
 							cursor: "pointer"
 						}
@@ -2187,7 +2202,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-		fontSize: '19.8px',
+		width: '43.05px',
+height: '28.19px',
 							backgroundColor: getButtonColor("updateCoal"), // Цвет кнопки
 							cursor: "pointer"
 						}
@@ -2221,7 +2237,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-		fontSize: '19.8px',
+		width: '43.05px',
+height: '28.19px',
 							backgroundColor: getButtonColor("fetchGrid"), // Цвет кнопки
 							cursor: "pointer"
 						}
@@ -2237,7 +2254,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-		fontSize: '19.8px',
+		width: '43.05px',
+height: '28.19px',
 							backgroundColor: getButtonColor("getDepot"), // Цвет кнопки
 							cursor: "pointer"
 						}
@@ -2297,7 +2315,8 @@ title="Снять паузу."> ▶️ </button>
 							textIndent: '0px',
 							margin: '0px',
 							width: '6.7em',
-		fontSize: '19.8px',
+		width: '43.05px',
+height: '28.19px',
 						}
 					} > < option value = "" > 🏭→❔ < /option> <
 					option value = "componentsF" > 10⚙️→🧩 < /option> <

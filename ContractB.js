@@ -976,6 +976,7 @@ if (
         cell.componentsAmount -= 10; // Сжигаем 10 компонентов
         depot.bulldozerAmount -= 1; // Сжигаем 10 бульдозеров из депо
 		cell.ironplateAmount -= 100;
+		depot.wallAmount += 1;
 
         if (depot.wallAmount > 200) {
             depot.wallAmount = 200; // Ограничиваем максимум
