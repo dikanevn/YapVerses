@@ -204,13 +204,13 @@ function updateCellContentBasedOnProbability(address user, uint256 x, uint256 y,
 }
 
 function initializeSpecialCells(address user, uint256 x, uint256 y) internal {
-    if (x == 6 && y == 7) {
+    if (x == 8 && y == 7) {
         mainGrid.updateContent(user, x, y, "Coal");
     } else if (x == 4 && y == 7) {
         mainGrid.updateContent(user, x, y, "Iron");
     } else if (x == 2 && y == 5) {
         mainGrid.updateContent(user, x, y, "Coal");
-    } else if (x == 6 && y == 3) {
+    } else if (x == 8 && y == 1) {
         mainGrid.updateContent(user, x, y, "Iron");
     }
 }
@@ -226,7 +226,7 @@ function updateDepotInitialSettings(address user) internal {
         5,  // mansAmount
         1,  // furnaceAmount
         2,  // factoryAmount
-        50  // wallAmount
+        0  // wallAmount
     );
 
     mainGrid.updateDepotPart2(
@@ -234,10 +234,10 @@ function updateDepotInitialSettings(address user) internal {
         block.timestamp, // starttimee
         block.timestamp, // lastmeteoritTimeChecked
         block.timestamp, // blocktimestamp
-        200,             // bulldozerAmount
+        300,             // bulldozerAmount
         0,               // early
         20,              // mmmtime
-        120,             // mmmdrillSpeed
+        25,             // mmmdrillSpeed
         20,              // iterationLimitDepot
         0,               // isPaused
         0,               // pausedDuration
@@ -706,8 +706,13 @@ validateRequire(depot);
 	
 function factorySettingsUpdate(uint256 x, uint256 y, string memory factorySettingsType, uint256 /* extra */) external {
      // Получаем данные ячейки через основной контракт
+	 
     IMainGrid.Depot memory depot = mainGrid.getDepot(msg.sender); // Получаем всю структуру Depot
 validateRequire(depot); 
+    IMainGrid.Cell memory cell = mainGrid.getCell(msg.sender, x, y);
+    require(keccak256(abi.encodePacked(cell.tool)) == keccak256(abi.encodePacked("Factory")), "Not Factory");
+
+
      // Определяем настройки фабрики и обновляем через основной контракт
     if (keccak256(abi.encodePacked(factorySettingsType)) == keccak256(abi.encodePacked("drillsF"))) {
         mainGrid.updateFactorySettings(msg.sender, x, y, "drillsF");

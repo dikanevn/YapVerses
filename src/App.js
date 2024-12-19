@@ -35,8 +35,8 @@ let isNonceInitializing = false;
 		
 		
 		
-		const contractAddressAAA = "0xE23D34ca12B50E331d9894c3Ba01F54a332ceca2";
-		const contractAddressBBB = "0x5e38e6F6c51d64FDd1DD3cec966D11B32eF19288";
+		const contractAddressAAA = "0x87f0DABb9DaDFA5D5A0AB1ee65488528B7B3CfB7";
+		const contractAddressBBB = "0x8EC8C04EF7E861CFD73Bf6614CeeF2211e21C9aa";
 		
 		
 		
@@ -2223,7 +2223,7 @@ title="Снять паузу."> ▶️ </button>
 							backgroundColor: getButtonColor("fetchGrid"), // Цвет кнопки
 							cursor: "pointer"
 						}
-					} title=""> 🗺️ < /button>
+					} title="Для отладки, не жми лучше."> 🗺️ < /button>
 
 
 					< button
@@ -2245,29 +2245,7 @@ title="Снять паузу."> ▶️ </button>
 
 
 
-					< button
-					onMouseDown = {
-						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие клика к родителю
-							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
 
-							if (action === "updateAll") {
-								setAction("getCell");
-							}
-							else {
-								setAction("updateAll");
-							}
-						}
-					}
-					style = {
-						{
-								
-		fontSize: '19.8px',					
-							borderStyle: getButtonborderStyle('updateAll'),
-							backgroundColor: getButtonColor("updateAll"),
-							cursor: "pointer"
-						}
-					} title="Для отладки, не жми лучше."> 🔄 < /button>
 
 
 					
@@ -2744,6 +2722,7 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
         fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
         fontSize: '17px', // Размер шрифта
         textAlign: 'center',
+		marginTop: '1px',
     }}
 >
     Последние данные {dynamicEarlyValue} сек. назад
