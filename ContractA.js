@@ -217,7 +217,7 @@ function initializeSpecialCells(address user, uint256 x, uint256 y) internal {
 
 function updateDepotInitialSettings(address user) internal {
 	uint256 gridSize = 10; // Задаем размер сетки
-	uint256 theEndCount = gridSize * gridSize;
+	uint256 theEndCount = gridSize * gridSize + 100;
     mainGrid.updateDepotPart1(
         user,
         gridSize, // gridSize
@@ -266,7 +266,7 @@ function generateRandom(uint256 x, uint256 y, address user) internal view return
 function validateRequire(IMainGrid.Depot memory depot) internal view {
     require(block.timestamp - depot.blocktimestamp < 60, "Wait for the update");
     require(depot.isPaused == 0, "paused");
-    require(depot.theEndCount > 0, "Game Over");
+    require(depot.theEndCount > 100, "Game Over");
 	require(depot.early < 60, "Wait for the update");
 }
 	
@@ -730,7 +730,7 @@ validateRequire(depot);
     }
 }
 	
-	/*
+	
 
 // Постановка на паузу
 function setPause(uint256) external {
@@ -758,7 +758,7 @@ function unsetPause(uint256) external {
 }
 
 
-*/
+
 	
 	
 	

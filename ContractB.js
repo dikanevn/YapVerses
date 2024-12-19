@@ -143,7 +143,7 @@ contract ContractBBB {
 function validateRequire(IMainGrid.Depot memory depot) internal view {
     require(block.timestamp - depot.blocktimestamp < 60, "Wait for the update");
     require(depot.isPaused == 0, "paused");
-    require(depot.theEndCount > 0, "Game Over");
+    require(depot.theEndCount > 100, "Game Over");
 	require(depot.early < 60, "Wait for the update");
 }
 	
@@ -340,7 +340,7 @@ function removeTool(uint256 x, uint256 y, uint256 /* unused */) public {
     IMainGrid.Depot memory depot = mainGrid.getDepot(msg.sender);
 
 		require(depot.isPaused == 0, "paused");
-		require(depot.theEndCount > 0, "Game Over");
+		//require(depot.theEndCount > 100, "Game Over");
      require(x < depot.gridSize && y < depot.gridSize, "Invalid coordinates");
 
     string memory toolType = cell.tool;
@@ -410,7 +410,7 @@ function meteoritfunction(uint256 externalRandom) public {
     uint256 gridSize = depot.gridSize;
 
     require(depot.isPaused == 0, "paused");
-    require(depot.theEndCount > 0, "Game Over");
+   // require(depot.theEndCount > 100, "Game Over");
      require(gridSize > 0, "Grid size is not initialized");
     //emit Debug("Grid size initialized", gridSize);
 
@@ -611,8 +611,7 @@ function handleMeteoriteImpact(uint256 x, uint256 y, IMainGrid.Depot memory depo
 
         // Если wallPowerAmount становится 0, обновляем инструмент на "Ruins"
         if (newWallPower == 0) {
-            mainGrid.updateTool(msg.sender, x, y, "Ruins");
-			depot.theEndCount -= 1;
+             removeTool(x, y, 0);
         }
 
         return; // Завершаем выполнение функции
@@ -629,22 +628,23 @@ function handleMeteoriteImpact(uint256 x, uint256 y, IMainGrid.Depot memory depo
         removeTool(x, y, 0);
     }
 
-    // Логика обновления инструмента в зависимости от его текущего состояния
-    if (
-        keccak256(abi.encodePacked(toolType)) == keccak256(abi.encodePacked("toolEmpty"))
-    ) {
-		depot.theEndCount -= 1;
-        mainGrid.updateTool(msg.sender, x, y, "Space");
-		
+// Логика обновления инструмента в зависимости от его текущего состояния
+if (
+    keccak256(abi.encodePacked(toolType)) == keccak256(abi.encodePacked("toolEmpty"))
+) {
+    
+        depot.theEndCount -= 1;
+        mainGrid.updateDepotTheEndCount(msg.sender, depot.theEndCount);
+    
+    mainGrid.updateTool(msg.sender, x, y, "Space");
+} else {
+    
+        depot.theEndCount -= 1;
+        mainGrid.updateDepotTheEndCount(msg.sender, depot.theEndCount);
+    
+    mainGrid.updateTool(msg.sender, x, y, "Ruins");
+}
 
-
-    } else {
-		depot.theEndCount -= 1;
-        mainGrid.updateTool(msg.sender, x, y, "Ruins");
-		
-
-
-    }
 }
 
 
@@ -723,7 +723,7 @@ function updateCoal(uint256 externalRandom) public {
     // Получаем данные депо и размер сетки
     IMainGrid.Depot memory depot = mainGrid.getDepot(user);
     require(depot.isPaused == 0, "paused");
-    require(depot.theEndCount > 0, "Game Over");
+    //require(depot.theEndCount > 100, "Game Over");
     uint256 gridSize = depot.gridSize;
 
     // Обновляем временные метки депо
@@ -1044,7 +1044,7 @@ if (factorySettingsHash == keccak256(abi.encodePacked("bulldozerF"))) {
         mainGrid.updateDepotBulldozerAmount(user, depot.bulldozerAmount);
         mainGrid.updateDepotFactoryAmount(user, depot.factoryAmount);
 		mainGrid.updateDepotWallAmount(user, depot.wallAmount); // Добавляем обновление стен
-			mainGrid.updateDepotTheEndCount(msg.sender, depot.theEndCount);
+		
     }
 
 
