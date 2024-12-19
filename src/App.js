@@ -2289,37 +2289,35 @@ title="Снять паузу."> ▶️ </button>
 								//marginTop: '2.5px',
 								alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
 							}
-						} > < div style = {
-							{
-								display: 'grid',
-								gridTemplateColumns: `repeat(${grid.length}, 30px)`,
-								gap: '0px',
-							}
-						} > {
-							grid[0].map((_, colIndex) => (grid.map((_, rowIndex) => {
-											const cell = grid[rowIndex][grid[0].length - 1 - colIndex];
-											return ( < div key = {
-													`${rowIndex}-${colIndex}`
-												}
-												style = {
-													{
-														width: '30px',
-														height: '30px',
-														backgroundColor: cell.tool === "Space" ? '#000' : cell.tool === "Ruins" ? '#290000' : cell.content === "contentEmpty" ? '#127852' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#000' : cell.content === "Null" ? '#121212' : '#121212',
-														display: 'flex',
-														justifyContent: 'center',
-														alignItems: 'center',
-														cursor: 'pointer',
-														border: selectedCell2 && selectedCell2.x === cell.x && selectedCell2.y === cell.y ? '2px solid blue' : '0.5px solid #000',
-														boxSizing: 'border-box',
-														fontSize: '16px',
-														overflow: 'hidden',
-														textOverflow: 'ellipsis',
-														textAlign: 'center',
-														whiteSpace: 'normal', // Разрешаем перенос текста
-														flexDirection: 'column', // Элементы будут располагаться вертикально
-													}
-												}
+						} > <div style={{
+    display: 'grid',
+    gridTemplateColumns: `repeat(${grid.length}, 1fr)`,
+    gap: '0px',
+    width: 'min(98vw, 98vh)', // Сетка занимает меньшее из значений ширины или высоты экрана
+    height: 'min(98vw, 98vh)', // Сетка остается квадратной
+}}>
+    {grid[0].map((_, colIndex) => (
+        grid.map((_, rowIndex) => {
+            const cell = grid[rowIndex][grid[0].length - 1 - colIndex];
+            return (
+                <div key={`${rowIndex}-${colIndex}`} style={{
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: cell.tool === "Space" ? '#000' : cell.tool === "Ruins" ? '#290000' : cell.content === "contentEmpty" ? '#127852' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#000' : cell.content === "Null" ? '#121212' : '#121212',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    border: selectedCell2 && selectedCell2.x === cell.x && selectedCell2.y === cell.y ? '2px solid blue' : '0.2px solid #000',
+                    boxSizing: 'border-box',
+                    fontSize: '16px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: 'center',
+                    whiteSpace: 'normal', // Разрешаем перенос текста
+                    flexDirection: 'column', // Элементы будут располагаться вертикально
+					
+                }}
 												onClick = {
 													(e) => {
 														e.stopPropagation(); // Останавливаем всплытие события
