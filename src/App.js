@@ -1738,7 +1738,7 @@ return (
     flexWrap: 'wrap',
     justifyContent: 'center',
     cursor: "pointer",
-    width: "300px",
+    width: "310px",
     margin: '0 auto', // Центрирование по ширине
 
    
@@ -1788,8 +1788,8 @@ return (
 							borderColor: 'buttonborder',
 							borderImage: 'initial',
 							color: 'white',
-							letterSpacing: '0.413em',
-							fontSize: '19.5px'
+							letterSpacing: '0.410em',
+							fontSize: '19.8px'
 						}
 					} title="Эта кнопка отжимает другие кнопки."> &nbsp;&nbsp;< /button>
 
@@ -1801,7 +1801,7 @@ return (
         setPause();
     }}
     style={{
-		fontSize: '19.5px',
+		fontSize: '19.8px',
         borderStyle: isGamePaused === 1 ? "inset" : "outset", // Если пауза не активна
         backgroundColor: isGamePaused === 1 ? "blue" : "white", // Если пауза активна
         cursor: "pointer",
@@ -1815,7 +1815,7 @@ title="Да-да, пауза в блокчейне."> ⏸️ </button>
         unsetPause();
     }}
     style={{
-		fontSize: '19.5px',
+		fontSize: '19.8px',
         borderStyle: isGamePaused === 0 ? "inset" : "outset", // Если пауза не активна
         backgroundColor: isGamePaused === 0 ? "blue" : "white", // Если пауза не активна
         cursor: "pointer",
@@ -1847,7 +1847,7 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.5px',					
+		fontSize: '19.8px',					
 							borderStyle: getButtonborderStyle('removeTool'),
 							backgroundColor: getButtonColor("removeTool"),
 							cursor: "pointer"
@@ -1875,7 +1875,7 @@ title="Снять паузу."> ▶️ </button>
         }
     }}
     style={{
-		fontSize: '19.5px',
+		fontSize: '19.8px',
         borderStyle: getButtonborderStyle('placeDrill'),
         backgroundColor: getButtonColor("placeDrill"),
         cursor: "pointer",
@@ -1908,7 +1908,7 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.5px',					
+		fontSize: '19.8px',					
 							borderStyle: getButtonborderStyle('placeFurnace'),
 							backgroundColor: getButtonColor("placeFurnace"),
 							cursor: "pointer"
@@ -1933,7 +1933,7 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.5px',					
+		fontSize: '19.8px',					
 							borderStyle: getButtonborderStyle('placeFactory'),
 							backgroundColor: getButtonColor("placeFactory"),
 							cursor: "pointer"
@@ -1958,7 +1958,7 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.5px',					
+		fontSize: '19.8px',					
 							borderStyle: getButtonborderStyle('placeBulldozer'),
 							backgroundColor: getButtonColor("placeBulldozer"),
 							cursor: "pointer"
@@ -1986,7 +1986,7 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.5px',					
+		fontSize: '19.8px',					
 							borderStyle: getButtonborderStyle('placeBox'),
 							backgroundColor: getButtonColor("placeBox"),
 							cursor: "pointer"
@@ -2006,7 +2006,7 @@ title="Снять паузу."> ▶️ </button>
         }
     }}
     style={{
-		fontSize: '19.5px',
+		fontSize: '19.8px',
         borderStyle: getButtonborderStyle('placeWall'),
         backgroundColor: getButtonColor("placeWall"),
         cursor: "pointer",
@@ -2036,7 +2036,7 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.5px',					
+		fontSize: '19.8px',					
 							borderStyle: getButtonborderStyle('placeManUD'),
 							backgroundColor: getButtonColor("placeManUD"),
 							cursor: "pointer"
@@ -2062,7 +2062,7 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.5px',					
+		fontSize: '19.8px',					
 							borderStyle: getButtonborderStyle('placeManLR'),
 							backgroundColor: getButtonColor("placeManLR"),
 							cursor: "pointer"
@@ -2088,7 +2088,7 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.5px',					
+		fontSize: '19.8px',					
 							borderStyle: getButtonborderStyle('placeManRL'),
 							backgroundColor: getButtonColor("placeManRL"),
 							cursor: "pointer"
@@ -2114,7 +2114,7 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.5px',					
+		fontSize: '19.8px',					
 							borderStyle: getButtonborderStyle('placeManDU'),
 							backgroundColor: getButtonColor("placeManDU"),
 							cursor: "pointer"
@@ -2137,7 +2137,7 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-		fontSize: '19.5px',
+		fontSize: '19.8px',
 							backgroundColor: getButtonColor("initializeGrid"),
 							cursor: "pointer"
 						}
@@ -2160,7 +2160,7 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-		fontSize: '19.5px',
+		fontSize: '19.8px',
 							backgroundColor: getButtonColor("starttimeeUpdate"),
 							cursor: "pointer"
 						}
@@ -2185,7 +2185,7 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-		fontSize: '19.5px',
+		fontSize: '19.8px',
 							backgroundColor: getButtonColor("updateCoal"), // Цвет кнопки
 							cursor: "pointer"
 						}
@@ -2219,7 +2219,7 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-		fontSize: '19.5px',
+		fontSize: '19.8px',
 							backgroundColor: getButtonColor("fetchGrid"), // Цвет кнопки
 							cursor: "pointer"
 						}
@@ -2235,7 +2235,7 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-		fontSize: '19.5px',
+		fontSize: '19.8px',
 							backgroundColor: getButtonColor("getDepot"), // Цвет кнопки
 							cursor: "pointer"
 						}
@@ -2262,7 +2262,7 @@ title="Снять паузу."> ▶️ </button>
 					style = {
 						{
 								
-		fontSize: '19.5px',					
+		fontSize: '19.8px',					
 							borderStyle: getButtonborderStyle('updateAll'),
 							backgroundColor: getButtonColor("updateAll"),
 							cursor: "pointer"
@@ -2317,7 +2317,7 @@ title="Снять паузу."> ▶️ </button>
 							textIndent: '0px',
 							margin: '0px',
 							width: '6.7em',
-		fontSize: '19.5px',
+		fontSize: '19.8px',
 						}
 					} > < option value = "" > 🏭→❔ < /option> <
 					option value = "componentsF" > ⚙️→🧩 < /option> <
@@ -2347,8 +2347,8 @@ title="Снять паузу."> ▶️ </button>
 							alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
 							margin: '0',
 							color: '#b5047a', // Устанавливаем цвет текста
-							//fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
-							fontSize: '12px', // Размер шрифта
+							fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
+							fontSize: '17px', // Размер шрифта
 							//border: "1px solid #ccc",
 						}
 					} > Вы пролетели уже {
@@ -2365,6 +2365,7 @@ title="Снять паузу."> ▶️ </button>
     padding: '0',
 								//marginTop: '2.5px',
 								alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
+								marginTop: '3px',
 							}
 						} >< div style = {
 							{
@@ -2382,7 +2383,7 @@ title="Снять паузу."> ▶️ </button>
 													{
 														width: '30px',
 														height: '30px',
-														backgroundColor: cell.tool === "Space" ? '#000' : cell.tool === "Ruins" ? '#290000' : cell.content === "contentEmpty" ? '#127852' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#000' : cell.content === "Null" ? '#121212' : '#121212',
+														backgroundColor: cell.tool === "Space" ? '#000' : cell.tool === "Ruins" ? '#290000' : cell.content === "contentEmpty" ? '#127852' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#002d33' : cell.content === "Null" ? '#121212' : '#121212',
 														display: 'flex',
 														justifyContent: 'center',
 														alignItems: 'center',
@@ -2732,25 +2733,22 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
 
 
 
-											< p
-											style = {
-												{
-													display: 'flex', // Используем flexbox для выравнивания
-													justifyContent: 'center', // Центрируем по горизонтали
-													width: '100vw', // Ширина контейнера на весь экран
-													//height: '100vh', // Высота контейнера на весь экран
-													alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
-													margin: '0',
-													color: '#ffe500', // Устанавливаем цвет текста
-													//fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
-													fontSize: '12px', // Размер шрифта
-													//border: "1px solid #ccc",
-													textAlign: 'center',
-												}
-											} >
+<p
+    style={{
+        display: 'flex', // Используем flexbox для выравнивания
+        justifyContent: 'center', // Центрируем по горизонтали
+        width: '100vw', // Ширина контейнера на весь экран
+        alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
+        margin: '0',
+        color: dynamicEarlyValue > 40 ? 'red' : '#ffe500', // Условие для смены цвета текста
+        fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
+        fontSize: '17px', // Размер шрифта
+        textAlign: 'center',
+    }}
+>
     Последние данные {dynamicEarlyValue} сек. назад
+</p>
 
-											< /p> 
 
 
 
@@ -2767,9 +2765,11 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
 												gap: '5px', // Уменьшаем отступ между элементами
 												color: 'SaddleBrown', // Цвет текста
 												//width: '309px', // Ограничиваем ширину
-												fontSize: '12px', // Размер шрифта
+        fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
+        fontSize: '14px', // Размер шрифта
 												lineHeight: '16px', // Межстрочный интервал
 												//padding: '5px', // Отступы внутри контейнера
+												 marginTop: '3px',
 											}
 										} > < p style = {
 											{
