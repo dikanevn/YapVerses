@@ -1734,12 +1734,14 @@ return (
 				} > {
 					< div > < div style = {
 						{
-							display: 'flex',
-							flexWrap: 'wrap',
-							justifyContent: 'center',
-							//alignItems: 'center', 
-							//height: '100vh' 
-							cursor: "pointer"
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    cursor: "pointer",
+    width: "300px",
+    margin: '0 auto', // Центрирование по ширине
+
+   
 						}
 					} >
 
@@ -1787,6 +1789,7 @@ return (
 							borderImage: 'initial',
 							color: 'white',
 							letterSpacing: '0.413em',
+							fontSize: '20px'
 						}
 					} title="Эта кнопка отжимает другие кнопки."> &nbsp;&nbsp;< /button>
 
@@ -1798,6 +1801,7 @@ return (
         setPause();
     }}
     style={{
+		fontSize: '20px',
         borderStyle: isGamePaused === 1 ? "inset" : "outset", // Если пауза не активна
         backgroundColor: isGamePaused === 1 ? "blue" : "white", // Если пауза активна
         cursor: "pointer",
@@ -1811,6 +1815,7 @@ title="Да-да, пауза в блокчейне."> ⏸️ </button>
         unsetPause();
     }}
     style={{
+		fontSize: '20px',
         borderStyle: isGamePaused === 0 ? "inset" : "outset", // Если пауза не активна
         backgroundColor: isGamePaused === 0 ? "blue" : "white", // Если пауза не активна
         cursor: "pointer",
@@ -1841,7 +1846,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-													
+								
+		fontSize: '20px',					
 							borderStyle: getButtonborderStyle('removeTool'),
 							backgroundColor: getButtonColor("removeTool"),
 							cursor: "pointer"
@@ -1869,6 +1875,7 @@ title="Снять паузу."> ▶️ </button>
         }
     }}
     style={{
+		fontSize: '20px',
         borderStyle: getButtonborderStyle('placeDrill'),
         backgroundColor: getButtonColor("placeDrill"),
         cursor: "pointer",
@@ -1900,7 +1907,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-													
+								
+		fontSize: '20px',					
 							borderStyle: getButtonborderStyle('placeFurnace'),
 							backgroundColor: getButtonColor("placeFurnace"),
 							cursor: "pointer"
@@ -1924,7 +1932,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-													
+								
+		fontSize: '20px',					
 							borderStyle: getButtonborderStyle('placeFactory'),
 							backgroundColor: getButtonColor("placeFactory"),
 							cursor: "pointer"
@@ -1948,7 +1957,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-													
+								
+		fontSize: '20px',					
 							borderStyle: getButtonborderStyle('placeBulldozer'),
 							backgroundColor: getButtonColor("placeBulldozer"),
 							cursor: "pointer"
@@ -1975,7 +1985,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-													
+								
+		fontSize: '20px',					
 							borderStyle: getButtonborderStyle('placeBox'),
 							backgroundColor: getButtonColor("placeBox"),
 							cursor: "pointer"
@@ -1995,6 +2006,7 @@ title="Снять паузу."> ▶️ </button>
         }
     }}
     style={{
+		fontSize: '20px',
         borderStyle: getButtonborderStyle('placeWall'),
         backgroundColor: getButtonColor("placeWall"),
         cursor: "pointer",
@@ -2023,7 +2035,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-													
+								
+		fontSize: '20px',					
 							borderStyle: getButtonborderStyle('placeManUD'),
 							backgroundColor: getButtonColor("placeManUD"),
 							cursor: "pointer"
@@ -2048,7 +2061,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-													
+								
+		fontSize: '20px',					
 							borderStyle: getButtonborderStyle('placeManLR'),
 							backgroundColor: getButtonColor("placeManLR"),
 							cursor: "pointer"
@@ -2073,7 +2087,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-													
+								
+		fontSize: '20px',					
 							borderStyle: getButtonborderStyle('placeManRL'),
 							backgroundColor: getButtonColor("placeManRL"),
 							cursor: "pointer"
@@ -2098,7 +2113,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-													
+								
+		fontSize: '20px',					
 							borderStyle: getButtonborderStyle('placeManDU'),
 							backgroundColor: getButtonColor("placeManDU"),
 							cursor: "pointer"
@@ -2121,6 +2137,7 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
+		fontSize: '20px',
 							backgroundColor: getButtonColor("initializeGrid"),
 							cursor: "pointer"
 						}
@@ -2143,6 +2160,7 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
+		fontSize: '20px',
 							backgroundColor: getButtonColor("starttimeeUpdate"),
 							cursor: "pointer"
 						}
@@ -2167,6 +2185,7 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
+		fontSize: '20px',
 							backgroundColor: getButtonColor("updateCoal"), // Цвет кнопки
 							cursor: "pointer"
 						}
@@ -2200,6 +2219,7 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
+		fontSize: '20px',
 							backgroundColor: getButtonColor("fetchGrid"), // Цвет кнопки
 							cursor: "pointer"
 						}
@@ -2215,6 +2235,7 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
+		fontSize: '20px',
 							backgroundColor: getButtonColor("getDepot"), // Цвет кнопки
 							cursor: "pointer"
 						}
@@ -2240,7 +2261,8 @@ title="Снять паузу."> ▶️ </button>
 					}
 					style = {
 						{
-													
+								
+		fontSize: '20px',					
 							borderStyle: getButtonborderStyle('updateAll'),
 							backgroundColor: getButtonColor("updateAll"),
 							cursor: "pointer"
@@ -2295,6 +2317,7 @@ title="Снять паузу."> ▶️ </button>
 							textIndent: '0px',
 							margin: '0px',
 							width: '6.7em',
+		fontSize: '20px',
 						}
 					} > < option value = "" > 🏭→❔ < /option> <
 					option value = "componentsF" > ⚙️→🧩 < /option> <
@@ -2343,35 +2366,37 @@ title="Снять паузу."> ▶️ </button>
 								//marginTop: '2.5px',
 								alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
 							}
-						} > <div style={{
-    display: 'grid',
-    gridTemplateColumns: `repeat(${grid.length}, 1fr)`,
-    gap: '0px',
-    width: 'min(98vw, 98vh)', // Сетка занимает меньшее из значений ширины или высоты экрана
-    height: 'min(98vw, 98vh)', // Сетка остается квадратной
-}}>
-    {grid[0].map((_, colIndex) => (
-        grid.map((_, rowIndex) => {
-            const cell = grid[rowIndex][grid[0].length - 1 - colIndex];
-            return (
-                <div key={`${rowIndex}-${colIndex}`} style={{
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: cell.tool === "Space" ? '#000' : cell.tool === "Ruins" ? '#290000' : cell.content === "contentEmpty" ? '#127852' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#000' : cell.content === "Null" ? '#121212' : '#121212',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    border: selectedCell2 && selectedCell2.x === cell.x && selectedCell2.y === cell.y ? '2px solid blue' : '0.2px solid #000',
-                    boxSizing: 'border-box',
-                    fontSize: '16px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    textAlign: 'center',
-                    whiteSpace: 'normal', // Разрешаем перенос текста
-                    flexDirection: 'column', // Элементы будут располагаться вертикально
-					
-                }}
+						} >< div style = {
+							{
+								display: 'grid',
+								gridTemplateColumns: `repeat(${grid.length}, 30px)`,
+								gap: '0px',
+							}
+						} > {
+							grid[0].map((_, colIndex) => (grid.map((_, rowIndex) => {
+											const cell = grid[rowIndex][grid[0].length - 1 - colIndex];
+											return ( < div key = {
+													`${rowIndex}-${colIndex}`
+												}
+												style = {
+													{
+														width: '30px',
+														height: '30px',
+														backgroundColor: cell.tool === "Space" ? '#000' : cell.tool === "Ruins" ? '#290000' : cell.content === "contentEmpty" ? '#127852' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#000' : cell.content === "Null" ? '#121212' : '#121212',
+														display: 'flex',
+														justifyContent: 'center',
+														alignItems: 'center',
+														cursor: 'pointer',
+														border: selectedCell2 && selectedCell2.x === cell.x && selectedCell2.y === cell.y ? '2px solid blue' : '0.2px solid #000',
+														boxSizing: 'border-box',
+														fontSize: '16px',
+														overflow: 'hidden',
+														textOverflow: 'ellipsis',
+														textAlign: 'center',
+														whiteSpace: 'normal', // Разрешаем перенос текста
+														flexDirection: 'column', // Элементы будут располагаться вертикально
+													}
+												}
 												onClick = {
 													(e) => {
 														e.stopPropagation(); // Останавливаем всплытие события
@@ -2799,19 +2824,21 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
 											{
 												//marginleft: "90px", /* Отступ слева */
 												//marginright: "90px", /* Отступ справа */
-												position: 'absolute',
-												color: 'LimeGreen',
-												marginTop: "5px",
-												padding: "10px",
-												overflow: "auto",
-												display: "flex",
-												flexDirection: "column",
-												alignItems: "flex-start",
-												width: "97vw",
-												height: "70px",
-												border: "1px solid #808080",
-												resize: "vertical",
-												boxSizing: "border-box"
+    position: 'absolute',
+    left: '50%', // Центрируем по ширине
+    transform: 'translateX(-50%)', // Сдвигаем обратно на половину ширины элемента
+    color: 'LimeGreen',
+    marginTop: "5px",
+    padding: "10px",
+    overflow: "auto",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    width: "300px",
+    height: "70px",
+    border: "1px solid #808080",
+    resize: "vertical",
+    boxSizing: "border-box"
 											}
 										}
 										ref = {
