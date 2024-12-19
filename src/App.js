@@ -1744,7 +1744,7 @@ return (
    
 						}
 					} >
-
+					{/*}
 					< button
 					onMouseDown = {
 						() => {
@@ -1794,6 +1794,8 @@ height: '28.19px',
 						}
 					} title="Эта кнопка отжимает другие кнопки."
 					>&nbsp;&nbsp;< /button>
+					
+					{*/}
 
 
 < button
