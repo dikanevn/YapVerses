@@ -1,39 +1,98 @@
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 20px;
-  justify-items: center;  /* Центрируем элементы по горизонтали */
-  align-items: center;    /* Центрируем элементы по вертикали */
+body.placeBox * {
+  cursor: url('placeBox.png') 16 16, auto !important;
 }
 
-.grid-item {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100px;
-  height: 100px;
-  border: 1px solid #ccc;
-  font-size: 24px;
-  background-color: #f9f9f9;
-  cursor: pointer;
+body.placeBulldozer * {
+  cursor: url('placeBulldozer.png') 16 16, auto !important;
 }
 
-.grid-item.empty {
-  background-color: #fff;
+body.removeTool * {
+  cursor: url('removeTool.png') 16 16, auto !important;
 }
 
-.grid-item.ore {
-  background-color: #ccc;
+body.placeManUD * {
+  cursor: url('placeManUD.png') 16 16, auto !important;
 }
 
-button {
-  padding: 10px 20px;
-  margin: 10px;
-  font-size: 16px;
-  cursor: pointer;
+body.placeManLR * {
+  cursor: url('placeManLR.png') 16 16, auto !important;
 }
 
-button:hover {
-  background-color: #ddd;
+body.placeManDU * {
+  cursor: url('placeManDU.png') 16 16, auto !important;
 }
+
+body.placeDrill * {
+  cursor: url('placeDrill.png') 16 16, auto !important;
+}
+
+body.placeFurnace * {
+  cursor: url('placeFurnace.png') 16 16, auto !important;
+}
+
+body.placeFactory * {
+  cursor: url('placeFactory.png') 16 16, auto !important;
+}
+
+body.placeWall * {
+  cursor: url('placeWall.png') 16 16, auto !important;
+}
+
+
+body.placeManRL * {
+  cursor: url('placeManRL.png') 16 16, auto !important;
+}
+
+body.componentsF * {
+  cursor: url('componentsF.png') 16 16, auto !important;
+}
+
+body.boxesF * {
+  cursor: url('boxesF.png') 16 16, auto !important;
+}
+
+body.mansF * {
+  cursor: url('mansF.png') 16 16, auto !important;
+}
+
+body.furnaceF * {
+  cursor: url('furnaceF.png') 16 16, auto !important;
+}
+
+body.factoryF * {
+  cursor: url('factoryF.png') 16 16, auto !important;
+}
+
+body.bulldozerF * {
+  cursor: url('bulldozerF.png') 16 16, auto !important;
+}
+
+body.drillsF * {
+  cursor: url('drillsF.png') 16 16, auto !important;
+}
+
+body.componentsF * {
+  cursor: url('componentsF.png') 16 16, auto !important;
+}
+
+body.wallF * {
+  cursor: url('wallF.png') 16 16, auto !important;
+}
+
+
+@keyframes signalPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+

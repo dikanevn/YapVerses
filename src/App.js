@@ -1,35 +1,74 @@
+
+		
+		
+
+
+
+
 import React, {
 	useState,
 	useEffect,
 	useRef
 }
 from 'react';
+import './App.css';
 import {
 	ethers
 }
 from 'ethers';
-import SimpleGridABI from './SimpleGridABI.json';
-document.body.style.backgroundColor = "#121212";
-document.body.style.color = "#121212";
+import SimpleGridAbiBBB from './SimpleGridAbiBBB.json';
+import SimpleGridAbiAAA from './SimpleGridAbiAAA.json';
+import SimpleGridAbiMAIN from './SimpleGridAbiMAIN.json';
+
+document.body.style.backgroundColor = "#000";
+document.body.style.color = "#000";
+
 const App = () => {
-		const [provider, setProvider] = useState(null);
-		const [contract, setContract] = useState(null);
+		let transactionQueue = []; // Очередь транзакций
+let isProcessing = false; // Флаг обработки очереди
+let isNonceInitializing = false;
+		
+		
+		
+		
+		const contractAddressMain = "0xD190AAAebCF04beb5dAE15b264270616e144B26b";
+		
+		
+		
+		const contractAddressAAA = "0xE23D34ca12B50E331d9894c3Ba01F54a332ceca2";
+		const contractAddressBBB = "0x5e38e6F6c51d64FDd1DD3cec966D11B32eF19288";
+		
+		
+		
+
 		const [grid, setGrid] = useState([]);
 		const [depot, setDepot] = useState([]);
 		const [loading, setLoading] = useState(false);
-		const [action, setAction] = useState(null);
+		const [action, setAction] = useState("getCell");
 		const [selectedCell, setSelectedCell] = useState(null);
 		const [selectedCell2, setSelectedCell2] = useState(null);
-const defaultPrivateKey = ""; // Ваш тестовый приватный ключ
-const [userPrivateKey, setUserPrivateKey] = useState(defaultPrivateKey);
-const [isKeyConfirmed, setIsKeyConfirmed] = useState(!!defaultPrivateKey); // Подтверждаем, если ключ уже есть
+		const [logMessages, setLogMessages] = useState([]);
+		const [activeCells, setActiveCells] = useState([]);
+		const [isPressed, setIsPressed] = useState(false);
+		//const defaultPrivateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ваш тестовый приватный ключ
+		const defaultPrivateKey = ""; // Ваш тестовый приватный ключ
+		const [userPrivateKey, setUserPrivateKey] = useState(defaultPrivateKey);
+		const [isKeyConfirmed, setIsKeyConfirmed] = useState(!!defaultPrivateKey); // Подтверждаем, только если ключ непустой
+		const [isUsingPrivateKey, setIsUsingPrivateKey] = useState(true);
+		const [privateSigner, setPrivateSigner] = useState(null);
+		const [signer, setSigner] = useState(null);
+		const [timePassed, setTimePassed] = useState('');
+		const [Distance, setDistance] = useState('');
+		const updateCoalButtonRef = useRef(null);
+const [isGamePaused, setIsGamePaused] = useState(0); // 1 - пауза, 0 - игра идёт
+const buttonActionRef = useRef(false);
+const [earlyValue, setEarlyValue] = useState(0); // Для отображения переменной early
+const [mmmtimeValue, setMmmtimeValue] = useState(0); // Для отображения переменной mmmtime
+const [meteoritCount, setMeteoritCount] = useState(0); // Для отображения количества метеоритов
+const [hasGameOverAlertShown, setHasGameOverAlertShown] = useState(false);
 
 
-  const [timePassed, setTimePassed] = useState('');
-		const contractAddress = "0x85495222Fd7069B987Ca38C2142732EbBFb7175D";
 
-
-		const gasLLimit = 30000000; // Вставьте ваш приватный ключ сюда
 		const [logMessage, setLogMessage] = useState(""); // Состояние для хранения лог-сообщения
 		const [logErrorMessage, setlogErrorMessage] = useState(""); // Состояние для хранения лог-сообщения
 		useEffect(() => {
@@ -38,725 +77,1396 @@ const [isKeyConfirmed, setIsKeyConfirmed] = useState(!!defaultPrivateKey); // П
 			setDepot([]);
 			setAction(null);
 			setSelectedCell(null);
-		}, []); // Пустой массив зависимостей означает, что этот код выполнится один раз при монтировании компонента.
+		}, []); 
+	
 
-		const connectWallet = async () => {
-			if (window.ethereum) {
-				try {
-					// Инициализация провайдера
-					const prov = new ethers.providers.Web3Provider(window.ethereum);
-					// Запрос аккаунтов
-					const accounts = await prov.send('eth_requestAccounts', []);
-					if (accounts.length === 0) {
-						//alert("Нет доступных аккаунтов в MetaMask.");
-						return;
-					}
-					// Инициализация подписанта
-					const signer = prov.getSigner();
-					// Инициализация контракта
-					const contractInstance = new ethers.Contract(contractAddress, SimpleGridABI, signer);
-					// Сохранение провайдера и контракта в состоянии
-					setProvider(prov);
-					setContract(contractInstance);
-					console.log('Wallet connected:', accounts[0]); // Вывод активного аккаунта
-					console.log('Contract instance:', contractInstance);
-				}
-				catch (error) {
-					console.error("Ошибка подключения кошелька:", error);
-					//alert("Ошибка подключения кошелька. Проверьте MetaMask.");
-				}
-			}
-			else {
-				//alert("Установите MetaMask!");
-			}
-		};
+	
 
-		const isFetching = useRef(false);
+const getSigner = () => {
+    if (!privateSigner) {
+        throw new Error("Приватный ключ не установлен или не подтверждён.");
+    }
+    return privateSigner;
+};
 
-		const fetchGrid = async () => {
-			if (isFetching.current) return; // Если уже выполняется запрос, не запускаем новый
-			isFetching.current = true;
-			setLoading(true);
+		
+		
+const [provider, setProvider] = useState(null);
 
-			if (contract) {
-				try {
-					console.log("Fetching grid data");
-					const rows = await Promise.all(
-						Array.from({
-							length: 10
-						}, async (_, x) => {
-							const row = await Promise.all(
-								Array.from({
-									length: 10
-								}, async (_, y) => {
-									try {
-										const result = await contract.getCell(x, y);
-										if (!result || result === null) {
-											console.error(`Получены пустые данные для ячейки (${x}, ${y})`);
-											return {
-												x,
-												y,
-												content: "contentEmpty",
-												tool: "toolEmpty",
-												man: "manEmpty",
-												coalAmount: "0",
-												ironAmount: "0",
-												ironplateAmount: "0",
-												lastBlockChecked: "0",
-												componentsAmount: "0",
-												factorySettings: "0"
-											};
-										}
+useEffect(() => {
+    const initializeProvider = async () => {
+        try {
+            const rpcUrl = "https://pacific-rpc.sepolia-testnet.manta.network/http";
+            const newProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
+            setProvider(newProvider);
+            console.log("Провайдер инициализирован через JSON-RPC.");
+        } catch (error) {
+            console.error("Ошибка при инициализации провайдера:", error);
+        }
+    };
 
-										const content = result.content || "Coal";
-										const tool = result.tool || "toolEmpty";
-										const man = result.man || "manEmpty";
-										const coalAmount = result.coalAmount ? result.coalAmount.toString() : "0";
-										const ironAmount = result.ironAmount ? result.ironAmount.toString() : "0";
-										const ironplateAmount = result.ironplateAmount ? result.ironplateAmount.toString() : "0";
-										const lastBlockChecked = result.lastBlockChecked ? result.lastBlockChecked.toString() : "0";
-										const componentsAmount = result.componentsAmount ? result.componentsAmount.toString() : "0";
-										const factorySettings = result.factorySettings ? result.factorySettings.toString() : "0";
+    initializeProvider();
+}, []);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 
-										return {
-											x,
-											y,
-											content,
-											tool,
-											man,
-											coalAmount,
-											ironAmount,
-											ironplateAmount,
-											lastBlockChecked,
-											componentsAmount,
-											factorySettings
-										};
-									}
-									catch (error) {
-										console.error(`Ошибка при получении данных для ячейки (${x}, ${y}):`, error);
-										return {
-											x,
-											y,
-											content: "contentEmpty",
-											tool: "toolEmpty",
-											man: "manEmpty",
-											coalAmount: "0",
-											ironAmount: "0",
-											ironplateAmount: "0",
-											lastBlockChecked: "0",
-											componentsAmount: "0",
-											factorySettings: "0"
-										};
-									}
-								})
-							);
-							return row;
-						})
-					);
-
-					// Фильтруем все null значения, если такие есть
-					setGrid(rows.filter(row => row !== null));
-					try {
-						setLoading(true);
-						const result = await contract.getDepot();
-						const drillsAmount = result.drillsAmount.toString();
-						const boxesAmount = result.boxesAmount.toString();
-						const mansAmount = result.mansAmount.toString();
-						const furnaceAmount = result.furnaceAmount.toString();
-						const factoryAmount = result.factoryAmount.toString();
-						const starttimee = result.starttimee.toString();
-						const lastmeteoritTimeChecked = result.lastmeteoritTimeChecked.toString();
-						const blocktimestamp = result.blocktimestamp.toString();
-						const bulldozerAmount = result.bulldozerAmount.toString();
-						const early = result.early.toString();
-						
-						setDepot({
-							drillsAmount, // Количество дрелей
-							boxesAmount, // Количество ящиков
-							mansAmount, // Количество манипуляторов
-							furnaceAmount, // Количество манипуляторов
-							factoryAmount, // Количество заводов
-							starttimee,
-							lastmeteoritTimeChecked,
-							blocktimestamp,
-							bulldozerAmount,
-							early
-
-						});
-					}
-					catch (error) {
-						console.error("Ошибка при получении данных депо:", error);
-					}
-					finally {
-						setLoading(false);
-					}
-
-				}
-				catch (error) {
-					console.error("Ошибка при получении данных fetchGrid:", error);
-				}
-			}
-
-			setLoading(false);
-			isFetching.current = false;
-		};
-
+		const logContainerRef = useRef(null);
 		useEffect(() => {
-			const intervalId = setInterval(fetchGrid, 5000); // Интервальный запуск
+			if (logContainerRef.current) {
+				logContainerRef.current.scrollTo(0, 0);
+			}
+		}, [logMessages]);
+		const providerRef = useRef(null);
+		
+		
 
-			return () => clearInterval(intervalId); // Очистка интервала при размонтировании компонента
-		}, [contract]); // Запуск только при изменении контракта
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const currentTime = Math.floor(Date.now() / 1000); // Текущее время
-      const difference = currentTime - depot.lastmeteoritTimeChecked;
-
-      const hours = Math.floor(difference / 3600);
-      const minutes = Math.floor((difference % 3600) / 60);
-      const seconds = difference % 60;
-
-      let formattedTime = '';
-
-        formattedTime += `${hours} ч. `;
-
-
-        formattedTime += `${minutes} мин. `;
-
-      formattedTime += `${seconds} сек.`;
-
-      setTimePassed(formattedTime); // Обновление состояния
-    }, 1000); // Обновляется каждую секунду
-
-    return () => clearInterval(interval); // Очистка интервала при размонтировании
-  }, [depot.lastmeteoritTimeChecked]);
-
-
-
-		const executeAllFunctions = async () => {
-
-				//await updateCoal();
-				//console.log("Coal updated successfully.");
-
-				await updateCoal();
-				console.log("Meteorit function executed successfully.");
-
+		
+		
+		
+		const initializeEmptyGrid = (rows, cols) => {
+			return Array(rows).fill(null).map((_, rowIndex) => Array(cols).fill(null).map((_, colIndex) => ({
+				x: rowIndex,
+				y: colIndex,
+				content: "Update",
+				tool: "toolEmpty",
+				man: "manEmpty",
+				coalAmount: "0",
+				ironAmount: "0",
+				ironplateAmount: "0",
+				lastBlockChecked: "0",
+				componentsAmount: "0",
+				factorySettings: "factorySettingsEmptyF",
+				previouscontent: "contentEmpty",
+				wallPowerAmount: "0",
+			})));
 		};
-
-
-		const initializeGrid = async () => {
-			try {
-				setLoading(true);
-				const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545'); // Ваш RPC URL
-				const wallet = new ethers.Wallet(userPrivateKey, provider);
-				const contract = new ethers.Contract(contractAddress, SimpleGridABI, wallet);
-				console.log("Инициализация сетки...");
-				const nonce = await provider.getTransactionCount(wallet.address, 'latest');
-				console.log("Current nonce:", nonce);
-
-
-
-				const tx = await contract.initializeGrid({
-					nonce: nonce, // Устанавливаем nonce
-					gasLimit: gasLLimit, // Устанавливаем лимит газа
-				});
-				await tx.wait();
-
-
-
-				console.log("Сетка инициализированна.");
-				setLogMessage("Ищем новый астероид..."); // Обновляем лог-сообщение
-				setTimeout(() => {
-					setLogMessage(""); // Очищаем лог-сообщение через 3 секунды
-				}, 5000); // 3000 миллисекунд = 3 секунды 
-			}
-			catch (error) {
-				console.error("Ошибка инициализации сетки:", error);
-			}
-			finally {
-				setLoading(false);
-			}
-		};
-
-
-
-
-
-
-
-
-
-let transactionQueue = []; // Очередь транзакций
-let isProcessing = false; // Флаг, который блокирует выполнение при наличии активной транзакции
-let currentNonce = undefined; // Переменная для nonce
-
-const sendTransaction = async (contractMethod, params = []) => {
-    // Добавляем новый запрос в очередь
-    transactionQueue.push({ contractMethod, params });
-
-    // Если нет активных транзакций, начинаем обработку очереди
-    if (!isProcessing) {
-        await processQueue();
-    }
-};
-
-const processQueue = async () => {
-    // Пока в очереди есть элементы, обрабатываем их по очереди
-    while (transactionQueue.length > 0) {
-        const { contractMethod, params } = transactionQueue[0]; // Берем первый запрос из очереди
-
-        // Выполняем транзакцию
-        await executeTransaction(contractMethod, params);
-
-        // Удаляем обработанный запрос из очереди
-        transactionQueue.shift();
-    }
-};
-
-const executeTransaction = async (contractMethod, params = []) => {
+		
+		
+		
+		useEffect(() => {
+			const emptyGrid = initializeEmptyGrid(10, 10); // Создаем пустой грид 10x10
+			setGrid(emptyGrid); // Устанавливаем его в состояние
+		}, []);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+const fetchGrid = async () => {
     try {
-        // Устанавливаем флаг, что транзакция выполняется
-        isProcessing = true;
+        if (!provider) {
+            return;
+        }
+        if (isFetching.current) {
+            return;
+        }
+        isFetching.current = true;
 
-        setLoading(true);
-        const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
-        const wallet = new ethers.Wallet(userPrivateKey, provider);
-        const contract = new ethers.Contract(contractAddress, SimpleGridABI, wallet);
-
-        // Получаем актуальный nonce для текущего кошелька
-        if (currentNonce === undefined) {
-            currentNonce = await provider.getTransactionCount(wallet.address, 'latest');
+        let signerInstance;
+        if (userPrivateKey) {
+            signerInstance = new ethers.Wallet(userPrivateKey, provider);
+        } else {
+            return;
         }
 
-        console.log("Current nonce before transaction:", currentNonce);
+        let newContract;
+        try {
+            newContract = new ethers.Contract(contractAddressMain, SimpleGridAbiMAIN, signerInstance);
 
-        // Создаем и отправляем транзакцию
-        const tx = params.length 
-            ? await contract[contractMethod](...params, {
-                nonce: currentNonce,
-                gasLimit: gasLLimit,
-            })
-            : await contract[contractMethod]({
-                nonce: currentNonce,
-                gasLimit: gasLLimit,
-            });
+            const maxParallelRequests = 20; // Максимальное количество параллельных запросов
+            const minIntervalBetweenRequests = 50; // Минимальный интервал между запросами в миллисекундах
+            const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+            const processCell = async (x, y) => {
+                try {
+                    await delay(minIntervalBetweenRequests); // Интервал между запросами
+                    const userAddress = await signerInstance.getAddress();
+                    const result = await newContract.getCell(userAddress, x, y);
+
+                    const cellData = result
+                        ? {
+                            x,
+                            y,
+                            content: result.content || "Null",
+                            tool: result.tool || "toolEmpty",
+                            man: result.man || "manEmpty",
+                            coalAmount: result.coalAmount?.toString() || "0",
+                            ironAmount: result.ironAmount?.toString() || "0",
+                            ironplateAmount: result.ironplateAmount?.toString() || "0",
+                            lastBlockChecked: result.lastBlockChecked?.toString() || "0",
+                            componentsAmount: result.componentsAmount?.toString() || "0",
+                            factorySettings: result.factorySettings || "",
+                            previouscontent: result.previouscontent || "contentEmpty", // Новое поле
+							wallPowerAmount: result.wallPowerAmount?.toString() || "0",
+
+                        }
+                        : {
+                            x,
+                            y,
+                            content: "contentEmpty",
+                            tool: "toolEmpty",
+                            man: "manEmpty",
+                            coalAmount: "0",
+                            ironAmount: "0",
+                            ironplateAmount: "0",
+                            lastBlockChecked: "0",
+                            componentsAmount: "0",
+                            factorySettings: "factorySettingsEmptyF",
+                            previouscontent: "contentEmpty",
+							wallPowerAmount: "0",
+                        };
+
+                    setGrid((prevGrid) => {
+                        const updatedGrid = prevGrid.length > 0 ? [...prevGrid] : initializeEmptyGrid(10, 10);
+                        if (!updatedGrid[x]) {
+                            updatedGrid[x] = Array(10).fill(null).map(() => ({}));
+                        }
+                        updatedGrid[x][y] = cellData;
+                        return updatedGrid;
+                    });
+                } catch (error) {
+                    setGrid((prevGrid) => {
+                        const updatedGrid = [...prevGrid];
+                        if (!updatedGrid[x]) {
+                            updatedGrid[x] = Array(10).fill(null);
+                        }
+                        updatedGrid[x][y] = {
+                            x,
+                            y,
+                            content: "Update",
+                            tool: "toolEmpty",
+                            man: "manEmpty",
+                            coalAmount: "0",
+                            ironAmount: "0",
+                            ironplateAmount: "0",
+                            lastBlockChecked: "0",
+                            componentsAmount: "0",
+                            factorySettings: "0",
+                            previouscontent: "contentEmpty",
+							wallPowerAmount: "0",
+                        };
+                        return updatedGrid;
+                    });
+                }
+            };
+
+            const tasks = [];
+            for (let y = 9; y >= 0; y--) {
+                for (let x = 0; x < 10; x++) {
+                    tasks.push(() => processCell(x, y));
+                }
+            }
+
+            const executeTasks = async (tasks, maxParallel) => {
+                const executing = [];
+                for (const task of tasks) {
+                    const p = task().finally(() => {
+                        executing.splice(executing.indexOf(p), 1);
+                    });
+                    executing.push(p);
+                    if (executing.length >= maxParallel) {
+                        await Promise.race(executing);
+                    }
+                }
+                await Promise.all(executing);
+            };
+
+            await executeTasks(tasks, maxParallelRequests);
+
+            setLoading(true);
+
+            signerInstance = new ethers.Wallet(userPrivateKey, provider);
+            const userAddress = await signerInstance.getAddress();
+            const result = await newContract.getDepot(userAddress);
+const gridSize = result.gridSize.toString();
+const drillsAmount = result.drillsAmount.toString();
+const boxesAmount = result.boxesAmount.toString();
+const mansAmount = result.mansAmount.toString();
+const furnaceAmount = result.furnaceAmount.toString();
+const factoryAmount = result.factoryAmount.toString();
+const starttimee = result.starttimee.toString();
+const lastmeteoritTimeChecked = result.lastmeteoritTimeChecked.toString();
+const blocktimestamp = result.blocktimestamp.toString();
+const bulldozerAmount = result.bulldozerAmount.toString();
+const early = result.early.toString();
+const mmmtime = result.mmmtime.toString();
+const mmmdrillSpeed = result.mmmdrillSpeed.toString();
+const iterationLimitDepot = result.iterationLimitDepot.toString();
+const isPaused = result.isPaused.toString();
+const pausedDuration = result.pausedDuration.toString();
+const pauseStartTime = result.pauseStartTime.toString();
+const wallAmount = result.wallAmount.toString();			
+const theEndCount = result.theEndCount.toString(); // Добавляем извлечение theEndCount
+			
+			
+			
+			
+			
+			
+
+setDepot({
+    gridSize, // Размер сетки для пользователя
+    drillsAmount,
+    boxesAmount,
+    mansAmount,
+    furnaceAmount,
+    factoryAmount,
+    starttimee,
+    lastmeteoritTimeChecked,
+    blocktimestamp,
+    bulldozerAmount,
+	wallAmount, // Добавьте это
+theEndCount, // Добавляем theEndCount    
+early,
+    mmmtime,
+    mmmdrillSpeed,
+    iterationLimitDepot,
+    isPaused,
+    pausedDuration,
+    pauseStartTime,
+});
+
+const currentTime = Date.now() / 1000; // Текущее время в секундах
+const lag = currentTime - Number(blocktimestamp); // Отставание в секундах
+
+setEarlyValue(Number(early)); // Устанавливаем значение early
+setMmmtimeValue(Number(mmmtime)); // Устанавливаем значение mmmtime
+setMeteoritCount(Math.floor(Number(early) / Math.floor(Number(mmmtime)))); // Устанавливаем количество метеоритов
+setDynamicEarlyValue(Math.round(Number(early) - 10 + lag)); // Округление до ближайшего целого
+
+
+
+ setIsGamePaused(parseInt(isPaused));
+
+        } catch (error) {
+        } finally {
+            setLoading(false);
+        }
+    } catch (error) {
+    } finally {
+        isFetching.current = false;
+        //console.log("Операция успешно завершена.");
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
+		
+		useEffect(() => {
+			// Устанавливаем интервал на 10 секунд
+			const intervalId = setInterval(() => {
+				if (updateCoalButtonRef.current) {
+					updateCoalButtonRef.current.click(); // Имитация клика
+					console.log("updateCoal...");
+				}
+			}, 5000); // 10000 миллисекунд = 10 секунд 
+			// Очистка интервала при размонтировании компонента
+			return () => clearInterval(intervalId);
+		}, []); // Пустой массив зависимостей - эффект выполняется один раз при монтировании
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+useEffect(() => {
+    if (parseInt(depot.theEndCount, 10) <= 100 && !hasGameOverAlertShown) {
+        alert("Game Over");
+        setHasGameOverAlertShown(true); // Чтобы показать сообщение только один раз
+    }
+}, [depot.theEndCount, hasGameOverAlertShown]);
+
+
+		
+const [dynamicEarlyValue, setDynamicEarlyValue] = useState(0); // Состояние для увеличивающегося значения
+
+useEffect(() => {
+    // Функция обновления dynamicEarlyValue каждую секунду
+    const interval = setInterval(() => {
+        setDynamicEarlyValue((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval); // Очистка интервала при размонтировании
+}, []); // Эффект запускается один раз при монтировании
+
+
+// Теперь везде можно использовать dynamicEarlyValue вместо early для отображения
+		const isFetching = useRef(false); // Флаг для предотвращения одновременного выполнения
+		
+		
+useEffect(() => {
+    if (!provider) {
+        console.error("Провайдер не установлен. Сначала подключите кошелек.");
+        return;
+    }
+
+    const fetchAndSchedule = async () => {
+        if (!userPrivateKey) {
+            console.error("Приватный ключ не предоставлен. Пожалуйста, введите ключ.");
+            return; // Пропускаем выполнение, если нет приватного ключа
+        }
+
+        if (isFetching.current) {
+            //console.log("Предыдущий вызов fetchGrid еще выполняется, пропускаем новый вызов.");
+            return;
+        }
+
+        try {
+            //console.log("Вызов fetchGrid...");
+            await fetchGrid(); // Выполняем загрузку сетки
+        } catch (error) {
+            console.error("Ошибка в fetchGrid:", error);
+        }
+    };
+
+    // Первый вызов сразу при загрузке
+    fetchAndSchedule();
+
+    // Устанавливаем интервал для следующих вызовов
+    const intervalId = setInterval(fetchAndSchedule, 5000); // Интервал в 5 секунд
+
+    // Очищаем интервал при размонтировании компонента
+    return () => clearInterval(intervalId);
+}, [provider, userPrivateKey]); // Зависимость также от userPrivateKey
+
+
+		
+		
+		
+		
+const gasLLimit = async (contractMethod, params, contract) => {
+    try {
+        // Проверяем, есть ли параметры
+        const estimatedGas = params.length > 0
+            ? await contract.estimateGas[contractMethod](...params) // Оценка газа с параметрами
+            : await contract.estimateGas[contractMethod](); // Оценка газа без параметров
+
+        //console.log(`Оценённый лимит газа для ${contractMethod}: ${estimatedGas.toString()}`);
+        return estimatedGas;
+    } catch (error) {
+       // console.error(`Ошибка при оценке газа для ${contractMethod}:`, error);
+
+        // Возвращаем стандартный лимит газа в случае ошибки
+        return ethers.BigNumber.from("3000000"); // 3,000,000 как дефолтный лимит
+    }
+	
+
+};
+		
+		
+		
+		
+		
+		
+
+				
+		
+		
+		
+		
+
+				
+		
+		
+		
+		
+
+				
+		
+		
+		
+		
+
+				
+		
+		
+		
+		
+
+				
+		
+		
+		
+		
+
+				
+		
+		
+		
+		
+
+				
+		
+		
+		
+		
+
+				
+		
+		
+		
+		
+
+				
+		
+		
+
+				
+		
+		
+		
+		
+
+		
+		
+const [nonceInitializing, setNonceInitializing] = useState(false); // Флаг инициализации nonce
+const [currentNonce, setCurrentNonce] = useState(null);
+		
+		
+const initializeNonce = async (provider, setNonceInitializing) => {
+    if (!provider) {
+        console.error("Provider не инициализирован. Подключите кошелек перед отправкой транзакции.");
+        return null;
+    }
+
+    try {
+        console.log("Инициализация nonce...");
+        setNonceInitializing(true);
+
+        const signer = getSigner(); // Получаем privateSigner
+        if (!signer) {
+            console.error("Signer не установлен. Убедитесь, что приватный ключ подтвержден.");
+            return null;
+        }
+
+        const userAddress = await signer.getAddress();
+        const nonce = await provider.getTransactionCount(userAddress, "latest");
+        console.log(`Nonce инициализирован: ${nonce}`);
+        return nonce;
+    } catch (error) {
+        console.error("Ошибка при инициализации nonce:", error);
+        throw error;
+    } finally {
+        setNonceInitializing(false);
+    }
+};
+
+		
+useEffect(() => {
+    const initialize = async () => {
+        if (!isKeyConfirmed) return; // Ensure the key is confirmed before initializing nonce
+        try {
+            const nonce = await initializeNonce(provider, setNonceInitializing);
+            setCurrentNonce(nonce); // Устанавливаем nonce в состояние
+        } catch (error) {
+            console.error("Ошибка при инициализации nonce:", error);
+        }
+    };
+
+    initialize(); // Инициализация при монтировании компонента или когда privateSigner is set
+}, [provider, isKeyConfirmed]); // Add isKeyConfirmed to dependencies
+
+		
+		
+
+		
+		
+const randomNum = Math.floor(Math.random() * 1000000) + 1;
+
+const sendTransaction = async (contractMethod, params = [], contractAddress, contractABI) => {
+	
+    // Разрешить только транзакции снятия паузы, если isGamePaused = 1
+    if (isGamePaused === 1 && contractMethod !== "unsetPause" && contractMethod !== "initializeGrid") {
+        console.log(`Транзакция "${contractMethod}" заблокирована, так как игра находится на паузе.`);
+        return; // Выход из функции
+    }	
+	
+	
+	
+    if (isNonceInitializing) {
+        console.log("Ожидание завершения инициализации nonce...");
+        while (isNonceInitializing) {
+            await new Promise((resolve) => setTimeout(resolve, 50)); // Проверяем каждые 50 мс
+        }
+    }
+
+    if (currentNonce === null) {
+		//await initializeNonce(provider, setNonceInitializing);
+		
+        alert("Nonce не инициализирован. Попробуйте обновить страницу.");
+    return; // Прекращаем выполнение функции
+    }
+const randomNum = Math.floor(Math.random() * 1000000) + 1;
+const updatedParams = [...params, randomNum];
+    transactionQueue.push({
+        contractMethod,
+        params: updatedParams, // Используем обновлённые параметры
+        contractAddress,
+        contractABI,
+        nonce: currentNonce, // Используем текущий nonce для этой транзакции
+    });
+
+    // Увеличиваем currentNonce для следующей транзакции
+    setCurrentNonce((prevNonce) => prevNonce + 1); // Используем функцию обратного вызова
+
+    if (!isProcessing) {
+        isProcessing = true;
+        try {
+            await processQueue();
+        } catch (error) {
+            console.error("Ошибка при обработке очереди транзакций:", error);
+        } finally {
+            isProcessing = false;
+        }
+    }
+};
+
+
+
+
+// Добавлено логирование nonce
+const processQueue = async () => {
+    try {
+        let signerInstance;
+        if (userPrivateKey) {
+            signerInstance = new ethers.Wallet(userPrivateKey, provider);
+        } else if (provider) {
+            signerInstance = provider.getSigner();
+        } else {
+            throw new Error("Provider не инициализирован. Убедитесь, что кошелек подключен.");
+        }
+
+        while (transactionQueue.length > 0) {
+            const transaction = transactionQueue[0];
+            //console.log(`Processing transaction ${transaction.contractMethod} with nonce ${currentNonce}`);
+
+            await executeTransaction(
+                transaction.contractMethod,
+                transaction.params,
+                transaction.contractAddress,
+                transaction.contractABI,
+                signerInstance
+            );
+
+            transactionQueue.shift();
+            //console.log("Transaction successful.");
+        }
+    } catch (error) {
+        console.error("Ошибка обработки очереди транзакций:", error);
+    }
+};
+
+const executeTransaction = async (contractMethod, params = [], contractAddressIN, contractAbiIN, signer) => {
+    const cellId = params.length >= 2 ? `${params[0]}-${params[1]}` : null;
+
+    try {
+		
+		
+		
+if (contractMethod !== 'updateCoal') {
+    setLogMessages((prev) => [
+        { text: `Отправляем сигнал...`, color: '#fff703' },
+        ...prev,
+    ]);
+}
+		
+		
+		
+
+        setLoading(true);
+
+        const newContract = new ethers.Contract(contractAddressIN, contractAbiIN, signer);
+
+        //console.log("Отправляем транзакцию");
+
+        if (cellId) {
+            setActiveCells((prev) => [...prev, cellId]);
+
+            setTimeout(() => {
+                setActiveCells((prev) => prev.filter((id) => id !== cellId));
+            }, 50000);
+        }
+
+        //const gasLimit = 15000000;
+const gasPrice = ethers.utils.parseUnits('0.01', 'gwei'); // Устанавливаем 0.003 Gwei вручную
+const estimatedGas = await gasLLimit(contractMethod, params, newContract);
+const gasLimit = Math.ceil(2 * estimatedGas); // Округляем вверх для надёжности
+
+        const tx = params.length
+            ? await newContract[contractMethod](...params, { nonce: currentNonce, gasLimit: gasLimit,
+          gasPrice: gasPrice, })
+            : await newContract[contractMethod]({ nonce: currentNonce, gasLimit: gasLimit,
+          gasPrice: gasPrice, });
+
+
+        //console.log(`Транзакция отправлена с nonce ${currentNonce}: ${tx.hash}`);
 
         // Ожидаем подтверждения транзакции
         await tx.wait();
+		
+		
+		
+if (contractMethod !== 'updateCoal') {
+    setLogMessages((prev) => [
+        { text: `Сигнал отправлен. ${new Date().toLocaleTimeString()}`, color: 'LimeGreen' },
+        ...prev,
+    ]);
+}
 
-        // Увеличиваем nonce после успешной транзакции
-        currentNonce++;
 
-        console.log("Transaction successful. Incrementing nonce.");
-if (contractMethod !== "updateCoal") {
-        setLogMessage("📡");
+
+
+
+
         setTimeout(() => {
-            setLogMessage("");
-        }, 2000);
-}
+            setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
+        }, 500);
+
+        setTimeout(() => {
+            setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
+        }, 1000);
     } catch (error) {
+		
+		
+		console.error("Ошибка executeTransaction:", error);
+		if (contractMethod !== 'updateCoal') {
+        console.error(`${contractMethod} error:`, error);
+		
+		
+		}
+		
+        setLogMessages((prev) => [
+            { text: `Ошибка ${new Date().toLocaleTimeString()}: ${error.message}`, color: 'red' },
+            ...prev.slice(1),
+        ]);
 
-        // Увеличиваем nonce при ошибке, чтобы избежать повторного использования
-        currentNonce++;
-if (contractMethod !== "updateCoal") {
-	    console.error(`${contractMethod} error`, error);
+        setTimeout(() => {
+            setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
+        }, 500);
 
-        setlogErrorMessage("Ошибка отправки сигнала.", error);
-		setTimeout(() => {
-        setlogErrorMessage("");
+        setTimeout(() => {
+            setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
+        }, 1000);
+
+        setTimeout(() => {
+            setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
+        }, 1500);
+
+        if (cellId) {
+            setActiveCells((prev) => prev.filter((id) => id !== cellId));
+        }
+
+        setTimeout(() => {
+            setlogErrorMessage("");
         }, 3000);
-}
     } finally {
-        // Снимаем флаг и отключаем индикатор загрузки
-        isProcessing = false;
         setLoading(false);
     }
 };
 
 
 
-		const getCell = async (x, y) => {
-			if (contract) {
-				try {
-					// Получаем данные ячейки
-					const cell = await contract.getCell(x, y);
 
-					// Логируем все данные ячейки
-					console.log(`Cell Data at (${x}, ${y}):`);
-					console.log(`Content: ${cell.content}`);
-					console.log(`Tool: ${cell.tool}`);
-					console.log(`Coal Amount: ${cell.coalAmount}`);
-					console.log(`Last Time Checked: ${cell.lastTimeChecked}`);
-					console.log(`Man: ${cell.man}`);
-					console.log(`Iron Amount: ${cell.ironAmount}`);
-					console.log(`Iron Plate Amount: ${cell.ironplateAmount}`);
-					console.log(`componentsAmount: ${cell.componentsAmount}`);
-					console.log(`factorySettings: ${cell.factorySettings}`);
-					// Обновляем лог-сообщение
-					setLogMessage("Данные ячейки получены.");
-					setTimeout(() => {
-						setLogMessage(""); // Очищаем лог-сообщение через 3 секунды
-					}, 3000); // 3000 миллисекунд = 3 секунды
-				}
-				catch (error) {
-					console.error("Ошибка getCell:", error);
-				}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		useEffect(() => {
+			if (action === "placeBulldozer") {
+				document.body.classList.add("placeBulldozer");
+			}
+			else {
+				document.body.classList.remove("placeBulldozer");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("placeBulldozer");
+		}, [action]);
+		useEffect(() => {
+			if (action === "placeBox") {
+				document.body.classList.add("placeBox");
+			}
+			else {
+				document.body.classList.remove("placeBox");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("placeBox");
+		}, [action]);
+		useEffect(() => {
+			if (action === "removeTool") {
+				document.body.classList.add("removeTool");
+			}
+			else {
+				document.body.classList.remove("removeTool");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("removeTool");
+		}, [action]);
+		useEffect(() => {
+			if (action === "placeManUD") {
+				document.body.classList.add("placeManUD");
+			}
+			else {
+				document.body.classList.remove("placeManUD");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("placeManUD");
+		}, [action]);
+		useEffect(() => {
+			if (action === "placeManLR") {
+				document.body.classList.add("placeManLR");
+			}
+			else {
+				document.body.classList.remove("placeManLR");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("placeManLR");
+		}, [action]);
+		useEffect(() => {
+			if (action === "placeManDU") {
+				document.body.classList.add("placeManDU");
+			}
+			else {
+				document.body.classList.remove("placeManDU");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("placeManDU");
+		}, [action]);
+		
+		
+		useEffect(() => {
+			if (action === "placeManRL") {
+				document.body.classList.add("placeManRL");
+			}
+			else {
+				document.body.classList.remove("placeManRL");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("placeManRL");
+		}, [action]);
+		
+		
+		
+		
+			useEffect(() => {
+			if (action === "placeWall") {
+				document.body.classList.add("placeWall");
+			}
+			else {
+				document.body.classList.remove("placeWall");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("placeWall");
+		}, [action]);
+		
+		
+			
+		
+		
+		useEffect(() => {
+			if (action === "wallF") {
+				document.body.classList.add("wallF");
+			}
+			else {
+				document.body.classList.remove("wallF");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("wallF");
+		}, [action]);		
+			
+		
+		
+		useEffect(() => {
+			if (action === "componentsF") {
+				document.body.classList.add("componentsF");
+			}
+			else {
+				document.body.classList.remove("componentsF");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("componentsF");
+		}, [action]);
+		useEffect(() => {
+			if (action === "boxesF") {
+				document.body.classList.add("boxesF");
+			}
+			else {
+				document.body.classList.remove("boxesF");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("boxesF");
+		}, [action]);
+		useEffect(() => {
+			if (action === "mansF") {
+				document.body.classList.add("mansF");
+			}
+			else {
+				document.body.classList.remove("mansF");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("mansF");
+		}, [action]);
+		useEffect(() => {
+			if (action === "furnaceF") {
+				document.body.classList.add("furnaceF");
+			}
+			else {
+				document.body.classList.remove("furnaceF");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("furnaceF");
+		}, [action]);
+		useEffect(() => {
+			if (action === "factoryF") {
+				document.body.classList.add("factoryF");
+			}
+			else {
+				document.body.classList.remove("factoryF");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("factoryF");
+		}, [action]);
+		useEffect(() => {
+			if (action === "bulldozerF") {
+				document.body.classList.add("bulldozerF");
+			}
+			else {
+				document.body.classList.remove("bulldozerF");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("bulldozerF");
+		}, [action]);
+		useEffect(() => {
+			if (action === "drillsF") {
+				document.body.classList.add("drillsF");
+			}
+			else {
+				document.body.classList.remove("drillsF");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("drillsF");
+		}, [action]);
+		useEffect(() => {
+			if (action === "placeFurnace") {
+				document.body.classList.add("placeFurnace");
+			}
+			else {
+				document.body.classList.remove("placeFurnace");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("placeFurnace");
+		}, [action]);
+		useEffect(() => {
+			if (action === "placeFactory") {
+				document.body.classList.add("placeFactory");
+			}
+			else {
+				document.body.classList.remove("placeFactory");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("placeFactory");
+		}, [action]);
+		useEffect(() => {
+			if (action === "placeDrill") {
+				document.body.classList.add("placeDrill");
+			}
+			else {
+				document.body.classList.remove("placeDrill");
+			}
+			// Удаляем класс при размонтировании компонента
+			return () => document.body.classList.remove("placeDrill");
+		}, [action]);
+		
+		
+		useEffect(() => {
+			const interval = setInterval(() => {
+				const currentTime = Math.floor(Date.now() / 1000); // Текущее время
+				const difference = currentTime - depot.blocktimestamp - depot.early;
+				//const difference = depot.early;
+				const distance = currentTime - depot.starttimee;
+				setDistance(distance); // Устанавливаем расстояние
+				const hours = Math.floor(difference / 3600);
+				const minutes = Math.floor((difference % 3600) / 60);
+				const seconds = difference % 60;
+				let formattedTime = '';
+				formattedTime += `${hours} ч. `;
+				formattedTime += `${minutes} мин. `;
+				formattedTime += `${seconds} сек.`;
+				setTimePassed(formattedTime); // Обновление состояния
+			}, 1000); // Обновляется каждую секунду
+			return () => clearInterval(interval); // Очистка интервала при размонтировании
+		}, [depot.lastmeteoritTimeChecked]);
+		
+		
+		
+		
+		
+		
+		
+		const executeAllFunctions = async () => {
+			
+			updateCoal();
+			//console.log("Meteorit function executed successfully.");
+		};
+		
+		
+		
+		
+		const getCell = async (x, y) => {
+			let signer, newContract;
+			try {
+				// Получаем данные ячейки
+				const signer = getSigner();
+				// Инициализируем контракт с подписантом
+				const newContract = new ethers.Contract(contractAddressMain, SimpleGridAbiMAIN, signer);
+				const userAddress = await signer.getAddress();
+				const cell = await newContract.getCell(userAddress, x, y);
+				// Формируем сообщение со всеми данными ячейки
+				const cellDataMessage = `   Cell Data at (${x}, ${y}):
+Content: ${cell.content}
+Tool: ${cell.tool}
+Coal Amount: ${cell.coalAmount}
+Last Time Checked: ${cell.lastTimeChecked}
+Man: ${cell.man}
+Iron Amount: ${cell.ironAmount}
+Iron Plate Amount: ${cell.ironplateAmount}
+Components Amount: ${cell.componentsAmount}
+Factory Settings: ${cell.factorySettings}
+wallPowerAmount: ${cell.wallPowerAmount}
+`;
+				// Логируем данные в консоль
+				console.log(cellDataMessage);
+				// Обновляем лог-сообщение
+				//setLogMessages(prev => [cellDataMessage, ...prev]);
+				setLogMessages(prev => [{
+					text: cellDataMessage,
+					color: 'gray'
+				}, ...prev]);
+			}
+			catch (error) {
+				console.error("Ошибка getCell:", error);
 			}
 		};
 
 
 
-/*const initializeGrid = async (x, y, decrementValue) => {
-    sendTransaction(initializeGrid); // передаем decrementValue в sendTransaction
-};*/
-
-const updateStarttimee = async (x, y, decrementValue) => {
-    sendTransaction(decrementValue); // передаем decrementValue в sendTransaction
-};
-
-const placeDrill =(x, y) => {
-    sendTransaction("placeDrill", [x, y]);
-};
-
-const removeTool = (x, y) => {
-    sendTransaction("removeTool", [x, y]);
-};
-
-const placeBox = (x, y) => {
-    sendTransaction("placeBox", [x, y]);
-};
-
-const drillsF = (x, y) => {
-    sendTransaction("drillsF", [x, y]);
-};
 
 
-const boxesF = (x, y) => {
-    sendTransaction("boxesF", [x, y]);
-};
-
-
-const mansF =  (x, y) => {
-    sendTransaction("mansF", [x, y]);
-};
-
-
-const furnaceF =  (x, y) => {
-    sendTransaction("furnaceF", [x, y]);
-};
-
-
-const factoryF =  (x, y) => {
-    sendTransaction("factoryF", [x, y]);
-};
-
-
-const bulldozerF =(x, y) => {
-    sendTransaction("bulldozerF", [x, y]);
-};
-
-
-const componentsF = (x, y) => {
-    sendTransaction("componentsF", [x, y]);
-};
-
-
-
-		const placeFurnace =  (x, y) => {
-    sendTransaction("placeFurnace", [x, y]);
+		const getDepot = async () => {
+			let signer, newContract;
+			try {
+				// Получаем данные депо
+				const signer = getSigner();
+				// Инициализируем контракт с подписантом
+				newContract = new ethers.Contract(contractAddressMain, SimpleGridAbiMAIN, signer);
+				const userAddress = await signer.getAddress(); // Адрес пользователя из MetaMask
+				const depot = await newContract.getDepot(userAddress);
+				// Формируем сообщение со всеми данными депо
+				const depotDataMessage = `
+Depot Data:
+${depot.gridSize} - Grid Size
+${depot.drillsAmount} - Drills
+${depot.boxesAmount} - Boxes
+${depot.mansAmount} - Mans
+${depot.furnaceAmount} - Furnace
+${depot.factoryAmount} - Factory
+${depot.starttimee} - Start Time
+${depot.lastmeteoritTimeChecked} - Last Meteorite Time Checked
+${depot.blocktimestamp} - Block Timestamp
+${depot.bulldozerAmount} - Bulldozer
+${depot.wallAmount} - Walls
+${depot.early} - Early
+${depot.mmmtime} - MMM Time
+${depot.mmmdrillSpeed} - MMM Drill Speed
+${depot.iterationLimitDepot} - Iteration Limit Depot
+${depot.isPaused} - (1 - Pause, 0 - Game)
+${depot.pausedDuration} - Paused Duration
+${depot.pauseStartTime} - Pause Start Time
+${depot.theEndCount} - The End Count
+`;
+				// Логируем данные в консоль
+				console.log(depotDataMessage);
+				// Обновляем лог-сообщение
+				setLogMessages(prev => [{
+					text: depotDataMessage,
+					color: 'gray'
+				}, ...prev]);
+			}
+			catch (error) {
+				console.error("Ошибка getDepot:", error);
+			}
+		};
+		const updateStarttimee = async (x, y, decrementValue) => {
+			sendTransaction(decrementValue); // передаем decrementValue в sendTransaction
+		};
+		const placeDrill = (x, y) => {
+			sendTransaction("placeDrill", [x, y], contractAddressAAA, SimpleGridAbiAAA);
+		};
+		const removeTool = (x, y) => {
+			sendTransaction("removeTool", [x, y], contractAddressBBB, SimpleGridAbiBBB);
+		};
+		const placeBox = (x, y) => {
+			sendTransaction("placeBox", [x, y], contractAddressAAA, SimpleGridAbiAAA);
 		};
 
-		const placeFactory =  (x, y) => {
-    sendTransaction("placeFactory", [x, y]);
+		const placeWall = (x, y) => {
+			sendTransaction("placeWall", [x, y], contractAddressAAA, SimpleGridAbiAAA);
 		};
 
-		const placeBulldozer =  (x, y) => {
-    sendTransaction("placeBulldozer", [x, y]);
+		const placeFurnace = (x, y) => {
+			sendTransaction("placeFurnace", [x, y], contractAddressAAA, SimpleGridAbiAAA);
 		};
-
-
-
-
-
-
-		const updateCoal =  () => {
-    sendTransaction("updateCoal");
+		const placeFactory = (x, y) => {
+			sendTransaction("placeFactory", [x, y], contractAddressAAA, SimpleGridAbiAAA);
 		};
+		const placeBulldozer = (x, y) => {
+			sendTransaction("placeBulldozer", [x, y], contractAddressAAA, SimpleGridAbiAAA);
+		};
+		const initializeGrid = () => {
+			sendTransaction("initializeGrid", [], contractAddressAAA, SimpleGridAbiAAA);
+		};
+		const updateCoal = () => {
+			sendTransaction("updateCoal", [], contractAddressBBB, SimpleGridAbiBBB);
+		};
+		const setPause = () => {
+			sendTransaction("setPause", [], contractAddressAAA, SimpleGridAbiAAA);
+		};
+		const unsetPause = () => {
+			sendTransaction("unsetPause", [], contractAddressAAA, SimpleGridAbiAAA);
+		};		
 		
-		const meteoritfunction =  () => {
-    sendTransaction("meteoritfunction");
+		
+		
+		const meteoritfunction = () => {
+			sendTransaction("meteoritfunction", [], contractAddressBBB, SimpleGridAbiBBB);
 		};
-
-		const placeManLR =  (x, y) => {
-    sendTransaction("placeManLR", [x, y]);
+		const placeManLR = (x, y) => {
+			sendTransaction("placeManLR", [x, y], contractAddressAAA, SimpleGridAbiAAA);
 		};
-
-		const placeManRL =  (x, y) => {
-    sendTransaction("placeManRL", [x, y]);
+		const placeManRL = (x, y) => {
+			sendTransaction("placeManRL", [x, y], contractAddressAAA, SimpleGridAbiAAA);
 		};
-
-		const placeManUD =  (x, y) => {
-    sendTransaction("placeManUD", [x, y]);
+		const placeManUD = (x, y) => {
+			sendTransaction("placeManUD", [x, y], contractAddressAAA, SimpleGridAbiAAA);
 		};
-
-		const placeManDU =  (x, y) => {
-    sendTransaction("placeManDU", [x, y]);
+		const placeManDU = (x, y) => {
+			sendTransaction("placeManDU", [x, y], contractAddressAAA, SimpleGridAbiAAA);
 		};
-
 		const handleCellClick2 = async (cell) => {
-			    setSelectedCell2(cell);
+			setSelectedCell2(cell);
 		}
-
 		const handleCellClick = async (cell) => {
-			    setSelectedCell(cell);
-
-				/*setTimeout(() => {
-					setLogMessage(""); // Очищаем лог-сообщение через 3 секунды
-				}, 5000); // 3000 миллисекунд = 3 секунды */
-		
+			if (!buttonActionRef.current) {
+			setSelectedCell(cell);
 			if (action) {
 				const {
 					x,
 					y
 				} = cell;
-				switch (action) {
-					case "placeDrill":
-
-						await executeAllFunctions();
-						await placeDrill(x, y);
-						break;
-						
-					case "drillsF":
-						await executeAllFunctions();
-						await drillsF(x, y);
-						break;
-						
-					case "boxesF":
-						await executeAllFunctions();
-						await boxesF(x, y);
-						break;
-
-						
-					case "mansF":
-						await executeAllFunctions();
-						await mansF(x, y);
-						break;
-
-						
-					case "furnaceF":
-						await executeAllFunctions();
-						await furnaceF(x, y);
-						break;
-
-						
-					case "factoryF":
-						await executeAllFunctions();
-						await factoryF(x, y);
-						break;
-
-						
-					case "bulldozerF":
-						await executeAllFunctions();
-						await bulldozerF(x, y);
-						break;
-						
-					case "componentsF":
-						await executeAllFunctions();
-						await componentsF(x, y);
-						break;
-					
-						
-					case "removeTool":
-						await executeAllFunctions();
-						await removeTool(x, y);
-						break;
-					case "placeBox":
-
-						await executeAllFunctions();
-						await placeBox(x, y);
-						break;
-					case "placeFurnace":
-
-						await executeAllFunctions();
-						await placeFurnace(x, y);
-						break;
-					case "placeFactory":
-
-						await executeAllFunctions();
-						await placeFactory(x, y);
-						break;
-					case "placeBulldozer":
-
-						await executeAllFunctions();
-						await placeBulldozer(x, y);
-						break;
-					case "placeManLR":
-
-						await executeAllFunctions();
-						await placeManLR(x, y);
-						break;
-					case "placeManRL":
-
-						await executeAllFunctions();
-						await placeManRL(x, y);
-						break;
-					case "placeManUD":
-
-						await executeAllFunctions();
-						await placeManUD(x, y);
-						break;
-					case "placeManDU":
-						await executeAllFunctions();
-						await placeManDU(x, y);
-						break;
-					case "getCell":
-						getCell(x, y);
-						break;
-					default:
-						console.error("Не выбрано действие");
+				// Добавляем клетку в список активных
+				try {
+					switch (action) {
+						case "drillsF":
+							await sendTransaction("factorySettingsUpdate", [x, y, "drillsF"], contractAddressAAA, SimpleGridAbiAAA);
+							break;
+						case "boxesF":
+							await sendTransaction("factorySettingsUpdate", [x, y, "boxesF"], contractAddressAAA, SimpleGridAbiAAA);
+							break;
+						case "mansF":
+							await sendTransaction("factorySettingsUpdate", [x, y, "mansF"], contractAddressAAA, SimpleGridAbiAAA);
+							break;
+						case "furnaceF":
+							await sendTransaction("factorySettingsUpdate", [x, y, "furnaceF"], contractAddressAAA, SimpleGridAbiAAA);
+							break;
+						case "factoryF":
+							await sendTransaction("factorySettingsUpdate", [x, y, "factoryF"], contractAddressAAA, SimpleGridAbiAAA);
+							break;
+						case "bulldozerF":
+							await sendTransaction("factorySettingsUpdate", [x, y, "bulldozerF"], contractAddressAAA, SimpleGridAbiAAA);
+							break;
+						case "wallF":
+							await sendTransaction("factorySettingsUpdate", [x, y, "wallF"], contractAddressAAA, SimpleGridAbiAAA);
+							break;
+						case "componentsF":
+							await sendTransaction("factorySettingsUpdate", [x, y, "componentsF"], contractAddressAAA, SimpleGridAbiAAA);
+							break;
+						case "placeDrill":
+							await placeDrill(x, y);
+							break;
+						case "removeTool":
+							await removeTool(x, y);
+							break;
+						case "placeBox":
+							await placeBox(x, y);
+							break;
+						case "placeWall":
+							await placeWall(x, y);
+							break;
+						case "placeFurnace":
+							await placeFurnace(x, y);
+							break;
+						case "placeFactory":
+							await placeFactory(x, y);
+							break;
+						case "placeBulldozer":
+							await placeBulldozer(x, y);
+							break;
+						case "placeManLR":
+							await placeManLR(x, y);
+							break;
+						case "placeManRL":
+							await placeManRL(x, y);
+							break;
+						case "placeManUD":
+							await placeManUD(x, y);
+							break;
+						case "placeManDU":
+							await placeManDU(x, y);
+							break;
+						case "getCell":
+							getCell(x, y);
+							break;
+						default:
+							console.error("Не выбрано действие");
+					}
+				}
+				catch (error) {
+					console.error("Ошибка при обработке действия:", error);
+				}
+				finally {
+					// Убираем клетку из списка активных через 30 секунд
 				}
 			}
-			else {
-				console.log("Не выбрано действие!");
-				setlogErrorMessage("Не выбрано действие!"); 
-						setTimeout(() => {
-        setlogErrorMessage("");
-        }, 3000);
-				// Обновляем лог-сообщение
 			}
+			 buttonActionRef.current = false;
 		};
-
+		
+		
+		
+		
+		const getButtonColorwhite = (actionType) => {
+			return "white";
+		};
+		
+		const getButtonborderStyle = (actionType) => {
+			if (action === actionType) {
+				return "inset";
+			}
+			return "outset";
+		};
 		const getButtonColor = (actionType) => {
 			if (action === actionType) {
 				return "blue";
 			}
 			return "white";
-		};
-/*
-		const getCellStyle = (cell) => {
-			let style = {
-				width: '30px',
-				height: '30px',
-
-				display: 'flex',
-				justifyContent: 'center',
-				alignItems: 'center',
-				cursor: 'pointer',
-				border: '1px solid #ccc',
-			};
-
-			if (selectedCell && selectedCell.x === cell.x && selectedCell.y === cell.y) {
-				style = {
-					...style,
-					border: '2px solid blue',
-					backgroundColor: 'lightyellow'
-				}; // выделение клетки
-			}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-			return style;
-		};*/
-
-		useEffect(() => {
-			if (window.ethereum) {
-				const provider = new ethers.providers.Web3Provider(window.ethereum);
-				window.ethereum.request({
-					method: "eth_requestAccounts"
-				});
-				setContract(new ethers.Contract(contractAddress, SimpleGridABI, provider.getSigner()));
-			}
-		}, []);
-
-		const executeAction = async (manualAction = null) => {
+		};		const executeAction = async (manualAction = null) => {
 			const currentAction = manualAction || action;
-
 			switch (currentAction) {
-
+				case "getDepot":
+					await getDepot();
+					break;
+				case "initializeGrid":
+					await initializeGrid();
+					break;
 				case "updateCoal":
-
-					await meteoritfunction();
 					await updateCoal();
-
 					break;
-
 				case "updateAll":
-
 					await executeAllFunctions();
-
-
 					break;
-
 				case "meteoritfunction":
 					await meteoritfunction();
 					break;
-
-
 				case "fetchGrid":
 					await fetchGrid();
 					break;
-
 				case "starttimeeUpdate":
-					executeAllFunctions();
-					const decrementValue = prompt("Введите значение для уменьшения starttimee:");
+					const decrementValue = prompt("Функция в разработке. Не жми лучше. Во время криосна автоперезапуск манипуляторов не работает. Проснуться через (сек):");
 					if (decrementValue) {
 						try {
-
-							await sendTransaction("starttimeeUpdate", [decrementValue]); // Вызов функции контракта
+							await sendTransaction("starttimeeUpdate", [decrementValue], contractAddressAAA, SimpleGridAbiAAA);
 							console.log(`Starttimee уменьшено на ${decrementValue}`);
 						}
 						catch (error) {
 							console.error("Ошибка при обновлении starttimee:", error);
 						}
 					}
-
 					break;
-
-
 				default:
 					console.error("console.error: executeAction");
 			}
-
-			setAction(null); // Сбрасываем действие после выполнения
+			setAction("getCell"); // Сбрасываем действие после выполнения
 		};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-if (!userPrivateKey || !isKeyConfirmed) {
+if (isUsingPrivateKey && !isKeyConfirmed) {
     return (
         <div
             style={{
@@ -765,54 +1475,177 @@ if (!userPrivateKey || !isKeyConfirmed) {
                 left: '0',
                 width: '100%',
                 height: '100%',
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
                 zIndex: 1000,
                 color: 'white',
+                flexDirection: 'column',
             }}
         >
+            {/* Основное окно */}
             <div
                 style={{
-                    backgroundColor: 'black',
-                    padding: '20px',
-                    borderRadius: '10px',
+                    backgroundColor: '#000',
+                    border: '0.5px solid #fff',
+                    padding: '15px',
+                    borderRadius: '0px',
                     textAlign: 'center',
+                    width: '220px',
+                    boxSizing: 'border-box',
+                    boxShadow: '0px 0px 10px rgba(0,0,0,0.5)',
                 }}
             >
-                <p>Введите приватный ключ для подпространственной связи с астероидом. Осторожно, код в основном писал ИИ и он может тебя ограбить🤖. )) :</p>
+                <p
+                    style={{
+                        margin: '0 0 8px',
+                        fontSize: '13px',
+                        color: '#ddd',
+                    }}
+                >
+                    Введите приватный ключ для связи с астероидом. Осторожно, код в
+                    основном писал ИИ и он может вас ограбить🤖.
+                </p>
                 <input
                     type="password"
                     placeholder="Приватный ключ"
                     value={userPrivateKey}
                     style={{
-                        width: '50%',
-                        padding: '10px',
-                        margin: '10px 0',
-                        borderRadius: '5px',
+                        width: '100%',
+                        padding: '5px 8px',
+                        marginBottom: '10px',
+                        borderRadius: '0px',
+                        fontSize: '12px',
+                        border: '1px solid #444',
+                        backgroundColor: '#222',
+                        color: '#fff',
+                        boxSizing: 'border-box',
                     }}
                     onChange={(e) => setUserPrivateKey(e.target.value)}
                 />
-                <button
-                    onClick={() => {
-                        if (!userPrivateKey) {
-                            alert('Введите приватный ключ.');
-                        } else {
-                            setIsKeyConfirmed(true); // Подтверждаем ключ
-                        }
-                    }}
+				
+				
+				
+<button
+    onClick={() => {
+        if (!userPrivateKey) {
+            alert('Введите приватный ключ.');
+        } else {
+            try {
+                const wallet = new ethers.Wallet(userPrivateKey, provider);
+                setPrivateSigner(wallet);
+                setIsKeyConfirmed(true);
+                console.log("Приватный ключ подтвержден и кошелек подключен.");
+            } catch (error) {
+                alert('Неверный приватный ключ.');
+                console.error("Ошибка при подключении кошелька:", error);
+            }
+        }
+    }}
+    style={{
+        backgroundColor: '#28a745',
+        color: 'white',
+        border: 'none',
+        padding: '6px 12px',
+        borderRadius: '0px',
+        fontSize: '12px',
+        cursor: 'pointer',
+        boxShadow: '0px 2px 4px rgba(0,0,0,0.3)',
+    }}
+>
+    Подтвердить
+</button>
+
+				
+				
+				
+                <p
                     style={{
-                        backgroundColor: 'green',
-                        color: 'white',
-                        padding: '10px 20px',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
+                        marginTop: '10px',
+                        fontSize: '10px',
+                        color: '#777',
+                        textAlign: 'center',
+                        lineHeight: '1.2',
                     }}
                 >
-                    Подтвердить
+                    Нажимая "Подтвердить" Вы соглашаетесь с тем, что Вы сами хозяин своих
+                    метаактивов и Вам не нужны никакие человеческие ненадёжные соглашения
+                    и договорённости. Код — закон.
+                </p>
+            </div>
+
+            {/* Вторая рамка */}
+            <div
+                style={{
+                    backgroundColor: '#000',
+                    border: '0.5px solid #555',
+                    marginTop: '20px',
+                    padding: '10px',
+                    borderRadius: '0px',
+                    textAlign: 'center',
+                    width: '220px',
+                    boxSizing: 'border-box',
+                    boxShadow: '0px 0px 10px rgba(0,0,0,0.3)',
+                }}
+            >
+                <p
+                    style={{
+                        margin: '0 0 10px',
+                        fontSize: '12px',
+                        color: '#aaa',
+                    }}
+                >
+                    Вход для ИИ
+                </p>
+                <button
+                    style={{
+                        backgroundColor: '#626300',
+                        color: 'gray',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '0px',
+                        fontSize: '12px',
+                        cursor: 'not-allowed',
+                        boxShadow: '0px 2px 4px rgba(0,0,0,0.3)',
+                    }}
+                    disabled
+                >
+                    Функция в разработке
                 </button>
+            </div>
+
+            {/* Третья рамка */}
+            <div
+                style={{
+                    backgroundColor: '#000',
+                    border: '0.5px solid #444',
+                    marginTop: '20px',
+                    padding: '10px',
+                    borderRadius: '0px',
+                    textAlign: 'center',
+                    width: '220px',
+                    boxSizing: 'border-box',
+                    boxShadow: '0px 0px 10px rgba(0,0,0,0.3)',
+                }}
+            >
+                <p
+                    style={{
+                        margin: '0 0 5px',
+                        fontSize: '12px',
+                        color: '#bbb',
+                    }}
+                >
+                    Ссылки на другие интерфейсы для подключения:
+                </p>
+                <p
+                    style={{
+                        margin: '0',
+                        fontSize: '11px',
+                        color: '#777',
+                    }}
+                >
+                    Список пока пуст
+                </p>
             </div>
         </div>
     );
@@ -820,688 +1653,1131 @@ if (!userPrivateKey || !isKeyConfirmed) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		return ( <
-			div className = "App" > {
-				<
-				div >
-
-				<
-				button
-				onClick = {
-					initializeGrid
-				}
+		//////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////
+return (
+    <div
+        className="App"
+        onClick={() => {
+            if (!buttonActionRef.current) {
+                setAction("getCell");
+            }
+            buttonActionRef.current = false;
+				}}// Сбрасываем действие при клике вне кнопки
 				style = {
 					{
-						position: 'fixed', // Закрепляет кнопку относительно окна
-						bottom: '80px', // Отступ от нижнего края
-						right: '20px', // Отступ от правого края
-						padding: '10px',
-						backgroundColor: 'green',
-						fontSize: '6px',
-						border: 'none',
-						cursor: 'pointer',
-					}
-				}
-
-				>
-				Начать новый астероид <
-				/button> <
-				div >
-
-
-
-
-
-
-
-	
-				{
-					/* Кнопка для updateAll */
-				} <
-				button
-				onClick = {
-					() => executeAction("updateAll")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("updateAll"),
-					}
-				} > 🔄 <
-				/button>
-
-
-
-
-
-
-				{
-					/* Кнопка starttimeeUpdate */
-				}
-
-				<
-				button
-				onClick = {
-					() => executeAction("starttimeeUpdate")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("starttimeeUpdate"),
-					}
-				} >
-				⏩ <
-				/button>
-
-
-      <select
-        onChange={(e) => setAction(e.target.value)}
-        value={action}
-        style={{ marginLeft: '10px' }}
-      >
-        <option value="drillsF">Drills</option>
-        <option value="boxesF">Boxes</option>
-        <option value="mansF">Mans</option>
-        <option value="furnaceF">Furnace</option>
-        <option value="factoryF">Factory</option>
-        <option value="bulldozerF">Bulldozer</option>
-        <option value="componentsF">Components</option>
-      </select>
-
-
-
-
-				{
-					/* Кнопка для удаления строения */
-				} <
-				button
-				onClick = {
-					() => setAction("removeTool")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("removeTool"),
-					}
-				} > ❌ <
-				/button>
-
-				{
-					/* Кнопка для размещения бура */
-				} <
-				button
-				onClick = {
-					() => setAction("placeDrill")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("placeDrill"),
-					}
-				} > 🚜 <
-				/button>
-
-				{
-					/* Кнопка для размещения Box */
-				} <
-				button
-				onClick = {
-					() => setAction("placeBox")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("placeBox"),
-					}
-				} > 📦 <
-				/button>
-
-				{
-					/* Кнопка для размещения Furnace */
-				} <
-				button
-				onClick = {
-					() => setAction("placeFurnace")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("placeFurnace"),
-					}
-				} > 🔥 <
-				/button>
-
-				{
-					/* Кнопка для размещения Factory */
-				} <
-				button
-				onClick = {
-					() => setAction("placeFactory")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("placeFactory"),
-					}
-				} > 🏭 <
-				/button>
-
-
-
-				{
-					/* Кнопка для размещения bulldozer */
-				} <
-				button
-				onClick = {
-					() => setAction("placeBulldozer")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("placeBulldozer"),
-					}
-				} > 🔨 <
-				/button>
-
-				{
-					/* Кнопка для размещения bulldozer */
-				} <
-				button
-				onClick = {
-					() => setAction("drillsF")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("drillsF"),
-					}
-				} > drillsF <
-				/button>
-
-				{
-					/* Кнопка для getCell */
-				} <
-				button
-				onClick = {
-					() => setAction("getCell")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("getCell"),
-					}
-				} >
-				getCell <
-				/button>
-
-				<
-				/div>
-
-				{
-					/* Кнопка для Запросить данные с астероида*/
-				} <
-				button
-				onClick = {
-					() => executeAction("updateCoal")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("updateCoal"),
-					}
-				} >
-				updateCoal <
-				/button>
-
-				{
-					/* meteoritfunction */
-				} <
-				button
-				onClick = {
-					() => executeAction("meteoritfunction")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("meteoritfunction"),
-					}
-				} >
-				meteoritfunction <
-				/button>
-
-
-				{
-					/* fetchGrid */
-				} <
-				button
-				onClick = {
-					() => executeAction("fetchGrid")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("fetchGrid"),
-					}
-				} >
-				fetchGrid <
-				/button>
-
-
-
-				<
-				div style = {
-					{
-						display: "flex",
-						flexDirection: "column",
-						alignItems: "center"
+						width: "100vw",
+						height: "100vh",
+						position: "relative",
+						backgroundColor: "#000",
 					}
 				} > {
-					/* Кнопка вверх */
-				} <
-				button
-				onClick = {
-					() => setAction("placeManDU")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("placeManDU")
+					< div > < div style = {
+						{
+							display: 'flex',
+							flexWrap: 'wrap',
+							justifyContent: 'center',
+							//alignItems: 'center', 
+							//height: '100vh' 
+							cursor: "pointer"
+						}
+					} >
+
+					< button
+					onMouseDown = {
+						() => {
+							setIsPressed(true);
+							setAction("getCell");
+						}
+					} // При нажатии
+					onMouseUp = {
+						() => setIsPressed(false)
+					} // При отпускании
+					onMouseLeave = {
+						() => setIsPressed(false)
+					} // Если курсор уходит с кнопки
+					onClick = {
+						(e) => {
+							e.stopPropagation();
+							// Эта кнопка нужна чтоб отжимать другие кнопки ))
+						}
 					}
-				} > ↑
-				<
-				/button>
-
-				{
-					/* Кнопки влево и вправо */
-				} <
-				div style = {
-					{
-						display: "flex",
-						justifyContent: "center",
-						alignItems: "center"
-					}
-				} >
-				<
-				button
-				onClick = {
-					() => setAction("placeManRL")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("placeManRL")
-					}
-				} > ←
-				<
-				/button> <
-				button
-				onClick = {
-					() => setAction("placeManLR")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("placeManLR")
-					}
-				} > →
-				<
-				/button> < /
-				div >
-
-				{
-					/* Кнопка вниз */
-				} <
-				button
-				onClick = {
-					() => setAction("placeManUD")
-				}
-				style = {
-					{
-						backgroundColor: getButtonColor("placeManUD")
-					}
-				} > ↓
-				<
-				/button>
-
-				<
-				/div>
+					style = {
+						{
+							textRendering: 'auto',
+							color: 'buttontext',
+							letterSpacing: 'normal',
+							wordSpacing: 'normal',
+							lineHeight: 'normal',
+							textTransform: 'none',
+							textIndent: '0px',
+							textShadow: 'none',
+							display: 'inline-block',
+							textAlign: 'center',
+							alignItems: 'flex-start',
+							cursor: 'pointer',
+							boxSizing: 'border-box',
+							backgroundColor: isPressed ? 'white' : 'buttonface', // Изменение цвета фона при нажатии
+							margin: '0em',
+							paddingBlock: '1px',
+							paddingInline: '6px',
+							borderWidth: '2px',
+							borderStyle: isPressed ? 'inset' : 'outset', // Изменение стиля границы
+							borderColor: 'buttonborder',
+							borderImage: 'initial',
+							color: 'white',
+							letterSpacing: '0.413em',
+						}
+					} title="Эта кнопка отжимает другие кнопки."> &nbsp;&nbsp;< /button>
 
 
-
-
-				<
-				div style = {
-					{
-						position: 'fixed', // Закрепляет блок относительно окна
-						top: '10px', // Отступ от верхнего края
-						right: '40px', // Отступ от правого края
-						display: 'flex',
-						flexWrap: 'wrap', // Разрешает перенос элементов на новую строку
-						gap: '5px', // Уменьшаем отступ между элементами
-						color: 'SaddleBrown', // Цвет текста
-						width: '40px', // Ограничиваем ширину
-						fontSize: '12px', // Размер шрифта
-						lineHeight: '16px', // Межстрочный интервал
-						padding: '5px', // Отступы внутри контейнера
-					}
-				} >
-				
-  <p
-    style={{
-      margin: '0',
-      color: '#ffe500', // Устанавливаем цвет текста
-      fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
+< button
+   
+    onClick={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие события
+        setPause();
     }}
-  >
-    Последние данные получены {timePassed} назад.
-  </p>
-				
-				
-				<
-				p style = {
-					{
-						margin: '0'
-					}
-				} > Склад < /p> <
-				p style = {
-					{
-						margin: '0'
-					}
-				} > 🚜: {
-					depot.drillsAmount
-				} < /p> <
-				p style = {
-					{
-						margin: '0'
-					}
-				} > 📦: {
-					depot.boxesAmount
-				} < /p> <
-				p style = {
-					{
-						margin: '0'
-					}
-				} > 🔨: {
-					depot.bulldozerAmount
-				} < /p>  <
-				p style = {
-					{
-						margin: '0'
-					}
-				} > 🧩: {
-					depot.componentsAmount
-				} < /p> <
-				p style = {
-					{
-						margin: '0'
-					}
-				} > ↔️: {
-					depot.mansAmount
-				} < /p> <
-				p style = {
-					{
-						margin: '0'
-					}
-				} > 🔥: {
-					depot.furnaceAmount
-				} < /p> <
-				p style = {
-					{
-						margin: '0'
-					}
-				} > 🏭: {
-					depot.factoryAmount
-				} < /p> < /
-				div >
+    style={{
+        borderStyle: isGamePaused === 1 ? "inset" : "outset", // Если пауза не активна
+        backgroundColor: isGamePaused === 1 ? "blue" : "white", // Если пауза активна
+        cursor: "pointer",
+    }}
+title="Да-да, пауза в блокчейне."> ⏸️ </button>
 
-				<
-				>
-				{
-					grid && grid.length > 0 && ( <
-						div style = {
+< button
+    
+    onClick={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие события
+        unsetPause();
+    }}
+    style={{
+        borderStyle: isGamePaused === 0 ? "inset" : "outset", // Если пауза не активна
+        backgroundColor: isGamePaused === 0 ? "blue" : "white", // Если пауза не активна
+        cursor: "pointer",
+    }}
+title="Снять паузу."> ▶️ </button>
+
+
+
+
+
+
+
+
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "removeTool") {
+								setAction("getCell");
+							}
+							else {
+								setAction("removeTool");
+							}
+						}
+					}
+					style = {
+						{
+													
+							borderStyle: getButtonborderStyle('removeTool'),
+							backgroundColor: getButtonColor("removeTool"),
+							cursor: "pointer"
+						}
+					} title="Удалить строение"> ❌ < /button>
+
+
+
+
+
+
+
+
+
+
+<button
+    onMouseDown={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие клика к родителю
+        buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+        if (action === "placeDrill") {
+            setAction("getCell");
+        } else {
+            setAction("placeDrill");
+        }
+    }}
+    style={{
+        borderStyle: getButtonborderStyle('placeDrill'),
+        backgroundColor: getButtonColor("placeDrill"),
+        cursor: "pointer",
+    }}
+    title="Разместить добытчик руды." // Добавляем атрибут title
+>
+    ⛏️
+</button>
+
+
+
+
+
+
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeFurnace") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeFurnace");
+							}
+						}
+					}
+					style = {
+						{
+													
+							borderStyle: getButtonborderStyle('placeFurnace'),
+							backgroundColor: getButtonColor("placeFurnace"),
+							cursor: "pointer"
+						}
+					} title="Разместить печь."> 🔥 < /button>
+
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeFactory") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeFactory");
+							}
+						}
+					}
+					style = {
+						{
+													
+							borderStyle: getButtonborderStyle('placeFactory'),
+							backgroundColor: getButtonColor("placeFactory"),
+							cursor: "pointer"
+						}
+					} title="Разместить завод."> 🏭 < /button>
+
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeBulldozer") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeBulldozer");
+							}
+						}
+					}
+					style = {
+						{
+													
+							borderStyle: getButtonborderStyle('placeBulldozer'),
+							backgroundColor: getButtonColor("placeBulldozer"),
+							cursor: "pointer"
+						}
+					} title="Застроить повреждённые клетки"> 🏗️ < /button>
+
+
+
+
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeBox") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeBox");
+							}
+						}
+					}
+					style = {
+						{
+													
+							borderStyle: getButtonborderStyle('placeBox'),
+							backgroundColor: getButtonColor("placeBox"),
+							cursor: "pointer"
+						}
+					} title="Разместить Ящик"> 📦 < /button>
+
+
+<button
+    onMouseDown={(e) => {
+        e.stopPropagation();
+        buttonActionRef.current = true;
+
+        if (action === "placeWall") {
+            setAction("getCell");
+        } else {
+            setAction("placeWall");
+        }
+    }}
+    style={{
+        borderStyle: getButtonborderStyle('placeWall'),
+        backgroundColor: getButtonColor("placeWall"),
+        cursor: "pointer",
+    }}
+    title="Разместить стену."
+>
+    🧱
+</button>
+
+
+
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeManUD") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeManUD");
+							}
+						}
+					}
+					style = {
+						{
+													
+							borderStyle: getButtonborderStyle('placeManUD'),
+							backgroundColor: getButtonColor("placeManUD"),
+							cursor: "pointer"
+						}
+					} title="Манипулятор"> ⬇️ < /button>
+
+
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeManLR") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeManLR");
+							}
+						}
+					}
+					style = {
+						{
+													
+							borderStyle: getButtonborderStyle('placeManLR'),
+							backgroundColor: getButtonColor("placeManLR"),
+							cursor: "pointer"
+						}
+					} title="Манипулятор"> ➡️ < /button>
+
+
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeManRL") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeManRL");
+							}
+						}
+					}
+					style = {
+						{
+													
+							borderStyle: getButtonborderStyle('placeManRL'),
+							backgroundColor: getButtonColor("placeManRL"),
+							cursor: "pointer"
+						}
+					} title="Манипулятор"> ⬅️ < /button>
+
+
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeManDU") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeManDU");
+							}
+						}
+					}
+					style = {
+						{
+													
+							borderStyle: getButtonborderStyle('placeManDU'),
+							backgroundColor: getButtonColor("placeManDU"),
+							cursor: "pointer"
+						}
+					} title="Манипулятор"> ⬆️ < /button>
+
+
+
+
+
+
+					< button
+					onClick = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие события
+							if (window.confirm("Подтверждение на поиск нового астероида. Текущий, если он есть, будет потерян в просторах космоса навсегда!")) {
+								executeAction("initializeGrid");
+							}
+						}
+					}
+					style = {
+						{
+							backgroundColor: getButtonColor("initializeGrid"),
+							cursor: "pointer"
+						}
+					} title="Начать новый астероид."> 🔍 < /button> 
+
+
+
+
+
+
+
+
+
+ < button
+					onClick = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие
+							executeAction("starttimeeUpdate"); // Вызываем функцию
+						}
+					}
+					style = {
+						{
+							backgroundColor: getButtonColor("starttimeeUpdate"),
+							cursor: "pointer"
+						}
+					} title="Для отладки, не жми лучше."> 🛌 < /button>
+
+
+					
+					
+					
+					
+					
+					
+					
+					< button
+					
+					ref={updateCoalButtonRef} 
+					onClick = {
+						(e) => {
+							e.stopPropagation();
+							updateCoal();
+						}
+					}
+					style = {
+						{
+							backgroundColor: getButtonColor("updateCoal"), // Цвет кнопки
+							cursor: "pointer"
+						}
+					} title="Для отладки, не жми лучше."> 🧮 < /button>
+
+					{/*}
+
+					< button
+					onClick = {
+						(e) => {
+							e.stopPropagation();
+							executeAction("meteoritfunction"); // Вызываем действие напрямую
+						}
+					}
+					style = {
+						{
+							backgroundColor: getButtonColor("meteoritfunction"), // Цвет кнопки
+							cursor: "pointer"
+						}
+					} title="Для отладки, не жми лучше."> ☄️ < /button>
+
+{*/}
+
+
+					< button
+					onClick = {
+						(e) => {
+							e.stopPropagation();
+							executeAction("fetchGrid"); // Вызываем действие напрямую
+						}
+					}
+					style = {
+						{
+							backgroundColor: getButtonColor("fetchGrid"), // Цвет кнопки
+							cursor: "pointer"
+						}
+					} title=""> 🗺️ < /button>
+
+
+					< button
+					onClick = {
+						(e) => {
+							e.stopPropagation();
+							executeAction("getDepot"); // Вызываем действие напрямую
+						}
+					}
+					style = {
+						{
+							backgroundColor: getButtonColor("getDepot"), // Цвет кнопки
+							cursor: "pointer"
+						}
+					} title="Для отладки, не жми лучше."> 📘 < /button> 
+
+
+
+
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "updateAll") {
+								setAction("getCell");
+							}
+							else {
+								setAction("updateAll");
+							}
+						}
+					}
+					style = {
+						{
+													
+							borderStyle: getButtonborderStyle('updateAll'),
+							backgroundColor: getButtonColor("updateAll"),
+							cursor: "pointer"
+						}
+					} title="Для отладки, не жми лучше."> 🔄 < /button>
+
+
+					
+					
+					
+					
+					< select
+					onChange = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие события
+							setAction(e.target.value); // Устанавливаем новое действие
+						}
+					}
+					onClick = {
+						(e) => e.stopPropagation()
+					} // Предотвращаем всплытие клика
+					value = {
+						action
+					}
+					style = {
+						{
+							textRendering: 'auto',
+							color: 'buttontext',
+							letterSpacing: 'normal',
+							wordSpacing: 'normal',
+							lineHeight: 'normal',
+							textTransform: 'none',
+							textIndent: '0px',
+							textShadow: 'none',
+							display: 'inline-block',
+							textAlign: 'center',
+							alignItems: 'flex-start',
+							cursor: 'default',
+							boxSizing: 'border-box',
+							backgroundColor: 'buttonface',
+							margin: '0em',
+							paddingBlock: '1px',
+							paddingInline: '6px',
+							borderWidth: '2px',
+							borderStyle: 'outset',
+							borderColor: 'buttonborder',
+							borderImage: 'initial',
+							margin: '0px',
+							cursor: "pointer",
+							textAlign: 'left',
+							paddingInline: '2px',
+							textIndent: '0px',
+							margin: '0px',
+							width: '6.7em',
+						}
+					} > < option value = "" > 🏭→❔ < /option> <
+					option value = "componentsF" > ⚙️→🧩 < /option> <
+					option value = "drillsF" > 🧩→⛏️ < /option> <
+					option value = "boxesF" > 🧩→📦 < /option> <
+					option value = "mansF" > 🧩→↔️ < /option> <
+					option value = "furnaceF" > 🧩→🔥 < /option> <
+					option value = "factoryF" > 🧩→🏭 < /option> <
+					option value = "bulldozerF" > 🧩→🏗️ < /option> <
+					option value = "wallF" > 🧩+🏗️→🧱 < /option> <
+
+
+					/
+					select > < /div>
+
+
+
+
+
+					< p
+					style = {
+						{
+							display: 'flex', // Используем flexbox для выравнивания
+							justifyContent: 'center', // Центрируем по горизонтали
+							width: '100vw', // Ширина контейнера на весь экран
+							//height: '100vh', // Высота контейнера на весь экран
+							alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
+							margin: '0',
+							color: '#b5047a', // Устанавливаем цвет текста
+							//fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
+							fontSize: '12px', // Размер шрифта
+							//border: "1px solid #ccc",
+						}
+					} > Вы пролетели уже {
+						//Distance
+					} км. < /p>  < > {
+					grid && grid.length > 0 && ( < div style = {
+							{
+								display: 'flex', // Используем flexbox для выравнивания
+								justifyContent: 'center', // Центрируем по горизонтали
+								width: '100vw', // Ширина контейнера на весь экран
+								//height: '100vh', // Высота контейнера на весь экран
+								    gap: '0', // Убираем зазор между клетками
+    margin: '0',
+    padding: '0',
+								//marginTop: '2.5px',
+								alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
+							}
+						} > < div style = {
 							{
 								display: 'grid',
 								gridTemplateColumns: `repeat(${grid.length}, 30px)`,
-								gap: '1px'
+								gap: '0px',
 							}
 						} > {
-							grid[0].map((_, colIndex) => (
-								grid.map((_, rowIndex) => {
-									const cell = grid[rowIndex][grid[0].length - 1 - colIndex];
-									return ( <
-										div key = {
-											`${rowIndex}-${colIndex}`
-										}
-										style = {
-											{
-												width: '30px',
-												height: '30px',
-												backgroundColor: cell.content === "contentEmpty" ? 'lightgreen' : cell.content === "Iron" ? 'silver' : cell.content === "Space" ? '#402303' : 'gray',
+							grid[0].map((_, colIndex) => (grid.map((_, rowIndex) => {
+											const cell = grid[rowIndex][grid[0].length - 1 - colIndex];
+											return ( < div key = {
+													`${rowIndex}-${colIndex}`
+												}
+												style = {
+													{
+														width: '30px',
+														height: '30px',
+														backgroundColor: cell.tool === "Space" ? '#000' : cell.tool === "Ruins" ? '#290000' : cell.content === "contentEmpty" ? '#127852' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#000' : cell.content === "Null" ? '#121212' : '#121212',
+														display: 'flex',
+														justifyContent: 'center',
+														alignItems: 'center',
+														cursor: 'pointer',
+														border: selectedCell2 && selectedCell2.x === cell.x && selectedCell2.y === cell.y ? '2px solid blue' : '0.5px solid #000',
+														boxSizing: 'border-box',
+														fontSize: '16px',
+														overflow: 'hidden',
+														textOverflow: 'ellipsis',
+														textAlign: 'center',
+														whiteSpace: 'normal', // Разрешаем перенос текста
+														flexDirection: 'column', // Элементы будут располагаться вертикально
+													}
+												}
+												onClick = {
+													(e) => {
+														e.stopPropagation(); // Останавливаем всплытие события
+														handleCellClick(cell);
+													}
+												}
+												onMouseDown = {
+													(e) => {
+														e.stopPropagation(); // Останавливаем всплытие события
+														handleCellClick2(cell);
+													}
+												}
+												onMouseUp = {
+													(e) => {
+														e.stopPropagation(); // Останавливаем всплытие события
+														handleCellClick2(null);
+													}
+												} > {
+													activeCells.includes(`${cell.x}-${cell.y}`) && ( < div style = {
+															{
+position: 'absolute',
+width: '20px',
+height: '20px',
+animation: 'signalPulse 1s infinite',
+display: 'flex',
+justifyContent: 'center',
+alignItems: 'center',
+fontSize: '20px',
+color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачности
+//backgroundColor: 'rgba(0, 0, 0, 0.5)', // Фон с 50% прозрачности
+															}
+														} > 📡 < /div>)
+													} {
+														(cell.tool === "Space" || cell.tool === "Ruins" || cell.tool === "Box" || cell.tool === "Wall" || cell.tool === "Drill" || cell.tool === "Furnace" || cell.tool === "Factory" || ["LR", "RL", "UD", "DU"].includes(cell.man)) && ( < div style = {
+																{
+																	display: 'flex',
+																	flexDirection: 'column',
+																	justifyContent: 'center',
+																	alignItems: 'center',
+																	width: '100%',
+																	height: '100%',
+																	textAlign: 'center',
+																}
+															} > {
+																cell.tool === "Space" && ""
+															} {
+																cell.tool === "Ruins" && ""
+															} {
+																cell.tool === "Box" && "📦"
+															} {
+																cell.tool === "Drill" && "⛏️"
+															} {
+																cell.tool === "Furnace" && "🔥"
+															} {
+																cell.tool === "Factory" && "🏭"
+															} {
+																cell.tool === "Wall" && "🧱"
+															} {
+																cell.man === "LR" && "➡️"
+															} {
+																cell.man === "RL" && "⬅️"
+															} {
+																cell.man === "UD" && "⬇️"
+															} {
+																cell.man === "DU" && "⬆️"
+															} {
+																//activeCells.includes(`${cell.x}-${cell.y}`) && setActiveCells((prev) => prev.filter((id) => id !== `${cell.x}-${cell.y}`))
+															} < /div>)
+														} 
+														
 
-												display: 'flex',
-												justifyContent: 'center',
-												alignItems: 'center',
-												cursor: 'pointer',
-												border: selectedCell2 && selectedCell2.x === cell.x && selectedCell2.y === cell.y ? '2px solid blue' : 'none',
-												boxSizing: 'border-box',
-												fontSize: '16px',
-												overflow: 'hidden',
-												textOverflow: 'ellipsis',
-												textAlign: 'center',
-												whiteSpace: 'normal', // Разрешаем перенос текста
-												flexDirection: 'column', // Элементы будут располагаться вертикально
+															
+															
+
+{
+    cell.factorySettings == "drillsF" && (
+        <span
+            style={{
+                position: 'absolute', // Абсолютное позиционирование
+                transform: 'translate(-8px, -8px)', // Смещение в верхний левый угол
+                fontSize: '9px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                opacity: 0.8, // Прозрачность 50%
+            }}
+        >
+            ⛏️
+        </span>
+    )
+}
+
+			
+
+{
+    cell.factorySettings == "boxesF" && (
+        <span
+            style={{
+                position: 'absolute', // Абсолютное позиционирование
+                transform: 'translate(-8px, -8px)', // Смещение в верхний левый угол
+                fontSize: '9px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                opacity: 0.8, // Прозрачность 50%
+            }}
+        >
+            📦
+        </span>
+    )
+}
+
+			
+
+{
+    cell.factorySettings == "mansF" && (
+        <span
+            style={{
+                position: 'absolute', // Абсолютное позиционирование
+                transform: 'translate(-8px, -8px)', // Смещение в верхний левый угол
+                fontSize: '9px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                opacity: 0.8, // Прозрачность 50%
+            }}
+        >
+            ↔️
+        </span>
+    )
+}
+
+			
+
+{
+    cell.factorySettings == "furnaceF" && (
+        <span
+            style={{
+                position: 'absolute', // Абсолютное позиционирование
+                transform: 'translate(-8px, -8px)', // Смещение в верхний левый угол
+                fontSize: '9px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                opacity: 0.8, // Прозрачность 50%
+            }}
+        >
+            🔥
+        </span>
+    )
+}
+
+			
+
+{
+    cell.factorySettings == "factoryF" && (
+        <span
+            style={{
+                position: 'absolute', // Абсолютное позиционирование
+                transform: 'translate(-8px, -8px)', // Смещение в верхний левый угол
+                fontSize: '9px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                opacity: 0.8, // Прозрачность 50%
+            }}
+        >
+            🏭
+        </span>
+    )
+}
+
+			
+
+{
+    cell.factorySettings == "bulldozerF" && (
+        <span
+            style={{
+                position: 'absolute', // Абсолютное позиционирование
+                transform: 'translate(-8px, -8px)', // Смещение в верхний левый угол
+                fontSize: '9px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                opacity: 0.8, // Прозрачность 50%
+            }}
+        >
+            🏗️
+        </span>
+    )
+}
+
+			
+
+{
+    cell.factorySettings == "componentsF" && (
+        <span
+            style={{
+                position: 'absolute', // Абсолютное позиционирование
+                transform: 'translate(-8px, -8px)', // Смещение в верхний левый угол
+                fontSize: '9px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                opacity: 0.8, // Прозрачность 50%
+            }}
+        >
+            🧩
+        </span>
+    )
+}
+
+			
+{
+    cell.factorySettings == "wallF" && (
+        <span
+            style={{
+                position: 'absolute', // Абсолютное позиционирование
+                transform: 'translate(-8px, -8px)', // Смещение в верхний левый угол
+                fontSize: '9px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                opacity: 0.8, // Прозрачность 50%
+            }}
+        >
+            🧱
+        </span>
+    )
+}
+
+
+
+
+															
+															
+															
+															
+															
+															
+															
+															
+															
+															
+															
+															
+															{
+																cell.componentsAmount > 0 && ( < span style = {
+																		{
+																				position: 'absolute',
+																				 transform: 'translate(-0px, +9px)',
+																				 //opacity: 0.65, // Прозрачность 50%
+																			fontSize: '6px',
+																			fontFamily: 'Arial, sans-serif',
+																			fontWeight: 'bold',
+																			display: 'block'
+																		}
+																	} > {
+																		` 🧩:${cell.componentsAmount}`
+																	} < /span>)
+																}
+
+
+
+
+
+
+																{
+																	cell.ironAmount > 0 && ( < span style = {
+																			{
+																				position: 'absolute',
+																				 transform: 'translate(-0px, -9px)',
+																				// opacity: 0.65, // Прозрачность 50%
+																				fontSize: '6px',
+																				fontFamily: 'Arial, sans-serif',
+																				fontWeight: 'bold',
+																				display: 'block'
+																			}
+																		} > {
+																			` i:${cell.ironAmount}`
+																		} < /span>)
+																	} 
+																	
+																	
+																	
+																	
+																	{																				cell.ironplateAmount > 0 && ( < span style = {
+																				{
+																				position: 'absolute',
+																				 transform: 'translate(-0px, -0px)',
+																				// opacity: 0.65, // Прозрачность 50%
+																					fontSize: '6px',
+																					fontFamily: 'Arial, sans-serif',
+																					fontWeight: 'bold',
+																					display: 'block'
+																				}
+																			} > {
+																				` ⚙️:${cell.ironplateAmount}`
+																			} < /span>)
+																	} 		
+																		
+																{
+    cell.wallPowerAmount > 0 && (
+        <span
+            style={{
+				color: "black",
+                position: 'absolute',
+                transform: 'translate(-0px, -0px)',
+                fontSize: '11px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                display: 'block',
+            }}
+        >
+            {Math.floor(Number(cell.wallPowerAmount)/100 )}
+        </span>
+    )
+}
+ 																			
+														
+														{
+															cell.coalAmount > 0 && ( < span style = {
+																	{
+																				position: 'absolute',
+																				 transform: 'translate(-0px, +9px)',
+																				 //opacity: 0.65, // Прозрачность 50%
+																		fontSize: '6px',
+																		fontFamily: 'Arial, sans-serif',
+																		fontWeight: 'bold',
+																		display: 'block'
+																	}
+																} > {
+																	` c:${cell.coalAmount}`
+																} < /span>)
+															} 																			
+																		 < /div>);
+																	})))
+													} < /div> < /
+													div > )
+											} < /> 
+
+
+
+											< p
+											style = {
+												{
+													display: 'flex', // Используем flexbox для выравнивания
+													justifyContent: 'center', // Центрируем по горизонтали
+													width: '100vw', // Ширина контейнера на весь экран
+													//height: '100vh', // Высота контейнера на весь экран
+													alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
+													margin: '0',
+													color: '#ffe500', // Устанавливаем цвет текста
+													//fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
+													fontSize: '12px', // Размер шрифта
+													//border: "1px solid #ccc",
+													textAlign: 'center',
+												}
+											} >
+    Последние данные {dynamicEarlyValue} сек. назад
+
+											< /p> 
+
+
+
+											< div style = { {
+												display: 'flex', // Используем flexbox для выравнивания
+												justifyContent: 'center', // Центрируем по горизонтали
+												width: '100vw', // Ширина контейнера на весь экран
+												//height: '100vh', // Высота контейнера на весь экран
+												alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
+												//position: 'fixed', // Закрепляет блок относительно окна
+												//bottom: '10px', // Отступ от верхнего края
+												//right: '40px', // Отступ от правого края
+												flexWrap: 'wrap', // Разрешает перенос элементов на новую строку
+												gap: '5px', // Уменьшаем отступ между элементами
+												color: 'SaddleBrown', // Цвет текста
+												//width: '309px', // Ограничиваем ширину
+												fontSize: '12px', // Размер шрифта
+												lineHeight: '16px', // Межстрочный интервал
+												//padding: '5px', // Отступы внутри контейнера
+											}
+										} > < p style = {
+											{
+												margin: '0'
+											}
+										} > ⛏️: {
+											depot.drillsAmount
+										} < /p> <
+										p style = {
+											{
+												margin: '0'
+											}
+										} > 📦: {
+											depot.boxesAmount
+										} < /p> <
+										p style = {
+											{
+												margin: '0'
+											}
+										} > 🏗️: {
+											depot.bulldozerAmount
+										} < /p>  <
+										p style = {
+											{
+												margin: '0'
+											}
+										} > ↔️: {
+											depot.mansAmount
+										} < /p> <
+										p style = {
+											{
+												margin: '0'
+											}
+										} > 🧱: {
+											depot.wallAmount
+										} < /p> <
+										p style = {
+											{
+												margin: '0'
+											}
+										} > 🔥: {
+											depot.furnaceAmount
+										} < /p> <
+										p style = {
+											{
+												margin: '0'
+											}
+										} > 🏭: {
+											depot.factoryAmount
+										} < /p> < /
+										div > < div style = {
+											{
+												//marginleft: "90px", /* Отступ слева */
+												//marginright: "90px", /* Отступ справа */
+												position: 'absolute',
+												color: 'LimeGreen',
+												marginTop: "5px",
+												padding: "10px",
+												overflow: "auto",
+												display: "flex",
+												flexDirection: "column",
+												alignItems: "flex-start",
+												width: "97vw",
+												height: "70px",
+												border: "1px solid #808080",
+												resize: "vertical",
+												boxSizing: "border-box"
 											}
 										}
-										onClick={() => handleCellClick(cell)}
-
-										onMouseDown={() => handleCellClick2(cell)}
-										onMouseUp={() => handleCellClick2(null)}
-
-										 > {
-											cell.content === "Space" && ( <
-												>
-												🌑 < br / >
-												<
-												/>
-											)
-										} {
-											cell.tool === "Box" && ( <
-												>
-												📦 < br / >
-												<
-												/>
-											)
-										} {
-											cell.tool === "Drill" && ( <
-												>
-												🚜 < br / >
-												<
-												/>
-											)
-										} {
-											cell.tool === "Furnace" && ( <
-												>
-												🔥 < br / >
-												<
-												/>
-											)
-										} {
-											cell.tool === "Factory" && ( <
-												>
-												🏭 < br / >
-												<
-												/>
-											)
-										}
-
-										{
-											cell.coalAmount > 0 && ( <
-												span style = {
-													{
-														fontSize: '6px',
-														fontFamily: 'Arial, sans-serif',
-														fontWeight: 'bold',
-														display: 'block'
+										ref = {
+											logContainerRef
+										} > {
+											logMessages.map((msg, index) => ( < pre key = {
+														index
 													}
-												} > {
-													` c-${cell.coalAmount}`
-												} <
-												/span>
-											)
-										} {
-											cell.ironAmount > 0 && ( <
-												span style = {
-													{
-														fontSize: '6px',
-														fontFamily: 'Arial, sans-serif',
-														fontWeight: 'bold',
-														display: 'block'
-													}
-												} > {
-													` i-${cell.ironAmount}`
-												} <
-												/span>
-											)
-										} {
-											cell.ironplateAmount > 0 && ( <
-												span style = {
-													{
-														fontSize: '6px',
-														fontFamily: 'Arial, sans-serif',
-														fontWeight: 'bold',
-														display: 'block'
-													}
-												} > {
-													` p-${cell.ironplateAmount}`
-												} <
-												/span>
-											)
-										} {
-											cell.man === "LR" ? '→' : ''
-										} {
-											cell.man === "RL" ? '←' : ''
-										} {
-											cell.man === "UD" ? '↓' : ''
-										} {
-											cell.man === "DU" ? '↑' : ''
-										}
-
-										<
-										/div>
-									);
-								})
-							))
-						} <
-						/div>
-					)
-				} <
-				/>
-
-
-
-
-				<
-				div
-				style = {
-					{
-						position: 'fixed', // Закрепляет блок относительно окна
-						bottom: '150px', // Отступ от верхнего края
-						right: '30px', // Отступ от правого края
-						color: 'LimeGreen', // Цвет текста
-
-						marginTop: "5px",
-						padding: "10px",
-						//border: "1px solid #ccc",
-						// width: "150px",
-						//height: "10px", // Фиксированная высота
-						//backgroundColor: "#797979",
-						overflow: "auto", // Прокрутка, если текст длинный
-						display: "flex", // Flexbox для управления расположением текста
-						alignItems: "flex-start", // Выравнивание по верхнему краю
-					}
-				} > {
-					/* Поле для лог-сообщений */
-				} {
-					logMessage && < p style = {
-						{
-							margin: 0,
-							padding: 0
-						}
-					} > {
-						logMessage
-					} < /p>} 
-					< /
-					div >
-
-				<
-				div
-				style = {
-					{
-						position: 'fixed', // Закрепляет блок относительно окна
-						bottom: '120px', // Отступ от верхнего края
-						right: '30px', // Отступ от правого края
-						color: 'red', // Цвет текста
-
-						marginTop: "5px",
-						padding: "10px",
-						//border: "1px solid #ccc",
-						// width: "150px",
-						//height: "10px", // Фиксированная высота
-						//backgroundColor: "#797979",
-						overflow: "auto", // Прокрутка, если текст длинный
-						display: "flex", // Flexbox для управления расположением текста
-						alignItems: "flex-start", // Выравнивание по верхнему краю
-					}
-				} > {
-					/* Поле для лог-сообщений */
-				} {
-					logErrorMessage && < p style = {
-						{
-							margin: 0,
-							padding: 0
-						}
-					} > {
-						logErrorMessage
-					} < /p>} < /
-					div >
-
-
-
-
-
-
-
-
-
-
-
-
-
-						<
-						/div>	
-
-				}
-
-				<
-				/div>
-
-			);
-
-		};
-
-		export default App;
-		/*
-		Уже доступно:
-
-		Начни новый астероид.
-		Поставь буры на уголь и железо.
-		Ставь ящики, манипуляторы, собирай ресурсы.
-		Манипуляторы мощные - сразу всё перемещают, поэтому быстро разряжаются. Для работы их нужно перезапускать (в планах сделать автоперезапуск).
-
-
-		В разработке:
-
-		Крафт, Печи, железо, батарейки, силовое поле, астероиды, ловушки для астероидов, чертежи, перенос ценности на обновления и многое другое.*/
+													style = {
+														{
+															margin: 0,
+															padding: 0,
+															color: msg.color
+														}
+													} > {
+														msg.text
+													} < /pre>))
+												} < /div> < /div >
+											} < /div>);
+										};
+										export default App;
