@@ -36,7 +36,7 @@ let isNonceInitializing = false;
 		
 		
 		const contractAddressAAA = "0xA814D3EDFFC818E6A0865510bf76f5f21671B81B";
-		const contractAddressBBB = "0x7eeFFA495A0660D6C9cC9e6557438948774c0142";
+		const contractAddressBBB = "0xb69A6E8962f9C78214d97753150e560Ab95966bF";
 		
 		
 		
@@ -1766,6 +1766,7 @@ return (
 					}
 					style = {
 						{
+							width: '43.19px',
 							textRendering: 'auto',
 							color: 'buttontext',
 							letterSpacing: 'normal',
@@ -1791,7 +1792,8 @@ return (
 							letterSpacing: '0.410em',
 							fontSize: '19.8px'
 						}
-					} title="Эта кнопка отжимает другие кнопки."> &nbsp;&nbsp;< /button>
+					} title="Эта кнопка отжимает другие кнопки."
+					>&nbsp;&nbsp;< /button>
 
 
 < button
@@ -2298,14 +2300,14 @@ title="Снять паузу."> ▶️ </button>
 		fontSize: '19.8px',
 						}
 					} > < option value = "" > 🏭→❔ < /option> <
-					option value = "componentsF" > ⚙️→🧩 < /option> <
-					option value = "drillsF" > 🧩→⛏️ < /option> <
-					option value = "boxesF" > 🧩→📦 < /option> <
-					option value = "mansF" > 🧩→↔️ < /option> <
-					option value = "furnaceF" > 🧩→🔥 < /option> <
-					option value = "factoryF" > 🧩→🏭 < /option> <
-					option value = "bulldozerF" > 🧩→🏗️ < /option> <
-					option value = "wallF" > 🧩+🏗️→🧱 < /option> <
+					option value = "componentsF" > 10⚙️→🧩 < /option> <
+					option value = "drillsF" > 10🧩→⛏️ < /option> <
+					option value = "boxesF" > 10🧩→📦 < /option> <
+					option value = "mansF" > 10🧩→↔️ < /option> <
+					option value = "furnaceF" > 10🧩→🔥 < /option> <
+					option value = "factoryF" > 10🧩→🏭 < /option> <
+					option value = "bulldozerF" > 10🧩→🏗️ < /option> <
+					option value = "wallF" > 100⚙️+10🧩+1🏗️→🧱 < /option> <
 
 
 					/

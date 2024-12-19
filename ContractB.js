@@ -278,7 +278,8 @@ function validateRequire(IMainGrid.Depot memory depot) internal view {
 if (
     keccak256(abi.encodePacked(source.factorySettings)) != keccak256(abi.encodePacked("componentsF")) && // Проверка source
     (keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("componentsF")) || // Проверка destination
-    keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")))
+    keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) ||
+	keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("wallF")))
 ) {
 			uint256 resourceToMove = source.ironplateAmount / 5;
 			uint256 availableSpaceInBox = MaxBox - (destination.coalAmount + destination.ironAmount + destination.ironplateAmount + destination.componentsAmount);
@@ -311,7 +312,7 @@ if (
 		// Проверяем условия для переноса ресурсов
 		if (
 			(
-				
+				keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Factory")) &&
 				keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("componentsF"))
 				|| 
 				keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box"))
@@ -962,15 +963,19 @@ while (_shouldCallMeteorit(depot) && meteorCount < maxMeteors) {
 if (
     toolHash == keccak256(abi.encodePacked("Factory")) &&
     keccak256(abi.encodePacked(cell.factorySettings)) == keccak256(abi.encodePacked("wallF")) &&
-    cell.componentsAmount >= 20 && // Проверяем, что есть 10 компонентов
-    depot.bulldozerAmount >= 2    // Проверяем, что есть 10 бульдозеров в депо
+    cell.componentsAmount >= 10 && // Проверяем, что есть 10 компонентов
+    depot.bulldozerAmount >= 1  &&  // Проверяем, что есть 10 бульдозеров в депо
+	cell.ironplateAmount >= 100 
 ) {
     while (
         cell.componentsAmount >= 10 && 
-        depot.bulldozerAmount >= 10
+        depot.bulldozerAmount >= 1 &&
+		cell.ironplateAmount >= 100
+		
     ) {
         cell.componentsAmount -= 10; // Сжигаем 10 компонентов
-        depot.bulldozerAmount -= 10; // Сжигаем 10 бульдозеров из депо
+        depot.bulldozerAmount -= 1; // Сжигаем 10 бульдозеров из депо
+		cell.ironplateAmount -= 100;
 
         if (depot.wallAmount > 200) {
             depot.wallAmount = 200; // Ограничиваем максимум
