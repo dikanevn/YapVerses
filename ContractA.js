@@ -226,7 +226,7 @@ function updateDepotInitialSettings(address user) internal {
         4,  // mansAmount
         1,  // furnaceAmount
         2,  // factoryAmount
-        0  // wallAmount
+        50  // wallAmount
     );
 
     mainGrid.updateDepotPart2(

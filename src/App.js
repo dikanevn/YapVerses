@@ -35,7 +35,7 @@ let isNonceInitializing = false;
 		
 		
 		
-		const contractAddressAAA = "0xA814D3EDFFC818E6A0865510bf76f5f21671B81B";
+		const contractAddressAAA = "0x529E3E88548C664bbd7bE5E48B0b0D4B6d0fB16C";
 		const contractAddressBBB = "0x25308f7B09CdE60bD04ea00bb248826Cd6Dd7b8E";
 		
 		
@@ -109,16 +109,7 @@ useEffect(() => {
 }, []);
 		
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+
 		
 		
 		
@@ -695,8 +686,8 @@ const sendTransaction = async (contractMethod, params = [], contractAddress, con
 
     if (currentNonce === null) {
 		//await initializeNonce(provider, setNonceInitializing);
-		
-        alert("Nonce не инициализирован. Попробуйте обновить страницу.");
+		window.location.reload();
+        alert("Проблемы с сетью, страница была обновлена."); 
     return; // Прекращаем выполнение функции
     }
 const randomNum = Math.floor(Math.random() * 1000000) + 1;
@@ -1449,8 +1440,10 @@ ${depot.theEndCount} - The End Count
 				case "fetchGrid":
 					await fetchGrid();
 					break;
+					
+					
 				case "starttimeeUpdate":
-					const decrementValue = prompt("Функция в разработке. Не жми лучше. Во время криосна автоперезапуск манипуляторов не работает. Проснуться через (сек):");
+					const decrementValue = prompt("Во время криосна автоперезапуск манипуляторов не работает. Проснуться через (сек):");
 					if (decrementValue) {
 						try {
 							await sendTransaction("starttimeeUpdate", [decrementValue], contractAddressAAA, SimpleGridAbiAAA);
@@ -1461,21 +1454,45 @@ ${depot.theEndCount} - The End Count
 						}
 					}
 					break;
+					
+					
+					
 				default:
 					console.error("console.error: executeAction");
 			}
 			setAction("getCell"); // Сбрасываем действие после выполнения
 		};
 		
+
 		
+    const [selectedSpeed, setSelectedSpeed] = useState("1x");
+
+    const handleSpeedChange = (speed) => {
+        setSelectedSpeed(speed);
+    };
 		
-		
-		
-		
-		
-		
-		
-		
+useEffect(() => {
+    if (currentNonce === null) return;
+
+    const multiplier = parseInt(selectedSpeed.replace("x", ""), 10); 
+    const decrementValue = 20 * multiplier - 20; 
+
+    const intervalstarttimeeUpdate = setInterval(async () => {
+        const currentSeconds = new Date().getSeconds();
+        if (currentSeconds % 20 === 0) {
+            try {
+                await sendTransaction("starttimeeUpdate", [decrementValue], contractAddressAAA, SimpleGridAbiAAA);
+            } catch (error) {
+                // Обработка ошибок при отправке транзакции
+            }
+        }
+    }, 990);
+
+    return () => {
+        clearInterval(intervalstarttimeeUpdate);
+    };
+}, [selectedSpeed, currentNonce]);
+
 		
 		
 		
@@ -1703,7 +1720,6 @@ ${depot.theEndCount} - The End Count
 
 
 
-
 		//////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////
@@ -1741,7 +1757,28 @@ return (
    
 						}
 					} >
-					{/*}
+					
+
+					< button
+					onClick = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие события
+							if (window.confirm("Подтверждение на поиск нового астероида. Текущий, если он есть, будет потерян в просторах космоса навсегда!")) {
+								executeAction("initializeGrid");
+							}
+						}
+					}
+					style = {
+						{
+		width: '43.05px',
+height: '28.19px',
+							backgroundColor: getButtonColor("initializeGrid"),
+							cursor: "pointer"
+						}
+					} title="Начать новый астероид."> 🔍 < /button> 					
+					
+					
+					
 					< button
 					onMouseDown = {
 						() => {
@@ -1792,7 +1829,7 @@ height: '28.19px',
 					} title="Эта кнопка отжимает другие кнопки."
 					>&nbsp;&nbsp;< /button>
 					
-					{*/}
+					
 
 
 < button
@@ -1977,55 +2014,6 @@ height: '28.19px',
 
 
 
-					< button
-					onMouseDown = {
-						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие клика к родителю
-							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
-
-							if (action === "placeBox") {
-								setAction("getCell");
-							}
-							else {
-								setAction("placeBox");
-							}
-						}
-					}
-					style = {
-						{
-								
-		width: '43.05px',
-height: '28.19px',					
-							borderStyle: getButtonborderStyle('placeBox'),
-							backgroundColor: getButtonColor("placeBox"),
-							cursor: "pointer"
-						}
-					} title="Разместить Ящик"> 📦 < /button>
-
-
-<button
-    onMouseDown={(e) => {
-        e.stopPropagation();
-        buttonActionRef.current = true;
-
-        if (action === "placeWall") {
-            setAction("getCell");
-        } else {
-            setAction("placeWall");
-        }
-    }}
-    style={{
-		width: '43.05px',
-height: '28.19px',
-        borderStyle: getButtonborderStyle('placeWall'),
-        backgroundColor: getButtonColor("placeWall"),
-        cursor: "pointer",
-    }}
-    title="Разместить стену."
->
-    🧱
-</button>
-
 
 
 
@@ -2135,142 +2123,54 @@ height: '28.19px',
 						}
 					} title="Манипулятор"> ⬆️ < /button>
 
-
-
-
-
-
 					< button
-					onClick = {
+					onMouseDown = {
 						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие события
-							if (window.confirm("Подтверждение на поиск нового астероида. Текущий, если он есть, будет потерян в просторах космоса навсегда!")) {
-								executeAction("initializeGrid");
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeBox") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeBox");
 							}
 						}
 					}
 					style = {
 						{
+								
+		width: '43.05px',
+height: '28.19px',					
+							borderStyle: getButtonborderStyle('placeBox'),
+							backgroundColor: getButtonColor("placeBox"),
+							cursor: "pointer"
+						}
+					} title="Разместить Ящик"> 📦 < /button>
+
+
+<button
+    onMouseDown={(e) => {
+        e.stopPropagation();
+        buttonActionRef.current = true;
+
+        if (action === "placeWall") {
+            setAction("getCell");
+        } else {
+            setAction("placeWall");
+        }
+    }}
+    style={{
 		width: '43.05px',
 height: '28.19px',
-							backgroundColor: getButtonColor("initializeGrid"),
-							cursor: "pointer"
-						}
-					} title="Начать новый астероид."> 🔍 < /button> 
-
-
-
-
-
-
-
-
-
- < button
-					onClick = {
-						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие
-							executeAction("starttimeeUpdate"); // Вызываем функцию
-						}
-					}
-					style = {
-						{
-		width: '43.05px',
-height: '28.19px',
-							backgroundColor: getButtonColor("starttimeeUpdate"),
-							cursor: "pointer"
-						}
-					} title="Для отладки, не жми лучше."> 🛌 < /button>
-
-
-					
-					
-					
-					
-					
-					
-					
-					< button
-					
-					ref={updateCoalButtonRef} 
-					onClick = {
-						(e) => {
-							e.stopPropagation();
-							updateCoal();
-						}
-					}
-					style = {
-						{
-		width: '43.05px',
-height: '28.19px',
-							backgroundColor: getButtonColor("updateCoal"), // Цвет кнопки
-							cursor: "pointer"
-						}
-					} title="Для отладки, не жми лучше."> 🧮 < /button>
-
-					{/*}
-
-					< button
-					onClick = {
-						(e) => {
-							e.stopPropagation();
-							executeAction("meteoritfunction"); // Вызываем действие напрямую
-						}
-					}
-					style = {
-						{
-							backgroundColor: getButtonColor("meteoritfunction"), // Цвет кнопки
-							cursor: "pointer"
-						}
-					} title="Для отладки, не жми лучше."> ☄️ < /button>
-
-{*/}
-
-
-					< button
-					onClick = {
-						(e) => {
-							e.stopPropagation();
-							executeAction("fetchGrid"); // Вызываем действие напрямую
-						}
-					}
-					style = {
-						{
-		width: '43.05px',
-height: '28.19px',
-							backgroundColor: getButtonColor("fetchGrid"), // Цвет кнопки
-							cursor: "pointer"
-						}
-					} title="Для отладки, не жми лучше."> 🗺️ < /button>
-
-
-					< button
-					onClick = {
-						(e) => {
-							e.stopPropagation();
-							executeAction("getDepot"); // Вызываем действие напрямую
-						}
-					}
-					style = {
-						{
-		width: '43.05px',
-height: '28.19px',
-							backgroundColor: getButtonColor("getDepot"), // Цвет кнопки
-							cursor: "pointer"
-						}
-					} title="Для отладки, не жми лучше."> 📘 < /button> 
-
-
-
-
-
-
-
-
-					
-					
-					
-					
+        borderStyle: getButtonborderStyle('placeWall'),
+        backgroundColor: getButtonColor("placeWall"),
+        cursor: "pointer",
+    }}
+    title="Разместить стену."
+>
+    🧱
+</button>
 					< select
 					onChange = {
 						(e) => {
@@ -2317,7 +2217,7 @@ height: '28.19px',
 		width: '43.05px',
 height: '28.19px',
 						}
-					} > < option value = "" > 🏭→❔ < /option> <
+					} title="Настройка завода"> < option value = "" > 🏭→❔ < /option> <
 					option value = "componentsF" > 10⚙️→🧩 < /option> <
 					option value = "drillsF" > 10🧩→⛏️ < /option> <
 					option value = "boxesF" > 10🧩→📦 < /option> <
@@ -2329,7 +2229,225 @@ height: '28.19px',
 
 
 					/
-					select > < /div>
+					select > 
+
+
+
+
+
+< select
+    onChange={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие события
+        const speed = e.target.value;
+        handleSpeedChange(speed); // Обработка изменения скорости
+    }}
+    onClick={(e) => e.stopPropagation()} // Предотвращаем всплытие клика
+    value={selectedSpeed}
+    style={{
+        textRendering: 'auto',
+        color: 'buttontext',
+        letterSpacing: 'normal',
+        wordSpacing: 'normal',
+        lineHeight: 'normal',
+        textTransform: 'none',
+        textIndent: '0px',
+        textShadow: 'none',
+        display: 'inline-block',
+        textAlign: 'center',
+        alignItems: 'flex-start',
+        cursor: 'default',
+        boxSizing: 'border-box',
+        backgroundColor: 'buttonface',
+        margin: '0em',
+        paddingBlock: '1px',
+        paddingInline: '6px',
+        borderWidth: '2px',
+        borderStyle: 'outset',
+        borderColor: 'buttonborder',
+        borderImage: 'initial',
+        margin: '0px',
+        cursor: "pointer",
+        textAlign: 'left',
+        paddingInline: '2px',
+        textIndent: '0px',
+        margin: '0px',
+        width: '6.7em',
+        width: '43.05px',
+        height: '28.19px',
+    }}
+title="Скорость игры"> 🛌>
+    <option value="1x">1x</option>
+    <option value="2x">2x</option>
+    <option value="4x">4x</option>
+    <option value="16x">16x</option>
+    <option value="99x">99x</option>
+</select>
+
+
+
+
+
+ < button
+					onClick = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие
+							executeAction("starttimeeUpdate"); // Вызываем функцию
+						}
+					}
+					style = {
+						{
+		width: '43.05px',
+height: '28.19px',
+							backgroundColor: getButtonColor("starttimeeUpdate"),
+							cursor: "pointer"
+						}
+					} title="Криосон"> 🛌 < /button>
+
+
+					
+					
+					
+					
+					
+					{/*}
+					
+					< button
+					
+					ref={updateCoalButtonRef} 
+					onClick = {
+						(e) => {
+							e.stopPropagation();
+							updateCoal();
+						}
+					}
+					style = {
+						{
+		width: '43.05px',
+height: '28.19px',
+							backgroundColor: getButtonColor("updateCoal"), // Цвет кнопки
+							cursor: "pointer"
+						}
+					} title="Для отладки, я б не нажимал."> 🧮 < /button>
+{*/}
+					{/*}
+
+					< button
+					onClick = {
+						(e) => {
+							e.stopPropagation();
+							executeAction("meteoritfunction"); // Вызываем действие напрямую
+						}
+					}
+					style = {
+						{
+							backgroundColor: getButtonColor("meteoritfunction"), // Цвет кнопки
+							cursor: "pointer"
+						}
+					} title="Для отладки, я б не нажимал."> ☄️ < /button>
+
+{*/}
+
+	{/*}
+					< button
+					onClick = {
+						(e) => {
+							e.stopPropagation();
+							executeAction("fetchGrid"); // Вызываем действие напрямую
+						}
+					}
+					style = {
+						{
+		width: '43.05px',
+height: '28.19px',
+							backgroundColor: getButtonColor("fetchGrid"), // Цвет кнопки
+							cursor: "pointer"
+						}
+					} title="Для отладки, я б не нажимал."> 🗺️ < /button>
+
+					{*/}
+					< button
+					onClick = {
+						(e) => {
+							e.stopPropagation();
+							executeAction("getDepot"); // Вызываем действие напрямую
+						}
+					}
+					style = {
+						{
+		width: '43.05px',
+height: '28.19px',
+							backgroundColor: getButtonColor("getDepot"), // Цвет кнопки
+							cursor: "pointer"
+						}
+					} title="Для отладки, я б не нажимал."> 📘 < /button> 
+
+
+
+
+
+<button
+    onClick={async () => {
+        try {
+			const signer = getSigner();
+            const userAddress = await signer.getAddress(); // Получение адреса
+            const explorerUrl = `https://pacific-explorer.sepolia-testnet.manta.network/address/${userAddress}`;
+            window.open(explorerUrl, "_blank"); // Открытие в новой вкладке
+        } catch (error) {
+            console.error("Ошибка при получении адреса пользователя:", error);
+        }
+    }}
+    style={{
+        width: '43.05px',
+        height: '28.19px',
+        backgroundColor: '#fff', // Можно заменить на любой цвет
+        cursor: "pointer"
+    }}
+    title="BlockExplorer"
+>
+    📄
+</button>
+
+
+					
+					
+<button
+    onClick={() => {
+        window.open("https://t.me/metagameonchain", "_blank");
+    }}
+    style={{
+        width: '43.05px',
+        height: '28.19px',
+        backgroundColor: '#fff', // Можно заменить на любой цвет
+        cursor: "pointer"
+    }}
+    title="Чатик"
+>
+    🗫
+</button>
+					
+
+					
+
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					< /div>
 
 
 
@@ -2689,23 +2807,24 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
 																			} < /span>)
 																	} 		
 																		
-																{
+															{
     cell.wallPowerAmount > 0 && (
         <span
             style={{
-				color: "black",
+                color: Math.floor(Number(cell.wallPowerAmount) / 100) < 3 ? "#0400ff" : "black",
                 position: 'absolute',
                 transform: 'translate(-0px, -0px)',
-                fontSize: '11px',
+                fontSize: '14px',
                 fontFamily: 'Arial, sans-serif',
                 fontWeight: 'bold',
                 display: 'block',
             }}
         >
-            {Math.floor(Number(cell.wallPowerAmount)/100 )}
+            {Math.floor(Number(cell.wallPowerAmount) / 100)}
         </span>
     )
 }
+
  																			
 														
 														{
