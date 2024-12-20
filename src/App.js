@@ -138,7 +138,7 @@ useEffect(() => {
 				x: rowIndex,
 				y: colIndex,
 				content: "Update",
-				tool: "toolEmpty",
+				tool: "Update",
 				man: "manEmpty",
 				coalAmount: "0",
 				ironAmount: "0",
@@ -668,10 +668,23 @@ useEffect(() => {
 }, [provider, isKeyConfirmed]); // Add isKeyConfirmed to dependencies
 
 		
-		
+/*		
+useEffect(() => {
+    const reinitializeNonce = async () => {
+        try {
+            const nonce = await initializeNonce(provider, setNonceInitializing);
+            setCurrentNonce(nonce); // Устанавливаем новый nonce
+        } catch (error) {
+            console.error("Ошибка при переинициализации nonce:", error);
+        }
+    };
 
-		
-		
+    if (dynamicEarlyValue > 50 && dynamicEarlyValue < 10000000) {
+        reinitializeNonce(); // Инициализация, если значение в пределах диапазона
+    }
+}, [dynamicEarlyValue]); // Следим за dynamicEarlyValue
+*/
+	
 const randomNum = Math.floor(Math.random() * 1000000) + 1;
 
 const sendTransaction = async (contractMethod, params = [], contractAddress, contractABI) => {
@@ -763,8 +776,8 @@ const executeTransaction = async (contractMethod, params = [], contractAddressIN
     try {
 		
 		
-if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
-//if (contractMethod != 'updateCoal') {
+
+if (contractMethod != 'updateCoal') {
     setLogMessages((prev) => [
         { text: `Отправляем сигнал...`, color: '#fff703' },
         ...prev,
@@ -833,9 +846,9 @@ if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
 		
 		
 		console.error("Ошибка executeTransaction:", error);
-//if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
-if (contractMethod != 'updateCoal') {
-        console.error(`${contractMethod} error:`, error);
+
+//if (contractMethod != 'updateCoal') {
+        console.error(`${contractMethod}`, error);
 		
 		
 		
@@ -856,7 +869,12 @@ if (contractMethod != 'updateCoal') {
         setTimeout(() => {
             setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
         }, 1500);
-}
+//}
+
+
+
+
+
         if (cellId) {
             setActiveCells((prev) => prev.filter((id) => id !== cellId));
         }
@@ -940,14 +958,14 @@ if (contractMethod != 'updateCoal') {
 
 
 useEffect(() => {
-    if (dynamicEarlyValue > 120 && !hasEarlyAlertShown) {
+    if (dynamicEarlyValue > 110 && !hasEarlyAlertShown && dynamicEarlyValue < 10000000) {
         alert("Хьюстон, у нас проблемы - долго нет связи с астероидом - попробуй обнови страницу.");
         setHasEarlyAlertShown(true); // Обновляем состояние, чтобы алерт не показывался повторно
     }
 }, [dynamicEarlyValue, hasEarlyAlertShown]);
 
-
 */
+
 		useEffect(() => {
 			if (action === "placeBulldozer") {
 				document.body.classList.add("placeBulldozer");
@@ -2240,7 +2258,7 @@ height: '28.19px',
 		width: '43.05px',
 height: '28.19px',
 						}
-					} title="Настройка завода"> < option value = "" > 🏭→❔ < /option> <
+					} title="Настройка завода"> < option value = "" > 🧩🏭→❔ < /option> <
 					option value = "componentsF" > ⚙️10→🧩 < /option> <
 					option value = "drillsF" > 🧩10→⛏️ < /option> <
 					option value = "boxesF" > 🧩10→📦 < /option> <
@@ -2597,6 +2615,8 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
 															} {
 																cell.tool === "Wall" && "🧱"
 															} {
+																cell.tool === "Update" && "📶"
+															} {
 																cell.man === "LR" && "➡️"
 															} {
 																cell.man === "RL" && "⬅️"
@@ -2877,20 +2897,35 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
 
 <p
     style={{
-        display: 'flex', // Используем flexbox для выравнивания
-        justifyContent: 'center', // Центрируем по горизонтали
-        width: '100vw', // Ширина контейнера на весь экран
-        alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
+        display: 'flex',
+        justifyContent: 'center',
+        width: '100vw',
+        alignItems: 'flex-start',
         margin: '0',
-        color: dynamicEarlyValue > 40 ? 'red' : '#ffe500', // Условие для смены цвета текста
-        fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
-        fontSize: '17px', // Размер шрифта
+        color: dynamicEarlyValue > 40 ? 'red' : '#ffe500',
+        fontWeight: 'bold',
+        fontSize: '17px',
         textAlign: 'center',
-		marginTop: '1px',
+        marginTop: '1px',
+        animation: dynamicEarlyValue > 40 ? 'blink 1s infinite' : 'none' // Анимация только при условии
     }}
 >
     Последние данные {dynamicEarlyValue} сек. назад
 </p>
+
+<style>
+{`
+    @keyframes blink {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0;
+        }
+    }
+`}
+</style>
+
 
 
 

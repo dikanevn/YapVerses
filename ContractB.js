@@ -325,10 +325,18 @@ function validateRequire(IMainGrid.Depot memory depot) internal view {
 		// Проверяем условия для переноса ресурсов
 if (
     keccak256(abi.encodePacked(source.factorySettings)) != keccak256(abi.encodePacked("componentsF")) && // Проверка source
-    (keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("componentsF")) || // Проверка destination
-    keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) ||
-	keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("wallF")))
+    (
+        keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("componentsF")) || // Проверка destination
+        keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) ||
+        (
+            keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("wallF")) && // Проверяем wallF
+            wallAmount <= 180 // Проверяем количество стен
+        )
+    )
 ) {
+    // Ваш код
+}
+
 			uint256 resourceToMove = source.ironplateAmount / 5;
 			uint256 availableSpaceInBox = MaxBox - (destination.coalAmount + destination.ironAmount + destination.ironplateAmount + destination.componentsAmount);
 			uint256 resourceTransferred;
@@ -353,29 +361,41 @@ if (
 		// Получаем данные ячеек через основной контракт
 		IMainGrid.Cell memory source = mainGrid.getCell(msg.sender, fromX, fromY);
 		IMainGrid.Cell memory destination = mainGrid.getCell(msg.sender, toX, toY);
-
+    IMainGrid.Depot memory depot = mainGrid.getDepot(user);
 		// Получаем максимальный размер Box через основной контракт
 		uint256 MaxBox = mainGrid.getMaxBox();
 
 		// Проверяем условия для переноса ресурсов
-		if (
-			(
-				keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Factory")) &&
-				keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("componentsF"))
-				|| 
-				keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box"))
-			) 
-			&&
-			(
-				keccak256(abi.encodePacked(source.factorySettings)) == keccak256(abi.encodePacked("componentsF")) ||
-				keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Box"))
-			)
-			
-			
-			
-			
-			
-		) {
+if (
+    (
+        (
+            keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Factory")) &&
+            keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("componentsF")) &&
+            keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("bulldozerF")) // Проверяем, что это не bulldozerF
+        ) || 
+        keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box"))
+    ) 
+    &&
+    (
+        keccak256(abi.encodePacked(source.factorySettings)) == keccak256(abi.encodePacked("componentsF")) ||
+        keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Box"))
+    )
+    &&
+    (
+        keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("bulldozerF")) || // Добавляем дополнительное условие
+        bulldozerAmount <= 180 // Проверяем количество бульдозеров
+    )
+	 &&
+    (
+        keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("wallF")) || // Добавляем дополнительное условие
+        wallAmount <= 180 // Проверяем количество бульдозеров
+    )
+	
+	
+	
+	
+	
+) {
 			uint256 resourceToMove = source.componentsAmount / 5;
 			uint256 availableSpaceInBox = MaxBox - (destination.coalAmount + destination.ironAmount + destination.ironplateAmount + destination.componentsAmount);
 			uint256 resourceTransferred;
