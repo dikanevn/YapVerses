@@ -35,8 +35,8 @@ let isNonceInitializing = false;
 		
 		
 		
-		const contractAddressAAA = "0x529E3E88548C664bbd7bE5E48B0b0D4B6d0fB16C";
-		const contractAddressBBB = "0x25308f7B09CdE60bD04ea00bb248826Cd6Dd7b8E";
+		const contractAddressAAA = "0x1fD2540d09be659A2F80Ad1eBE560eFe4ae7cab3";
+		const contractAddressBBB = "0x53D390b16a282212EE2F995495ae434DcA2443a4";
 		
 		
 		
@@ -446,7 +446,7 @@ setDynamicEarlyValue(Math.round(Number(early) - 10 + lag)); // Округлен�
 					updateCoalButtonRef.current.click(); // Имитация клика
 					console.log("updateCoal...");
 				}
-			}, 5000); // 10000 миллисекунд = 10 секунд 
+			}, 6000); // 10000 миллисекунд = 10 секунд 
 			// Очистка интервала при размонтировании компонента
 			return () => clearInterval(intervalId);
 		}, []); // Пустой массив зависимостей - эффект выполняется один раз при монтировании
@@ -761,7 +761,7 @@ const executeTransaction = async (contractMethod, params = [], contractAddressIN
 		
 		
 		
-if (contractMethod !== 'updateCoal') {
+if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
     setLogMessages((prev) => [
         { text: `Отправляем сигнал...`, color: '#fff703' },
         ...prev,
@@ -804,12 +804,12 @@ const gasLimit = Math.ceil(2 * estimatedGas); // Округляем вверх �
 		
 		
 		
-if (contractMethod !== 'updateCoal') {
+if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
     setLogMessages((prev) => [
         { text: `Сигнал отправлен. ${new Date().toLocaleTimeString()}`, color: 'LimeGreen' },
         ...prev,
     ]);
-}
+
 
 
 
@@ -823,18 +823,21 @@ if (contractMethod !== 'updateCoal') {
         setTimeout(() => {
             setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
         }, 1000);
+		
+}		
+		
     } catch (error) {
 		
 		
 		console.error("Ошибка executeTransaction:", error);
-		if (contractMethod !== 'updateCoal') {
+if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
         console.error(`${contractMethod} error:`, error);
 		
 		
-		}
+		
 		
         setLogMessages((prev) => [
-            { text: `Ошибка ${new Date().toLocaleTimeString()}: ${error.message}`, color: 'red' },
+            { text: `${error.message}`, color: 'red' },
             ...prev.slice(1),
         ]);
 
@@ -849,7 +852,7 @@ if (contractMethod !== 'updateCoal') {
         setTimeout(() => {
             setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
         }, 1500);
-
+}
         if (cellId) {
             setActiveCells((prev) => prev.filter((id) => id !== cellId));
         }
@@ -1198,10 +1201,10 @@ Components Amount: ${cell.componentsAmount}
 Factory Settings: ${cell.factorySettings}
 wallPowerAmount: ${cell.wallPowerAmount}
 `;
-				// Логируем данные в консоль
+			
 				console.log(cellDataMessage);
-				// Обновляем лог-сообщение
-				//setLogMessages(prev => [cellDataMessage, ...prev]);
+				
+				
 				setLogMessages(prev => [{
 					text: cellDataMessage,
 					color: 'gray'
@@ -1248,9 +1251,9 @@ ${depot.pausedDuration} - Paused Duration
 ${depot.pauseStartTime} - Pause Start Time
 ${depot.theEndCount} - The End Count
 `;
-				// Логируем данные в консоль
+				
 				console.log(depotDataMessage);
-				// Обновляем лог-сообщение
+				
 				setLogMessages(prev => [{
 					text: depotDataMessage,
 					color: 'gray'
@@ -1260,9 +1263,7 @@ ${depot.theEndCount} - The End Count
 				console.error("Ошибка getDepot:", error);
 			}
 		};
-		const updateStarttimee = async (x, y, decrementValue) => {
-			sendTransaction(decrementValue); // передаем decrementValue в sendTransaction
-		};
+
 		const placeDrill = (x, y) => {
 			sendTransaction("placeDrill", [x, y], contractAddressAAA, SimpleGridAbiAAA);
 		};
@@ -2222,14 +2223,14 @@ height: '28.19px',
 height: '28.19px',
 						}
 					} title="Настройка завода"> < option value = "" > 🏭→❔ < /option> <
-					option value = "componentsF" > 10⚙️→🧩 < /option> <
-					option value = "drillsF" > 10🧩→⛏️ < /option> <
-					option value = "boxesF" > 10🧩→📦 < /option> <
-					option value = "mansF" > 10🧩→↔️ < /option> <
-					option value = "furnaceF" > 10🧩→🔥 < /option> <
-					option value = "factoryF" > 10🧩→🏭 < /option> <
-					option value = "bulldozerF" > 10🧩→🏗️ < /option> <
-					option value = "wallF" > 100⚙️+10🧩+1🏗️→🧱 < /option> <
+					option value = "componentsF" > ⚙️10→🧩 < /option> <
+					option value = "drillsF" > 🧩10→⛏️ < /option> <
+					option value = "boxesF" > 🧩10→📦 < /option> <
+					option value = "mansF" > 🧩10→↔️ < /option> <
+					option value = "furnaceF" > 🧩10→🔥 < /option> <
+					option value = "factoryF" > 🧩10→🏭 < /option> <
+					option value = "bulldozerF" > 🧩10→🏗️ < /option> <
+					option value = "wallF" > ⚙️100+🧩10+🏗️1️→🧱 < /option> <
 
 
 					/
@@ -2283,8 +2284,13 @@ title="Скорость игры"> 🛌>
     <option value="1x">1x</option>
     <option value="2x">2x</option>
     <option value="4x">4x</option>
+    <option value="8x">8x</option>
+    <option value="12x">12x</option>
     <option value="16x">16x</option>
-    <option value="99x">99x</option>
+    <option value="50x">50x</option>
+    <option value="99x">99x</option>	
+	
+	
 </select>
 
 
