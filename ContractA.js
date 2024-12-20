@@ -40,9 +40,17 @@ interface IMainGrid {
     uint256 pauseStartTime; // Время начала текущей паузы		
 	 uint256 wallAmount;	
 	 	 uint256 theEndCount;
+uint256 speedkoef;
+
+
+
+
     }
 
     function getDepot(address user) external view returns (Depot memory);
+	
+	
+    function updateDepotSpeedkoef(address user, uint256 speedkoef) external;
 	function getMaxBox() external view returns (uint256);
     function updateContent(address user, uint256 x, uint256 y, string memory content) external;
     function updateTool(address user, uint256 x, uint256 y, string memory tool) external;
@@ -108,6 +116,52 @@ function updateDepotTheEndCount(address user, uint256 theEndCount) external;
     ) external;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 contract ContractAAA {
     IMainGrid private mainGrid;
     address public admin;
@@ -143,6 +197,10 @@ function initializeGrid(uint256 /* unused */) external {
     }
 
     updateDepotInitialSettings(msg.sender);
+	
+	
+	
+	
 }
 
 function initializeCell(address user, uint256 x, uint256 y) internal {
@@ -215,6 +273,11 @@ function initializeSpecialCells(address user, uint256 x, uint256 y) internal {
     }
 }
 
+
+/*
+
+
+
 function updateDepotInitialSettings(address user) internal {
 	uint256 gridSize = 10; // Задаем размер сетки
 	uint256 theEndCount = gridSize * gridSize + 100;
@@ -247,6 +310,49 @@ mainGrid.updateDepotTheEndCount(user, theEndCount);
 }
 
 
+
+
+*/
+
+function updateDepotInitialSettings(address user) internal {
+    uint256 gridSize = 10; // Задаем размер сетки
+    uint256 theEndCount = gridSize * gridSize + 100;
+    
+    mainGrid.updateDepotPart1(
+        user,
+        gridSize, // gridSize
+        10,  // drillsAmount
+        10,  // boxesAmount
+        10,  // mansAmount
+        10,  // furnaceAmount
+        10,  // factoryAmount
+        100  // wallAmount
+    );
+
+    mainGrid.updateDepotPart2(
+        user,
+        block.timestamp, // starttimee
+        block.timestamp, // lastmeteoritTimeChecked
+        block.timestamp, // blocktimestamp
+        400,             // bulldozerAmount
+        0,               // early
+        10,              // mmmtime
+        40,              // mmmdrillSpeed
+        20,              // iterationLimitDepot
+        0,               // isPaused
+        0,               // pausedDuration
+        0                // pauseStartTime
+    );
+
+    mainGrid.updateDepotTheEndCount(user, theEndCount);
+
+    // Устанавливаем значение speedkoef
+    mainGrid.updateDepotSpeedkoef(user, 1);
+}
+
+
+
+
 function generateRandom(uint256 x, uint256 y, address user) internal view returns (uint256) {
     return uint256(
         keccak256(
@@ -264,7 +370,7 @@ function generateRandom(uint256 x, uint256 y, address user) internal view return
 	
 	
 function validateRequire(IMainGrid.Depot memory depot) internal view {
-    require(block.timestamp - depot.blocktimestamp < 60, "Wait for the update");
+    require(block.timestamp - depot.blocktimestamp < 300, "Wait for the update");
     require(depot.isPaused == 0, "paused");
     require(depot.theEndCount > 100, "Game Over");
 	require(depot.early < 300, "Wait for the update");
@@ -406,19 +512,31 @@ validateRequire(depot);
 
 function placeWall(uint256 x, uint256 y, uint256 /* unused */) external {
     IMainGrid.Depot memory depot = mainGrid.getDepot(msg.sender);
-validateRequire(depot); 
+    validateRequire(depot);
+
     require(depot.gridSize > 0, "Grid size is not initialized");
     require(x < depot.gridSize && y < depot.gridSize, "Invalid coordinates");
     require(depot.wallAmount > 0, "No wall available");
+
+    // Получаем данные ячейки
     IMainGrid.Cell memory cell = mainGrid.getCell(msg.sender, x, y);
 
-require(
-    keccak256(abi.encodePacked(cell.tool)) == keccak256(abi.encodePacked("toolEmpty")) ||
-    keccak256(abi.encodePacked(cell.tool)) == keccak256(abi.encodePacked("Wall")),
-    "Tool already placed"
-);
+    // Если инструмент на клетке "Space", сначала ставим бульдозер
+    if (keccak256(abi.encodePacked(cell.tool)) == keccak256(abi.encodePacked("Space"))) {
+        placeBulldozer(x, y, 0);
+        // Обновляем данные ячейки после вызова placeBulldozer
+        cell = mainGrid.getCell(msg.sender, x, y);
+    }
 
-uint256 wallPowerAmount = 900; // Начальное значение для крепкости стены
+    // Проверяем, можно ли разместить стену
+    require(
+        keccak256(abi.encodePacked(cell.tool)) == keccak256(abi.encodePacked("toolEmpty")) ||
+        keccak256(abi.encodePacked(cell.tool)) == keccak256(abi.encodePacked("Wall")),
+        "Tool already placed"
+    );
+
+    uint256 wallPowerAmount = 900; // Начальное значение для крепкости стены
+
     // Обновляем данные ячейки
     mainGrid.updateTool(msg.sender, x, y, "Wall");
     mainGrid.updateWallPowerAmount(msg.sender, x, y, wallPowerAmount); // Устанавливаем wallPowerAmount
@@ -628,7 +746,7 @@ validateRequire(depot);
 }
 	
 	
-function placeBulldozer(uint256 x, uint256 y, uint256 /* unused */) external {
+function placeBulldozer(uint256 x, uint256 y, uint256 /* unused */) public {
     // Получаем данные депо через основной контракт
     IMainGrid.Depot memory depot = mainGrid.getDepot(msg.sender);
 validateRequire(depot); 
@@ -762,7 +880,16 @@ function unsetPause(uint256) external {
     mainGrid.updateDepotPauseStartTime(msg.sender, 0); // Сбрасываем время начала паузы
 }
 
-
+function updateSpeedKoef(uint256 newSpeedKoef, uint256 /* unused */) external {
+    // Получаем данные депо для проверки условий (при необходимости)
+    IMainGrid.Depot memory depot = mainGrid.getDepot(msg.sender);
+    // Можно добавить свои проверки, например:
+    // validateRequire(depot); // Если требуется валидация
+    require(depot.isPaused == 0, "paused");
+    require(depot.theEndCount > 100, "Game Over");
+    // Обновляем speedkoef
+    mainGrid.updateDepotSpeedkoef(msg.sender, newSpeedKoef);
+}
 
 	
 	

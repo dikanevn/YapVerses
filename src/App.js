@@ -31,12 +31,12 @@ let isNonceInitializing = false;
 		
 		
 		
-		const contractAddressMain = "0xD190AAAebCF04beb5dAE15b264270616e144B26b";
+		const contractAddressMain = "0x2756D7d5b6D4ADCB3655882bB1C29FfF6493CcB0";
 		
 		
 		
-		const contractAddressAAA = "0x1fD2540d09be659A2F80Ad1eBE560eFe4ae7cab3";
-		const contractAddressBBB = "0x53D390b16a282212EE2F995495ae434DcA2443a4";
+		const contractAddressAAA = "0xf387eeF5d0513234E1309057952fBCAB38FbdaEF";
+		const contractAddressBBB = "0x7330C8b55dC980ffBF551B2E6cd19a40E2618c6E";
 		
 		
 		
@@ -66,7 +66,7 @@ const [earlyValue, setEarlyValue] = useState(0); // Для отображени�
 const [mmmtimeValue, setMmmtimeValue] = useState(0); // Для отображения переменной mmmtime
 const [meteoritCount, setMeteoritCount] = useState(0); // Для отображения количества метеоритов
 const [hasGameOverAlertShown, setHasGameOverAlertShown] = useState(false);
-
+const [hasEarlyAlertShown, setHasEarlyAlertShown] = useState(false);
 
 
 		const [logMessage, setLogMessage] = useState(""); // Состояние для хранения лог-сообщения
@@ -276,6 +276,7 @@ const fetchGrid = async () => {
                             factorySettings: "0",
                             previouscontent: "contentEmpty",
 							wallPowerAmount: "0",
+							theEndCount: "200",
                         };
                         return updatedGrid;
                     });
@@ -328,7 +329,8 @@ const isPaused = result.isPaused.toString();
 const pausedDuration = result.pausedDuration.toString();
 const pauseStartTime = result.pauseStartTime.toString();
 const wallAmount = result.wallAmount.toString();			
-const theEndCount = result.theEndCount.toString(); // Добавляем извлечение theEndCount
+const theEndCount = result.theEndCount.toString(); 
+const speedkoef = result.speedkoef.toString(); 
 			
 			
 			
@@ -356,6 +358,7 @@ early,
     isPaused,
     pausedDuration,
     pauseStartTime,
+	speedkoef,
 });
 
 const currentTime = Date.now() / 1000; // Текущее время в секундах
@@ -364,7 +367,7 @@ const lag = currentTime - Number(blocktimestamp); // Отставание в с�
 setEarlyValue(Number(early)); // Устанавливаем значение early
 setMmmtimeValue(Number(mmmtime)); // Устанавливаем значение mmmtime
 setMeteoritCount(Math.floor(Number(early) / Math.floor(Number(mmmtime)))); // Устанавливаем количество метеоритов
-setDynamicEarlyValue(Math.round(Number(early) - 10 + lag)); // Округление до ближайшего целого
+setDynamicEarlyValue(Math.round(Number(early) + lag)); // Округление до ближайшего целого
 
 
 
@@ -460,7 +463,7 @@ setDynamicEarlyValue(Math.round(Number(early) - 10 + lag)); // Округлен�
 	
 	
 	
-	
+	/*
 	
 	
 useEffect(() => {
@@ -470,7 +473,7 @@ useEffect(() => {
     }
 }, [depot.theEndCount, hasGameOverAlertShown]);
 
-
+*/
 		
 const [dynamicEarlyValue, setDynamicEarlyValue] = useState(0); // Состояние для увеличивающегося значения
 
@@ -691,7 +694,7 @@ const sendTransaction = async (contractMethod, params = [], contractAddress, con
     if (currentNonce === null) {
 		//await initializeNonce(provider, setNonceInitializing);
 		window.location.reload();
-        alert("Проблемы с сетью, страница была обновлена."); 
+        alert("Хьюстон, у нас проблемы, страница была обновлена."); 
     return; // Прекращаем выполнение функции
     }
 const randomNum = Math.floor(Math.random() * 1000000) + 1;
@@ -933,13 +936,18 @@ if (contractMethod != 'updateCoal') {
 
 
 
+/*
 
 
+useEffect(() => {
+    if (dynamicEarlyValue > 120 && !hasEarlyAlertShown) {
+        alert("Хьюстон, у нас проблемы - долго нет связи с астероидом - попробуй обнови страницу.");
+        setHasEarlyAlertShown(true); // Обновляем состояние, чтобы алерт не показывался повторно
+    }
+}, [dynamicEarlyValue, hasEarlyAlertShown]);
 
 
-
-
-
+*/
 		useEffect(() => {
 			if (action === "placeBulldozer") {
 				document.body.classList.add("placeBulldozer");
@@ -1232,6 +1240,7 @@ wallPowerAmount: ${cell.wallPowerAmount}
 				// Формируем сообщение со всеми данными депо
 				const depotDataMessage = `
 Depot Data:
+${depot.speedkoef} - speedkoef
 ${depot.gridSize} - Grid Size
 ${depot.drillsAmount} - Drills
 ${depot.boxesAmount} - Boxes
@@ -1251,6 +1260,7 @@ ${depot.isPaused} - (1 - Pause, 0 - Game)
 ${depot.pausedDuration} - Paused Duration
 ${depot.pauseStartTime} - Pause Start Time
 ${depot.theEndCount} - The End Count
+
 `;
 				
 				console.log(depotDataMessage);
@@ -1473,10 +1483,17 @@ ${depot.theEndCount} - The End Count
 		
     const [selectedSpeed, setSelectedSpeed] = useState("1x");
 
-    const handleSpeedChange = (speed) => {
-        setSelectedSpeed(speed);
-    };
-		
+const handleSpeedChange = (speed) => {
+    setSelectedSpeed(speed);
+
+    const multiplier = parseInt(speed.replace("x", ""), 10);
+
+    // Отправляем транзакцию на изменение speedkoef через контракт AAA
+    sendTransaction("updateSpeedKoef", [multiplier], contractAddressAAA, SimpleGridAbiAAA);
+};
+
+
+		/*
 useEffect(() => {
     if (currentNonce === null) return;
 
@@ -1500,7 +1517,7 @@ useEffect(() => {
 }, [selectedSpeed, currentNonce]);
 
 		
-		
+		*/
 		
 		
 		
@@ -2281,15 +2298,12 @@ height: '28.19px',
         width: '43.05px',
         height: '28.19px',
     }}
-title="Скорость игры"> 🛌>
+title="Скорость игры"> >
     <option value="1x">1x</option>
     <option value="2x">2x</option>
-    <option value="4x">4x</option>
-    <option value="8x">8x</option>
-    <option value="12x">12x</option>
-    <option value="16x">16x</option>
-    <option value="50x">50x</option>
-    <option value="99x">99x</option>	
+    <option value="5x">5x</option>
+    <option value="10x">10x</option>
+
 	
 	
 </select>
@@ -2390,7 +2404,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("getDepot"), // Цвет кнопки
 							cursor: "pointer"
 						}
-					} title="Для отладки, я б не нажимал."> 📘 < /button> 
+					} title="Скорость игры"> ⏳ < /button> 
 
 
 
@@ -2510,7 +2524,7 @@ height: '28.19px',
 													{
 														width: '30px',
 														height: '30px',
-														backgroundColor: cell.tool === "Space" ? '#000' : cell.tool === "Ruins" ? '#290000' : cell.content === "contentEmpty" ? '#127852' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#002d33' : cell.content === "Null" ? '#121212' : '#121212',
+														backgroundColor: cell.tool === "Space" ? '#000' : cell.tool === "Ruins" ? '#290000' : cell.content === "contentEmpty" ? '#127852' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#002d33' : cell.content === "Null" ? '#002d33' : '#121212',
 														display: 'flex',
 														justifyContent: 'center',
 														alignItems: 'center',

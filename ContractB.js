@@ -38,11 +38,19 @@ interface IMainGrid {
     uint256 isPaused;       // 1 - пауза активна, 0 - игра идёт
     uint256 pausedDuration; // Накопленное время паузы
     uint256 pauseStartTime; // Время начала текущей паузы		
-	 uint256 wallAmount;
-	 uint256 theEndCount;	 
+	 uint256 wallAmount;	
+	 	 uint256 theEndCount;
+uint256 speedkoef;
+
+
+
+
     }
 
     function getDepot(address user) external view returns (Depot memory);
+	
+	
+    function updateDepotSpeedkoef(address user, uint256 speedkoef) external;
 	function getMaxBox() external view returns (uint256);
     function updateContent(address user, uint256 x, uint256 y, string memory content) external;
     function updateTool(address user, uint256 x, uint256 y, string memory tool) external;
@@ -108,6 +116,46 @@ function updateDepotTheEndCount(address user, uint256 theEndCount) external;
     ) external;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 contract ContractBBB {
 	IMainGrid private mainGrid;
 	address public admin;
@@ -141,7 +189,7 @@ contract ContractBBB {
 	
 	
 function validateRequire(IMainGrid.Depot memory depot) internal view {
-    require(block.timestamp - depot.blocktimestamp < 60, "Wait for the update");
+    require(block.timestamp - depot.blocktimestamp < 300, "Wait for the update");
     require(depot.isPaused == 0, "paused");
     require(depot.theEndCount > 100, "Game Over");
 	require(depot.early < 300, "Wait for the update");
@@ -427,7 +475,7 @@ function meteoritfunction(uint256 externalRandom) public {
      require(gridSize > 0, "Grid size is not initialized");
     //emit Debug("Grid size initialized", gridSize);
 
-    if (block.timestamp - depot.pausedDuration - depot.lastmeteoritTimeChecked > depot.mmmtime) {
+if (block.timestamp - depot.pausedDuration - depot.lastmeteoritTimeChecked > depot.mmmtime / depot.speedkoef) {
         //emit Debug("Condition for meteorit event met", block.timestamp);
 
         // Шаг 1: Выбор случайной целевой ячейки
@@ -446,7 +494,7 @@ function meteoritfunction(uint256 externalRandom) public {
         moveMeteorite(startX, startY, gridSize, depot);
 
         // Обновляем временные метки депо
-        depot.lastmeteoritTimeChecked += depot.mmmtime;
+        depot.lastmeteoritTimeChecked += depot.mmmtime / depot.speedkoef;
     }
 	mainGrid.updateDepotLastMeteoritTimeChecked(msg.sender, depot.lastmeteoritTimeChecked);
     mainGrid.updateDepotBlockTimestamp(msg.sender, block.timestamp);
@@ -750,7 +798,7 @@ while (_shouldCallMeteorit(depot) && meteorCount < maxMeteors) {
     meteorCount++;
 
     // Обновляем временные метки после каждого вызова
-    depot.lastmeteoritTimeChecked += depot.mmmtime;
+    depot.lastmeteoritTimeChecked += depot.mmmtime / depot.speedkoef;
     mainGrid.updateDepotLastMeteoritTimeChecked(user, depot.lastmeteoritTimeChecked);
 
     // Повторно загружаем `depot` после изменения
@@ -782,7 +830,7 @@ while (_shouldCallMeteorit(depot) && meteorCount < maxMeteors) {
 
     // Проверка, нужно ли вызвать функцию метеорита
     function _shouldCallMeteorit(IMainGrid.Depot memory depot) internal view returns (bool) {
-        return (block.timestamp - depot.pausedDuration - depot.lastmeteoritTimeChecked > depot.mmmtime);
+        return (block.timestamp - depot.pausedDuration - depot.lastmeteoritTimeChecked > depot.mmmtime / depot.speedkoef);
     }
 
     // Вызов функции метеорита
@@ -909,17 +957,17 @@ while (_shouldCallMeteorit(depot) && meteorCount < maxMeteors) {
 
         if (toolHash == keccak256(abi.encodePacked("Drill"))) {
             if (contentHash == keccak256(abi.encodePacked("Coal"))) {
-                uint256 newCoalAmount = cell.coalAmount +
-                    (block.timestamp - depot.pausedDuration - cell.lastTimeChecked) *
-                    depot.mmmdrillSpeed;
+uint256 newCoalAmount = cell.coalAmount +
+    (block.timestamp - depot.pausedDuration - cell.lastTimeChecked) *
+    (depot.mmmdrillSpeed * depot.speedkoef);
                 cell.coalAmount = newCoalAmount > maxBox ? maxBox : newCoalAmount;
                 cell.lastTimeChecked = block.timestamp - depot.pausedDuration;
             }
 
             if (contentHash == keccak256(abi.encodePacked("Iron"))) {
-                uint256 newIronAmount = cell.ironAmount +
-                    (block.timestamp - depot.pausedDuration - cell.lastTimeChecked) *
-                    depot.mmmdrillSpeed;
+uint256 newIronAmount = cell.ironAmount +
+    (block.timestamp - depot.pausedDuration - cell.lastTimeChecked) *
+    (depot.mmmdrillSpeed * depot.speedkoef);
                 cell.ironAmount = newIronAmount > maxBox ? maxBox : newIronAmount;
                 cell.lastTimeChecked = block.timestamp - depot.pausedDuration;
             }

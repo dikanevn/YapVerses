@@ -44,7 +44,7 @@ struct Depot {
     uint256 pauseStartTime; // Время начала текущей паузы
 	 uint256 wallAmount;
 	 uint256 theEndCount;
-
+uint256 speedkoef;
 
 }
 
@@ -321,7 +321,9 @@ function updateDepotGridSize(address user, uint256 gridSize) external onlyAllowe
     depot.theEndCount += (newTotalCells - previousTotalCells);
 }
 
-
+function updateDepotSpeedkoef(address user, uint256 speedkoef) external onlyAllowedContracts {
+    depots[user].speedkoef = speedkoef;
+}
 
 function updateDepotWallAmount(address user, uint256 wallAmount) external onlyAllowedContracts {
     depots[user].wallAmount = wallAmount;
