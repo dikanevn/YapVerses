@@ -1493,20 +1493,20 @@ ${depot.theEndCount} - The End Count
 		
 		
 		
-		
-		
-		
-if (isUsingPrivateKey && !isKeyConfirmed) {
+	if (isUsingPrivateKey && !isKeyConfirmed) {
+    const isMobile = window.innerWidth <= 768;
+
     return (
         <div
             style={{
                 position: 'fixed',
-                top: '0',
-                left: '0',
+                top:'3%', // Установка отступа в зависимости от устройства
+                left: '50%',
+                transform: 'translateX(-50%)', // Центрирование по горизонтали
                 width: '100%',
                 height: '100%',
                 display: 'flex',
-                justifyContent: 'center',
+                justifyContent: 'flex-start', // Чтобы избежать вертикального центрирования
                 alignItems: 'center',
                 zIndex: 1000,
                 color: 'white',
@@ -1595,7 +1595,7 @@ if (isUsingPrivateKey && !isKeyConfirmed) {
                 >
                     Нажимая "Подтвердить" Вы соглашаетесь с тем, что Вы сами хозяин своих
                     метаактивов и Вам не нужны никакие человеческие ненадёжные соглашения
-                    и договорённости. Код — закон.
+                    и договорённости. Код — закон. Версия 2412201411.
                 </p>
             </div>
 
@@ -1675,9 +1675,6 @@ if (isUsingPrivateKey && !isKeyConfirmed) {
         </div>
     );
 }
-
-
-
 
 
 
