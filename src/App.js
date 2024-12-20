@@ -760,8 +760,8 @@ const executeTransaction = async (contractMethod, params = [], contractAddressIN
     try {
 		
 		
-		
 if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
+//if (contractMethod != 'updateCoal') {
     setLogMessages((prev) => [
         { text: `Отправляем сигнал...`, color: '#fff703' },
         ...prev,
@@ -803,10 +803,10 @@ const gasLimit = Math.ceil(2 * estimatedGas); // Округляем вверх �
         await tx.wait();
 		
 		
-		
 if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
+//if (contractMethod != 'updateCoal') {
     setLogMessages((prev) => [
-        { text: `Сигнал отправлен. ${new Date().toLocaleTimeString()}`, color: 'LimeGreen' },
+        { text: `Сигнал отправлен.`, color: 'LimeGreen' },
         ...prev,
     ]);
 
@@ -830,7 +830,8 @@ if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
 		
 		
 		console.error("Ошибка executeTransaction:", error);
-if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
+//if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
+if (contractMethod != 'updateCoal') {
         console.error(`${contractMethod} error:`, error);
 		
 		
@@ -1486,7 +1487,7 @@ useEffect(() => {
         const currentSeconds = new Date().getSeconds();
         if (currentSeconds % 20 === 0) {
             try {
-                await sendTransaction("starttimeeUpdate", [decrementValue], contractAddressAAA, SimpleGridAbiAAA);
+                sendTransaction("starttimeeUpdate", [decrementValue], contractAddressAAA, SimpleGridAbiAAA);
             } catch (error) {
                 // Обработка ошибок при отправке транзакции
             }
