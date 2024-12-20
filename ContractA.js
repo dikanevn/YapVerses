@@ -226,7 +226,7 @@ function updateDepotInitialSettings(address user) internal {
         4,  // mansAmount
         1,  // furnaceAmount
         2,  // factoryAmount
-        50  // wallAmount
+        0  // wallAmount
     );
 
     mainGrid.updateDepotPart2(
@@ -267,7 +267,7 @@ function validateRequire(IMainGrid.Depot memory depot) internal view {
     require(block.timestamp - depot.blocktimestamp < 60, "Wait for the update");
     require(depot.isPaused == 0, "paused");
     require(depot.theEndCount > 100, "Game Over");
-	require(depot.early < 60, "Wait for the update");
+	require(depot.early < 300, "Wait for the update");
 }
 	
 	

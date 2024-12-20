@@ -636,6 +636,10 @@ const initializeNonce = async (provider, setNonceInitializing) => {
         const userAddress = await signer.getAddress();
         const nonce = await provider.getTransactionCount(userAddress, "latest");
         console.log(`Nonce инициализирован: ${nonce}`);
+		    setLogMessages((prev) => [
+        { text: `Nonce инициализирован:${nonce}`, color: '#fff703' },
+        ...prev,
+    ]);
         return nonce;
     } catch (error) {
         console.error("Ошибка при инициализации nonce:", error);
@@ -2309,7 +2313,7 @@ height: '28.19px',
 					
 					
 					
-					{/*}
+					
 					
 					< button
 					
@@ -2328,7 +2332,7 @@ height: '28.19px',
 							cursor: "pointer"
 						}
 					} title="Для отладки, я б не нажимал."> 🧮 < /button>
-{*/}
+
 					{/*}
 
 					< button
@@ -2422,7 +2426,7 @@ height: '28.19px',
     }}
     title="Чатик"
 >
-    🗫
+    👥
 </button>
 					
 
@@ -2462,7 +2466,7 @@ height: '28.19px',
 							//height: '100vh', // Высота контейнера на весь экран
 							alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
 							margin: '0',
-							color: '#b5047a', // Устанавливаем цвет текста
+							color: '#ffe500', // Устанавливаем цвет текста
 							fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
 							fontSize: '17px', // Размер шрифта
 							//border: "1px solid #ccc",
@@ -2864,7 +2868,7 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
 		marginTop: '1px',
     }}
 >
-    А Последние данные {dynamicEarlyValue} сек. назад
+    Последние данные {dynamicEarlyValue} сек. назад
 </p>
 
 
