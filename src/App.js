@@ -36,7 +36,7 @@ const [currentNonce, setCurrentNonce] = useState(null);
 		
 		
 		const contractAddressAAA = "0x99151a2CeeC982aac5D335EAB172AcbAfF4dA389";
-		const contractAddressBBB = "0x82308CA2289fb0cB9356b487125320671eCDC417";
+		const contractAddressBBB = "0x616995EB7cF03136dF13e1969C51ed652144e4B6";
 		
 		
 		
