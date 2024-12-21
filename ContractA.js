@@ -338,9 +338,9 @@ function updateDepotInitialSettings(address user) internal {
         block.timestamp, // blocktimestamp
         400,             // bulldozerAmount
         0,               // early
-        20 * 10**6,              // mmmtime
+        10 * 10**6,              // mmmtime
         40,              // mmmdrillSpeed
-        20,              // iterationLimitDepot
+        50,              // iterationLimitDepot
         0,               // isPaused
         0,               // pausedDuration
         0                // pauseStartTime
@@ -804,13 +804,13 @@ function starttimeeUpdate(uint256 decrementValue, uint256 /* unused */) external
     IMainGrid.Depot memory depot = mainGrid.getDepot(msg.sender);
     uint256 gridSize = depot.gridSize;
 validateRequire(depot); 
-     require(decrementValue < depot.lastmeteoritTimeChecked, "Decrement value exceeds starttimee");
+     require(decrementValue < (depot.lastmeteoritTimeChecked / 10**6), "Decrement value exceeds starttimee");
     require(decrementValue < 1733874056, "max 1733874056");
 
     // Обновляем значения депо
-    mainGrid.updateDepotLastMeteoritTimeChecked(msg.sender, depot.lastmeteoritTimeChecked - decrementValue);
+    mainGrid.updateDepotLastMeteoritTimeChecked(msg.sender, (depot.lastmeteoritTimeChecked - (decrementValue * 10**6)));
     mainGrid.updateDepotBlockTimestamp(msg.sender, block.timestamp);
-    mainGrid.updateDepotEarly(msg.sender, block.timestamp - depot.pausedDuration - (depot.lastmeteoritTimeChecked - decrementValue));
+    mainGrid.updateDepotEarly(msg.sender, block.timestamp - depot.pausedDuration - ( (depot.lastmeteoritTimeChecked / 10**6) - decrementValue));
 
     // Обновляем значения в каждой ячейке
     for (uint256 x = 0; x < gridSize; x++) {

@@ -35,7 +35,7 @@ const [currentNonce, setCurrentNonce] = useState(null);
 		
 		
 		
-		const contractAddressAAA = "0x7bfaDe84385AC6a1426c97Ae130dff3E84Ff1679";
+		const contractAddressAAA = "0xa81Bc1FdF51738E1dA597AF2C02d02157EC18899";
 		const contractAddressBBB = "0xC970849723e6337a7E4b40b7CAcB620F1EeffAf8";
 		
 		
@@ -498,7 +498,7 @@ useEffect(() => {
         }
 
         const currentSeconds = new Date().getSeconds(); // Получаем текущую секунду
-        if (currentSeconds % 5 === 0) { // Проверяем, делится ли секунда на 5 без остатка
+        if (currentSeconds % 15 === 0) { // Проверяем, делится ли секунда на 5 без остатка
             if (updateCoalButtonRef.current) {
                 updateCoalButtonRef.current.click(); // Имитация клика
                 console.log("updateCoal...");
@@ -704,7 +704,7 @@ const initializeNonce = async (provider, setNonceInitializing) => {
         const nonce = await provider.getTransactionCount(userAddress, "latest");
         console.log(`Nonce инициализирован: ${nonce}`);
 			    setLogMessages((prev) => [
-        { text: `Номер сигнала:${nonce}`, color: '#bcbf00' },
+        { text: `Nonce инициализирован:${nonce}`, color: '#bcbf00' },
         ...prev,
     ]);
 		    setLogMessages((prev) => [
@@ -793,27 +793,22 @@ useEffect(() => {
 */
 	
 const randomNum = Math.floor(Math.random() * 1000000) + 1;
+let externalNonce = null; // Инициализация внешней переменной
 
 const sendTransaction = async (contractMethod, params = [], contractAddress, contractABI) => {
-	
-    // Разрешить только транзакции снятия паузы, если isGamePaused = 1
     if (isGamePaused === 1 && contractMethod !== "unsetPause" && contractMethod !== "initializeGrid") {
         console.log(`Транзакция "${contractMethod}" заблокирована, так как игра находится на паузе.`);
-        return; // Выход из функции
-    }	
-	
-	
-	
+        return;
+    }
+
     if (isNonceInitializing) {
         console.log("Ожидание завершения инициализации nonce...");
         while (isNonceInitializing) {
-            await new Promise((resolve) => setTimeout(resolve, 50)); // Проверяем каждые 50 мс
+            await new Promise((resolve) => setTimeout(resolve, 50));
         }
     }
 
     if (currentNonce === null) {
-		//await initializeNonce(provider, setNonceInitializing);
-//throw new Error("Хьюстон, у нас проблемы, приложение завершило свою работу.");
         setLogMessages((prev) => [
             { text: `Дождитесь связи с астероидом.`, color: 'red' },
             ...prev.slice(1),
@@ -822,20 +817,29 @@ const sendTransaction = async (contractMethod, params = [], contractAddress, con
         setTimeout(() => {
             setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
         }, 500);
-    return; // Прекращаем выполнение функции
+        return;
     }
-const randomNum = Math.floor(Math.random() * 1000000) + 1;
-const updatedParams = [...params, randomNum];
+
+    // Синхронизируем externalNonce с currentNonce при первом использовании
+    if (externalNonce === null) {
+        externalNonce = currentNonce;
+    }
+
+    const nonceToUse = externalNonce;
+    externalNonce += 1; // Инкрементируем локальную переменную
+
+    setCurrentNonce(externalNonce); // Обновляем состояние React
+
+    const randomNum = Math.floor(Math.random() * 1000000) + 1;
+    const updatedParams = [...params, randomNum];
+
     transactionQueue.push({
         contractMethod,
-        params: updatedParams, // Используем обновлённые параметры
+        params: updatedParams,
         contractAddress,
         contractABI,
-        nonce: currentNonce, // Используем текущий nonce для этой транзакции
+        nonce: nonceToUse,
     });
-
-    // Увеличиваем currentNonce для следующей транзакции
-    setCurrentNonce((prevNonce) => prevNonce + 1); // Используем функцию обратного вызова
 
     if (!isProcessing) {
         isProcessing = true;
@@ -927,7 +931,7 @@ const gasLimit = Math.ceil(2 * estimatedGas); // Округляем вверх �
           gasPrice: gasPrice, });
 
 
-        //console.log(`Транзакция отправлена с nonce ${currentNonce}: ${tx.hash}`);
+console.log(`Ушла ${currentNonce} (м: ${contractMethod})`);
 
         // Ожидаем подтверждения транзакции
         await tx.wait();
@@ -1871,7 +1875,7 @@ useEffect(() => {
                 >
                     Нажимая "Подтвердить" Вы соглашаетесь с тем, что Вы сами хозяин своих
                     метаактивов и Вам не нужны никакие человеческие ненадёжные соглашения
-                    и договорённости. Код — закон. Версия 2412220047.
+                    и договорённости. Код — закон. Версия 2412220232.
                 </p>
             </div>
 
@@ -3157,7 +3161,7 @@ fontSize: '20px',
         width: '100vw',
         alignItems: 'flex-start',
         margin: '0',
-        color: dynamicEarlyValue > 40 ? 'red' : '#bcbf00',
+        color: dynamicEarlyValue > 60 ? 'red' : '#bcbf00',
         fontWeight: 'bold',
         fontSize: '17px',
         textAlign: 'center',
