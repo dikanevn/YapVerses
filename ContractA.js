@@ -338,7 +338,7 @@ function updateDepotInitialSettings(address user) internal {
         block.timestamp, // blocktimestamp
         400,             // bulldozerAmount
         0,               // early
-        10**6,              // mmmtime
+        20 * 10**6,              // mmmtime
         40,              // mmmdrillSpeed
         20,              // iterationLimitDepot
         0,               // isPaused
