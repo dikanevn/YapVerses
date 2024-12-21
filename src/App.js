@@ -36,7 +36,7 @@ let isNonceInitializing = false;
 		
 		
 		const contractAddressAAA = "0x8A7cCfC2caE632aD89b98617cC060bD85B14BC7A";
-		const contractAddressBBB = "0x6f95706269ef8D00fBF6C8B1d59B662Fa9ea0698";
+		const contractAddressBBB = "0x78D120B957C856B124D4ABdC13Ee7F6f2ef9311b";
 		
 		
 		
@@ -2349,7 +2349,7 @@ height: '28.19px',
 					option value = "furnaceF" > 🧩10→🔥 < /option> <
 					option value = "factoryF" > 🧩10→🏭 < /option> <
 					option value = "bulldozerF" > 🧩10→🏗️ < /option> <
-					option value = "wallF" > ⚙️100+🧩10+🔥1️→🧱5 < /option> <
+					option value = "wallF" > ⚙️200+🧩10+🔥1️→🧱15 < /option> <
 
 
 					/
