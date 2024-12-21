@@ -36,7 +36,7 @@ let isNonceInitializing = false;
 		
 		
 		const contractAddressAAA = "0x8A7cCfC2caE632aD89b98617cC060bD85B14BC7A";
-		const contractAddressBBB = "0x9cfbdd4b0Ba250c0199567F6c3dd1fc6c6d9a837";
+		const contractAddressBBB = "0x6f95706269ef8D00fBF6C8B1d59B662Fa9ea0698";
 		
 		
 		
@@ -1558,7 +1558,7 @@ const updateTrainingCompleted = () => {
 					
 					
 				case "starttimeeUpdate":
-					const decrementValue = prompt("Во время криосна автоперезапуск манипуляторов не работает. Проснуться через (сек * speedkoef):");
+					const decrementValue = prompt("Во время криосна автоперезапуск манипуляторов не работает. Проснуться через (введённое число будет умножено на скорость игры) сек:");
 					if (decrementValue) {
 						try {
 							await sendTransaction("starttimeeUpdate", [decrementValue], contractAddressAAA, SimpleGridAbiAAA);
@@ -2349,7 +2349,7 @@ height: '28.19px',
 					option value = "furnaceF" > 🧩10→🔥 < /option> <
 					option value = "factoryF" > 🧩10→🏭 < /option> <
 					option value = "bulldozerF" > 🧩10→🏗️ < /option> <
-					option value = "wallF" > ⚙️100+🧩10+🏗️1️→🧱 < /option> <
+					option value = "wallF" > ⚙️100+🧩10+🔥1️→🧱5 < /option> <
 
 
 					/

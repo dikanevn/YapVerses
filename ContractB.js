@@ -84,7 +84,7 @@ uint256 speedkoef;
    function updateDepotWallAmount(address user, uint256 wallAmount) external;
 function updateWallPowerAmount(address user, uint256 x, uint256 y, uint256 wallPowerAmount) external;
 function updateDepotTheEndCount(address user, uint256 theEndCount) external;
-function updateDepotTrainingCompleted(address user, uint256 trainingCompleted) external;
+
 
     function updateDepotPart1(
         address user,
@@ -325,18 +325,10 @@ function validateRequire(IMainGrid.Depot memory depot) internal view {
 		// Проверяем условия для переноса ресурсов
 if (
     keccak256(abi.encodePacked(source.factorySettings)) != keccak256(abi.encodePacked("componentsF")) && // Проверка source
-    (
-        keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("componentsF")) || // Проверка destination
-        keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) ||
-        (
-            keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("wallF")) && // Проверяем wallF
-            wallAmount <= 180 // Проверяем количество стен
-        )
-    )
+    (keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("componentsF")) || // Проверка destination
+    keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) ||
+	keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("wallF")))
 ) {
-    // Ваш код
-}
-
 			uint256 resourceToMove = source.ironplateAmount / 5;
 			uint256 availableSpaceInBox = MaxBox - (destination.coalAmount + destination.ironAmount + destination.ironplateAmount + destination.componentsAmount);
 			uint256 resourceTransferred;
@@ -361,41 +353,29 @@ if (
 		// Получаем данные ячеек через основной контракт
 		IMainGrid.Cell memory source = mainGrid.getCell(msg.sender, fromX, fromY);
 		IMainGrid.Cell memory destination = mainGrid.getCell(msg.sender, toX, toY);
-    IMainGrid.Depot memory depot = mainGrid.getDepot(user);
+
 		// Получаем максимальный размер Box через основной контракт
 		uint256 MaxBox = mainGrid.getMaxBox();
 
 		// Проверяем условия для переноса ресурсов
-if (
-    (
-        (
-            keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Factory")) &&
-            keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("componentsF")) &&
-            keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("bulldozerF")) // Проверяем, что это не bulldozerF
-        ) || 
-        keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box"))
-    ) 
-    &&
-    (
-        keccak256(abi.encodePacked(source.factorySettings)) == keccak256(abi.encodePacked("componentsF")) ||
-        keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Box"))
-    )
-    &&
-    (
-        keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("bulldozerF")) || // Добавляем дополнительное условие
-        bulldozerAmount <= 380 // Проверяем количество бульдозеров
-    )
-	 &&
-    (
-        keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("wallF")) || // Добавляем дополнительное условие
-        wallAmount <= 180 // Проверяем количество бульдозеров
-    )
-	
-	
-	
-	
-	
-) {
+		if (
+			(
+				keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Factory")) &&
+				keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("componentsF"))
+				|| 
+				keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box"))
+			) 
+			&&
+			(
+				keccak256(abi.encodePacked(source.factorySettings)) == keccak256(abi.encodePacked("componentsF")) ||
+				keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Box"))
+			)
+			
+			
+			
+			
+			
+		) {
 			uint256 resourceToMove = source.componentsAmount / 5;
 			uint256 availableSpaceInBox = MaxBox - (destination.coalAmount + destination.ironAmount + destination.ironplateAmount + destination.componentsAmount);
 			uint256 resourceTransferred;
@@ -994,9 +974,6 @@ uint256 newIronAmount = cell.ironAmount +
         }
     }
 
-
-
-
     // Обработка производственных построек (печь, фабрика)
     function _handleProductionBuildings(
         address user,
@@ -1035,28 +1012,28 @@ if (
     toolHash == keccak256(abi.encodePacked("Factory")) &&
     keccak256(abi.encodePacked(cell.factorySettings)) == keccak256(abi.encodePacked("wallF")) &&
     cell.componentsAmount >= 10 && // Проверяем, что есть 10 компонентов
-    depot.bulldozerAmount >= 1  &&  // Проверяем, что есть 10 бульдозеров в депо
+    depot.furnaceAmount >= 1  &&  // Проверяем, что есть 10 бульдозеров в депо
 	cell.ironplateAmount >= 100 
 ) {
     while (
         cell.componentsAmount >= 10 && 
-        depot.bulldozerAmount >= 1 &&
+        depot.furnaceAmount >= 1 &&
 		cell.ironplateAmount >= 100
 		
     ) {
         cell.componentsAmount -= 10; // Сжигаем 10 компонентов
-        depot.bulldozerAmount -= 1; // Сжигаем 10 бульдозеров из депо
+        depot.furnaceAmount -= 1; // Сжигаем 10 бульдозеров из депо
 		cell.ironplateAmount -= 100;
-		depot.wallAmount += 1;
+		depot.wallAmount += 5;
 
         if (depot.wallAmount > 200) {
-            depot.wallAmount = 200; // Ограничиваем максимум
+           // Ограничиваем максимум
             break; // Прерываем цикл
         }      // Увеличиваем количество стен в депо
     }
 
     // Обновляем значения депо через основной контракт
-    mainGrid.updateDepotBulldozerAmount(msg.sender, depot.bulldozerAmount);
+    mainGrid.updateDepotFurnaceAmount(msg.sender, depot.furnaceAmount);
     mainGrid.updateDepotWallAmount(msg.sender, depot.wallAmount);
 	
  
@@ -1084,8 +1061,9 @@ if (
 if (factorySettingsHash == keccak256(abi.encodePacked("bulldozerF"))) {
    
         depot.bulldozerAmount += 1;
-        if (depot.bulldozerAmount > 400) {
-            depot.bulldozerAmount = 400; // Ограничиваем максимум
+        if (depot.bulldozerAmount > 200) {
+            
+			 break;// Ограничиваем максимум
         }
    
 }
