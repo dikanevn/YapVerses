@@ -31,12 +31,12 @@ let isNonceInitializing = false;
 		
 		
 		
-		const contractAddressMain = "0x2756D7d5b6D4ADCB3655882bB1C29FfF6493CcB0";
+		const contractAddressMain = "0x8Bd55C46f42FDb1b190Bc9CB7145418e43478199";
 		
 		
 		
-		const contractAddressAAA = "0xf387eeF5d0513234E1309057952fBCAB38FbdaEF";
-		const contractAddressBBB = "0x7330C8b55dC980ffBF551B2E6cd19a40E2618c6E";
+		const contractAddressAAA = "0x8A7cCfC2caE632aD89b98617cC060bD85B14BC7A";
+		const contractAddressBBB = "0x9cfbdd4b0Ba250c0199567F6c3dd1fc6c6d9a837";
 		
 		
 		
@@ -63,11 +63,14 @@ let isNonceInitializing = false;
 const [isGamePaused, setIsGamePaused] = useState(0); // 1 - пауза, 0 - игра идёт
 const buttonActionRef = useRef(false);
 const [earlyValue, setEarlyValue] = useState(0); // Для отображения переменной early
+const [speedkoefState, setSpeedkoefState] = useState(0); // Для отображения переменной early
+
+
 const [mmmtimeValue, setMmmtimeValue] = useState(0); // Для отображения переменной mmmtime
 const [meteoritCount, setMeteoritCount] = useState(0); // Для отображения количества метеоритов
 const [hasGameOverAlertShown, setHasGameOverAlertShown] = useState(false);
 const [hasEarlyAlertShown, setHasEarlyAlertShown] = useState(false);
-
+const [trainingCompletedState, setTrainingCompletedState] = useState(1); // Начальное значение 1
 
 		const [logMessage, setLogMessage] = useState(""); // Состояние для хранения лог-сообщения
 		const [logErrorMessage, setlogErrorMessage] = useState(""); // Состояние для хранения лог-сообщения
@@ -179,11 +182,6 @@ useEffect(() => {
 		
 		
 		
-		
-		
-		
-		
-		
 const fetchGrid = async () => {
     try {
         if (!provider) {
@@ -206,8 +204,15 @@ const fetchGrid = async () => {
             newContract = new ethers.Contract(contractAddressMain, SimpleGridAbiMAIN, signerInstance);
 
             const maxParallelRequests = 20; // Максимальное количество параллельных запросов
-            const minIntervalBetweenRequests = 50; // Минимальный интервал между запросами в миллисекундах
+            const minIntervalBetweenRequests = 1; // Минимальный интервал между запросами в миллисекундах
             const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+            const shuffleArray = (array) => {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            };
 
             const processCell = async (x, y) => {
                 try {
@@ -220,7 +225,7 @@ const fetchGrid = async () => {
                             x,
                             y,
                             content: result.content || "Null",
-                            tool: result.tool || "toolEmpty",
+                            tool: result.tool || "Update",
                             man: result.man || "manEmpty",
                             coalAmount: result.coalAmount?.toString() || "0",
                             ironAmount: result.ironAmount?.toString() || "0",
@@ -228,15 +233,14 @@ const fetchGrid = async () => {
                             lastBlockChecked: result.lastBlockChecked?.toString() || "0",
                             componentsAmount: result.componentsAmount?.toString() || "0",
                             factorySettings: result.factorySettings || "",
-                            previouscontent: result.previouscontent || "contentEmpty", // Новое поле
-							wallPowerAmount: result.wallPowerAmount?.toString() || "0",
-
+                            previouscontent: result.previouscontent || "contentEmpty",
+                            wallPowerAmount: result.wallPowerAmount?.toString() || "0",
                         }
                         : {
                             x,
                             y,
                             content: "contentEmpty",
-                            tool: "toolEmpty",
+                            tool: "Update",
                             man: "manEmpty",
                             coalAmount: "0",
                             ironAmount: "0",
@@ -245,7 +249,7 @@ const fetchGrid = async () => {
                             componentsAmount: "0",
                             factorySettings: "factorySettingsEmptyF",
                             previouscontent: "contentEmpty",
-							wallPowerAmount: "0",
+                            wallPowerAmount: "0",
                         };
 
                     setGrid((prevGrid) => {
@@ -266,7 +270,7 @@ const fetchGrid = async () => {
                             x,
                             y,
                             content: "Update",
-                            tool: "toolEmpty",
+                            tool: "Update",
                             man: "manEmpty",
                             coalAmount: "0",
                             ironAmount: "0",
@@ -275,20 +279,24 @@ const fetchGrid = async () => {
                             componentsAmount: "0",
                             factorySettings: "0",
                             previouscontent: "contentEmpty",
-							wallPowerAmount: "0",
-							theEndCount: "200",
+                            wallPowerAmount: "0",
+
                         };
                         return updatedGrid;
                     });
                 }
             };
 
-            const tasks = [];
-            for (let y = 9; y >= 0; y--) {
+            // Генерация пар координат и их перемешивание
+            const coordinates = [];
+            for (let y = 0; y < 10; y++) {
                 for (let x = 0; x < 10; x++) {
-                    tasks.push(() => processCell(x, y));
+                    coordinates.push({ x, y });
                 }
             }
+            shuffleArray(coordinates);
+
+            const tasks = coordinates.map(({ x, y }) => () => processCell(x, y));
 
             const executeTasks = async (tasks, maxParallel) => {
                 const executing = [];
@@ -311,68 +319,66 @@ const fetchGrid = async () => {
             signerInstance = new ethers.Wallet(userPrivateKey, provider);
             const userAddress = await signerInstance.getAddress();
             const result = await newContract.getDepot(userAddress);
-const gridSize = result.gridSize.toString();
-const drillsAmount = result.drillsAmount.toString();
-const boxesAmount = result.boxesAmount.toString();
-const mansAmount = result.mansAmount.toString();
-const furnaceAmount = result.furnaceAmount.toString();
-const factoryAmount = result.factoryAmount.toString();
-const starttimee = result.starttimee.toString();
-const lastmeteoritTimeChecked = result.lastmeteoritTimeChecked.toString();
-const blocktimestamp = result.blocktimestamp.toString();
-const bulldozerAmount = result.bulldozerAmount.toString();
-const early = result.early.toString();
-const mmmtime = result.mmmtime.toString();
-const mmmdrillSpeed = result.mmmdrillSpeed.toString();
-const iterationLimitDepot = result.iterationLimitDepot.toString();
-const isPaused = result.isPaused.toString();
-const pausedDuration = result.pausedDuration.toString();
-const pauseStartTime = result.pauseStartTime.toString();
-const wallAmount = result.wallAmount.toString();			
-const theEndCount = result.theEndCount.toString(); 
-const speedkoef = result.speedkoef.toString(); 
+            const gridSize = result.gridSize.toString();
+            const drillsAmount = result.drillsAmount.toString();
+            const boxesAmount = result.boxesAmount.toString();
+            const mansAmount = result.mansAmount.toString();
+            const furnaceAmount = result.furnaceAmount.toString();
+            const factoryAmount = result.factoryAmount.toString();
+            const starttimee = result.starttimee.toString();
+            const lastmeteoritTimeChecked = result.lastmeteoritTimeChecked.toString();
+            const blocktimestamp = result.blocktimestamp.toString();
+            const bulldozerAmount = result.bulldozerAmount.toString();
+            const early = result.early.toString();
+            const mmmtime = result.mmmtime.toString();
+            const mmmdrillSpeed = result.mmmdrillSpeed.toString();
+            const iterationLimitDepot = result.iterationLimitDepot.toString();
+            const isPaused = result.isPaused.toString();
+            const pausedDuration = result.pausedDuration.toString();
+            const pauseStartTime = result.pauseStartTime.toString();
+            const wallAmount = result.wallAmount.toString();
+            const theEndCount = result.theEndCount.toString();
+            const speedkoef = result.speedkoef.toString();
+            const trainingCompleted = result.trainingCompleted.toString();
 			
 			
+            setDepot({
+                gridSize,
+                drillsAmount,
+                boxesAmount,
+                mansAmount,
+                furnaceAmount,
+                factoryAmount,
+                starttimee,
+                lastmeteoritTimeChecked,
+                blocktimestamp,
+                bulldozerAmount,
+                wallAmount,
+                theEndCount,
+                early,
+                mmmtime,
+                mmmdrillSpeed,
+                iterationLimitDepot,
+                isPaused,
+                pausedDuration,
+                pauseStartTime,
+                speedkoef,
+				trainingCompleted,
+				
+            });
 			
 			
+setSelectedSpeed(Number(speedkoef).toString() + "x");
+            const currentTime = Date.now() / 1000;
+            const lag = currentTime - Number(blocktimestamp);
 			
-			
-
-setDepot({
-    gridSize, // Размер сетки для пользователя
-    drillsAmount,
-    boxesAmount,
-    mansAmount,
-    furnaceAmount,
-    factoryAmount,
-    starttimee,
-    lastmeteoritTimeChecked,
-    blocktimestamp,
-    bulldozerAmount,
-	wallAmount, // Добавьте это
-theEndCount, // Добавляем theEndCount    
-early,
-    mmmtime,
-    mmmdrillSpeed,
-    iterationLimitDepot,
-    isPaused,
-    pausedDuration,
-    pauseStartTime,
-	speedkoef,
-});
-
-const currentTime = Date.now() / 1000; // Текущее время в секундах
-const lag = currentTime - Number(blocktimestamp); // Отставание в секундах
-
-setEarlyValue(Number(early)); // Устанавливаем значение early
-setMmmtimeValue(Number(mmmtime)); // Устанавливаем значение mmmtime
-setMeteoritCount(Math.floor(Number(early) / Math.floor(Number(mmmtime)))); // Устанавливаем количество метеоритов
-setDynamicEarlyValue(Math.round(Number(early) + lag)); // Округление до ближайшего целого
-
-
-
- setIsGamePaused(parseInt(isPaused));
-
+setTrainingCompletedState(Number(trainingCompleted)); // Устанавливаем значение из депо
+            setSpeedkoefState(Number(speedkoef));
+            setEarlyValue(Number(early));
+            setMmmtimeValue(Number(mmmtime));
+            setMeteoritCount(Math.floor(Number(early) / Math.floor(Number(mmmtime))));
+            setDynamicEarlyValue(Math.round(Number(early) + lag));
+            setIsGamePaused(parseInt(isPaused));
         } catch (error) {
         } finally {
             setLoading(false);
@@ -380,7 +386,6 @@ setDynamicEarlyValue(Math.round(Number(early) + lag)); // Округление �
     } catch (error) {
     } finally {
         isFetching.current = false;
-        //console.log("Операция успешно завершена.");
     }
 };
 
@@ -431,50 +436,54 @@ setDynamicEarlyValue(Math.round(Number(early) + lag)); // Округление �
 
 
 
-
-
-
-
-
-
-
-
-
 		
-		
-		useEffect(() => {
-			// Устанавливаем интервал на 10 секунд
-			const intervalId = setInterval(() => {
-				if (updateCoalButtonRef.current) {
-					updateCoalButtonRef.current.click(); // Имитация клика
-					console.log("updateCoal...");
-				}
-			}, 6000); // 10000 миллисекунд = 10 секунд 
-			// Очистка интервала при размонтировании компонента
-			return () => clearInterval(intervalId);
-		}, []); // Пустой массив зависимостей - эффект выполняется один раз при монтировании
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/*
-	
-	
 useEffect(() => {
-    if (parseInt(depot.theEndCount, 10) <= 100 && !hasGameOverAlertShown) {
-        alert("Game Over");
-        setHasGameOverAlertShown(true); // Чтобы показать сообщение только один раз
-    }
-}, [depot.theEndCount, hasGameOverAlertShown]);
+    const startIntervalWithDelay = async () => {
+        await new Promise((resolve) => setTimeout(resolve, 11000)); // Задержка 15 секунд
 
-*/
-		
+        // Устанавливаем интервал на 6 секунд
+        const intervalId = setInterval(() => {
+            if (updateCoalButtonRef.current) {
+                updateCoalButtonRef.current.click(); // Имитация клика
+                console.log("updateCoal...");
+            }
+        }, 6000); // 6000 миллисекунд = 6 секунд
+
+        // Очистка интервала при размонтировании компонента
+        return () => clearInterval(intervalId);
+    };
+
+    startIntervalWithDelay(); // Запуск функции с задержкой
+}, []); // Пустой массив зависимостей - эффект выполняется один раз при монтировании
+
+	
+	
+	
+	
+	
+	
+	
+const prevTheEndCountRef = useRef(null); // Инициализация useRef в теле компонента
+
+useEffect(() => {
+    if (
+        prevTheEndCountRef.current !== null && // Убедиться, что это не первый рендер
+        prevTheEndCountRef.current > 100 && // Предыдущее значение было больше 100
+        parseInt(depot.theEndCount, 10) <= 100 && // Текущее значение стало 100 или меньше
+        !hasGameOverAlertShown // Убедиться, что алерт ещё не был показан
+    ) {
+        const timeout = setTimeout(() => {
+            alert("Game Over");
+            setHasGameOverAlertShown(true);
+        }, 7000); // Задержка 7 секунд
+
+        return () => clearTimeout(timeout); // Очищаем таймаут, если компонент размонтируется
+    }
+
+    // Обновляем предыдущее значение
+    prevTheEndCountRef.current = parseInt(depot.theEndCount, 10);
+}, [depot.theEndCount, hasGameOverAlertShown]);
+	
 const [dynamicEarlyValue, setDynamicEarlyValue] = useState(0); // Состояние для увеличивающегося значения
 
 useEffect(() => {
@@ -639,24 +648,63 @@ const initializeNonce = async (provider, setNonceInitializing) => {
         const userAddress = await signer.getAddress();
         const nonce = await provider.getTransactionCount(userAddress, "latest");
         console.log(`Nonce инициализирован: ${nonce}`);
+			    setLogMessages((prev) => [
+        { text: `Номер сигнала:${nonce}`, color: '#bcbf00' },
+        ...prev,
+    ]);
 		    setLogMessages((prev) => [
-        { text: `Nonce инициализирован:${nonce}`, color: '#fff703' },
+        { text: `Связь установлена.`, color: '#bcbf00' },
         ...prev,
     ]);
         return nonce;
     } catch (error) {
-        console.error("Ошибка при инициализации nonce:", error);
+        console.error("Хьюстон, у нас проблемы с нонсе:", error);
         throw error;
     } finally {
         setNonceInitializing(false);
     }
 };
 
-		
+	
 useEffect(() => {
+    setLogMessages((prev) => {
+        if (prev.some(msg => msg.text === "Устанавливаем связь с астероидом...")) {
+            return prev; // Сообщение уже существует, не добавляем
+        }
+        return [{ text: "Устанавливаем связь...", color: '#bcbf00' }, ...prev];
+    });
+
+    // Добавляем серые точки через 500 и 1000 миллисекунд
+    const timer1 = setTimeout(() => {
+        setLogMessages((prev) => [
+            { text: ".", color: 'gray' },
+            ...prev,
+        ]);
+    }, 500);
+
+    const timer2 = setTimeout(() => {
+        setLogMessages((prev) => [
+            { text: ".", color: 'gray' },
+            ...prev,
+        ]);
+    }, 1000);
+
+    // Очищаем таймеры при размонтировании
+    return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+    };
+}, []);
+
+
+
+	
+useEffect(() => {
+	
     const initialize = async () => {
         if (!isKeyConfirmed) return; // Ensure the key is confirmed before initializing nonce
         try {
+            await new Promise((resolve) => setTimeout(resolve, 7000)); // Задержка 7 секунд
             const nonce = await initializeNonce(provider, setNonceInitializing);
             setCurrentNonce(nonce); // Устанавливаем nonce в состояние
         } catch (error) {
@@ -667,7 +715,11 @@ useEffect(() => {
     initialize(); // Инициализация при монтировании компонента или когда privateSigner is set
 }, [provider, isKeyConfirmed]); // Add isKeyConfirmed to dependencies
 
-		
+
+
+
+
+	
 /*		
 useEffect(() => {
     const reinitializeNonce = async () => {
@@ -706,8 +758,15 @@ const sendTransaction = async (contractMethod, params = [], contractAddress, con
 
     if (currentNonce === null) {
 		//await initializeNonce(provider, setNonceInitializing);
-		window.location.reload();
-        alert("Хьюстон, у нас проблемы, страница была обновлена."); 
+//throw new Error("Хьюстон, у нас проблемы, приложение завершило свою работу.");
+        setLogMessages((prev) => [
+            { text: `Дождитесь связи с астероидом.`, color: 'red' },
+            ...prev.slice(1),
+        ]);
+
+        setTimeout(() => {
+            setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
+        }, 500);
     return; // Прекращаем выполнение функции
     }
 const randomNum = Math.floor(Math.random() * 1000000) + 1;
@@ -779,7 +838,7 @@ const executeTransaction = async (contractMethod, params = [], contractAddressIN
 
 if (contractMethod != 'updateCoal') {
     setLogMessages((prev) => [
-        { text: `Отправляем сигнал...`, color: '#fff703' },
+        { text: `Отправляем сигнал...`, color: '#bcbf00' },
         ...prev,
     ]);
 }
@@ -951,21 +1010,27 @@ if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
 
 
 
-
-
-
 /*
 
 
+const prevDynamicEarlyValue = useRef(null);
+
 useEffect(() => {
-    if (dynamicEarlyValue > 110 && !hasEarlyAlertShown && dynamicEarlyValue < 10000000) {
-        alert("Хьюстон, у нас проблемы - долго нет связи с астероидом - попробуй обнови страницу.");
+    if (
+        prevDynamicEarlyValue.current !== null && // Убедимся, что это не первый рендер
+        prevDynamicEarlyValue.current < 60 && // Предыдущее значение было меньше 50
+        dynamicEarlyValue >= 60 && // Текущее значение стало 50 или больше
+        !hasEarlyAlertShown // Алерт еще не был показан
+    ) {
+        alert("Хьюстон, у нас проблемы - долго нет связи с астероидом - обновление страницы может помочь.");
         setHasEarlyAlertShown(true); // Обновляем состояние, чтобы алерт не показывался повторно
     }
+
+    // Обновляем предыдущее значение
+    prevDynamicEarlyValue.current = dynamicEarlyValue;
 }, [dynamicEarlyValue, hasEarlyAlertShown]);
 
 */
-
 		useEffect(() => {
 			if (action === "placeBulldozer") {
 				document.body.classList.add("placeBulldozer");
@@ -1257,7 +1322,6 @@ wallPowerAmount: ${cell.wallPowerAmount}
 				const depot = await newContract.getDepot(userAddress);
 				// Формируем сообщение со всеми данными депо
 				const depotDataMessage = `
-Depot Data:
 ${depot.speedkoef} - speedkoef
 ${depot.gridSize} - Grid Size
 ${depot.drillsAmount} - Drills
@@ -1278,7 +1342,7 @@ ${depot.isPaused} - (1 - Pause, 0 - Game)
 ${depot.pausedDuration} - Paused Duration
 ${depot.pauseStartTime} - Pause Start Time
 ${depot.theEndCount} - The End Count
-
+${depot.trainingCompleted} - trainingCompleted
 `;
 				
 				console.log(depotDataMessage);
@@ -1292,6 +1356,23 @@ ${depot.theEndCount} - The End Count
 				console.error("Ошибка getDepot:", error);
 			}
 		};
+
+
+
+
+
+
+
+
+
+
+
+const updateTrainingCompleted = () => {
+    sendTransaction("updateTrainingCompleted", [trainingCompletedState], contractAddressAAA, SimpleGridAbiAAA);
+};
+
+
+
 
 		const placeDrill = (x, y) => {
 			sendTransaction("placeDrill", [x, y], contractAddressAAA, SimpleGridAbiAAA);
@@ -1439,7 +1520,7 @@ ${depot.theEndCount} - The End Count
 		
 		
 		const getButtonColorwhite = (actionType) => {
-			return "white";
+			return "#767999";
 		};
 		
 		const getButtonborderStyle = (actionType) => {
@@ -1452,7 +1533,7 @@ ${depot.theEndCount} - The End Count
 			if (action === actionType) {
 				return "blue";
 			}
-			return "white";
+			return "#767999";
 		};		const executeAction = async (manualAction = null) => {
 			const currentAction = manualAction || action;
 			switch (currentAction) {
@@ -1477,7 +1558,7 @@ ${depot.theEndCount} - The End Count
 					
 					
 				case "starttimeeUpdate":
-					const decrementValue = prompt("Во время криосна автоперезапуск манипуляторов не работает. Проснуться через (сек):");
+					const decrementValue = prompt("Во время криосна автоперезапуск манипуляторов не работает. Проснуться через (сек * speedkoef):");
 					if (decrementValue) {
 						try {
 							await sendTransaction("starttimeeUpdate", [decrementValue], contractAddressAAA, SimpleGridAbiAAA);
@@ -1499,7 +1580,7 @@ ${depot.theEndCount} - The End Count
 		
 
 		
-    const [selectedSpeed, setSelectedSpeed] = useState("1x");
+    const [selectedSpeed, setSelectedSpeed] = useState("?x");
 
 const handleSpeedChange = (speed) => {
     setSelectedSpeed(speed);
@@ -1816,7 +1897,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("initializeGrid"),
 							cursor: "pointer"
 						}
-					} title="Начать новый астероид."> 🔍 < /button> 					
+					} title="Начать новый астероид."> 🔭 < /button> 					
 					
 					
 					
@@ -1856,7 +1937,7 @@ height: '28.19px',
 							alignItems: 'flex-start',
 							cursor: 'pointer',
 							boxSizing: 'border-box',
-							backgroundColor: isPressed ? 'white' : 'buttonface', // Изменение цвета фона при нажатии
+							backgroundColor: isPressed ? 'blue' : '#767999', // Изменение цвета фона при нажатии
 							margin: '0em',
 							paddingBlock: '1px',
 							paddingInline: '6px',
@@ -1883,7 +1964,7 @@ height: '28.19px',
 		width: '43.05px',
 height: '28.19px',
         borderStyle: isGamePaused === 1 ? "inset" : "outset", // Если пауза не активна
-        backgroundColor: isGamePaused === 1 ? "blue" : "white", // Если пауза активна
+        backgroundColor: isGamePaused === 1 ? "blue" : "#767999", // Если пауза активна
         cursor: "pointer",
     }}
 title="Да-да, пауза в блокчейне."> ⏸️ </button>
@@ -1898,7 +1979,7 @@ title="Да-да, пауза в блокчейне."> ⏸️ </button>
 		width: '43.05px',
 height: '28.19px',
         borderStyle: isGamePaused === 0 ? "inset" : "outset", // Если пауза не активна
-        backgroundColor: isGamePaused === 0 ? "blue" : "white", // Если пауза не активна
+        backgroundColor: isGamePaused === 0 ? "blue" : "#767999", // Если пауза не активна
         cursor: "pointer",
     }}
 title="Снять паузу."> ▶️ </button>
@@ -2240,7 +2321,7 @@ height: '28.19px',
 							alignItems: 'flex-start',
 							cursor: 'default',
 							boxSizing: 'border-box',
-							backgroundColor: 'buttonface',
+							backgroundColor: '#767999',
 							margin: '0em',
 							paddingBlock: '1px',
 							paddingInline: '6px',
@@ -2255,6 +2336,8 @@ height: '28.19px',
 							textIndent: '0px',
 							margin: '0px',
 							width: '6.7em',
+							paddingRight: '0px',
+paddingTop: '3px',
 		width: '43.05px',
 height: '28.19px',
 						}
@@ -2276,14 +2359,14 @@ height: '28.19px',
 
 
 
-< select
+<select
     onChange={(e) => {
         e.stopPropagation(); // Останавливаем всплытие события
         const speed = e.target.value;
-        handleSpeedChange(speed); // Обработка изменения скорости
+        handleSpeedChange(speed); // Обновляем состояние через handleSpeedChange
     }}
     onClick={(e) => e.stopPropagation()} // Предотвращаем всплытие клика
-    value={selectedSpeed}
+    value={selectedSpeed} // Привязка текущего значения из состояния
     style={{
         textRendering: 'auto',
         color: 'buttontext',
@@ -2298,7 +2381,7 @@ height: '28.19px',
         alignItems: 'flex-start',
         cursor: 'default',
         boxSizing: 'border-box',
-        backgroundColor: 'buttonface',
+        backgroundColor: '#767999',
         margin: '0em',
         paddingBlock: '1px',
         paddingInline: '6px',
@@ -2306,25 +2389,25 @@ height: '28.19px',
         borderStyle: 'outset',
         borderColor: 'buttonborder',
         borderImage: 'initial',
-        margin: '0px',
         cursor: "pointer",
         textAlign: 'left',
         paddingInline: '2px',
-        textIndent: '0px',
         margin: '0px',
         width: '6.7em',
         width: '43.05px',
         height: '28.19px',
+									paddingRight: '1px',
+paddingTop: '3px',
     }}
-title="Скорость игры"> >
+    title="Скорость игры"
+>
+    <option value="?x">?x</option> {/* Опция для начального значения */}
     <option value="1x">1x</option>
     <option value="2x">2x</option>
     <option value="5x">5x</option>
     <option value="10x">10x</option>
-
-	
-	
 </select>
+
 
 
 
@@ -2442,7 +2525,7 @@ height: '28.19px',
     style={{
         width: '43.05px',
         height: '28.19px',
-        backgroundColor: '#fff', // Можно заменить на любой цвет
+        backgroundColor: '#767999', // Можно заменить на любой цвет
         cursor: "pointer"
     }}
     title="BlockExplorer"
@@ -2460,7 +2543,7 @@ height: '28.19px',
     style={{
         width: '43.05px',
         height: '28.19px',
-        backgroundColor: '#fff', // Можно заменить на любой цвет
+        backgroundColor: '#767999', // Можно заменить на любой цвет
         cursor: "pointer"
     }}
     title="Чатик"
@@ -2505,7 +2588,7 @@ height: '28.19px',
 							//height: '100vh', // Высота контейнера на весь экран
 							alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
 							margin: '0',
-							color: '#ffe500', // Устанавливаем цвет текста
+							color: '#bcbf00', // Устанавливаем цвет текста
 							fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
 							fontSize: '17px', // Размер шрифта
 							//border: "1px solid #ccc",
@@ -2540,9 +2623,11 @@ height: '28.19px',
 												}
 												style = {
 													{
+														
 														width: '30px',
 														height: '30px',
-														backgroundColor: cell.tool === "Space" ? '#000' : cell.tool === "Ruins" ? '#290000' : cell.content === "contentEmpty" ? '#127852' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#002d33' : cell.content === "Null" ? '#002d33' : '#121212',
+
+		backgroundColor: cell.tool === "Space" ? '#000' : cell.content === "contentEmpty" ? '#127852' : cell.tool === "Ruins" ? '#290000' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#035a66' : cell.content === "Null" ? '#035a66' : '#121212',
 														display: 'flex',
 														justifyContent: 'center',
 														alignItems: 'center',
@@ -2555,8 +2640,29 @@ height: '28.19px',
 														textAlign: 'center',
 														whiteSpace: 'normal', // Разрешаем перенос текста
 														flexDirection: 'column', // Элементы будут располагаться вертикально
+	
+														
 													}
 												}
+								/*				
+className={
+  cell.tool === "Space"
+    ? "toolSpace"
+    : cell.content === "contentEmpty"
+    ? "contentEmpty"
+    : cell.tool === "Ruins"
+    ? "Ruins"
+    : cell.content === "Iron"
+    ? "Iron"
+    : cell.content === "Coal"
+    ? "Coal"
+    : cell.content === "Update" || cell.content === "Null"
+    ? "Update"
+    : "default"
+}
+*/
+
+
 												onClick = {
 													(e) => {
 														e.stopPropagation(); // Останавливаем всплытие события
@@ -2574,7 +2680,11 @@ height: '28.19px',
 														e.stopPropagation(); // Останавливаем всплытие события
 														handleCellClick2(null);
 													}
-												} > {
+												} > 
+												   
+    {/* Остальной код */}
+												
+												{
 													activeCells.includes(`${cell.x}-${cell.y}`) && ( < div style = {
 															{
 position: 'absolute',
@@ -2902,7 +3012,7 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
         width: '100vw',
         alignItems: 'flex-start',
         margin: '0',
-        color: dynamicEarlyValue > 40 ? 'red' : '#ffe500',
+        color: dynamicEarlyValue > 40 ? 'red' : '#bcbf00',
         fontWeight: 'bold',
         fontSize: '17px',
         textAlign: 'center',
@@ -2910,7 +3020,7 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
         animation: dynamicEarlyValue > 40 ? 'blink 1s infinite' : 'none' // Анимация только при условии
     }}
 >
-    Последние данные {dynamicEarlyValue} сек. назад
+    Синхронизация {dynamicEarlyValue * speedkoefState} сек. назад
 </p>
 
 <style>
@@ -2931,9 +3041,11 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
 
 
 											< div style = { {
+    width: "300px",
+    margin: '0 auto',
 												display: 'flex', // Используем flexbox для выравнивания
 												justifyContent: 'center', // Центрируем по горизонтали
-												width: '100vw', // Ширина контейнера на весь экран
+												//width: '100vw', // Ширина контейнера на весь экран
 												//height: '100vh', // Высота контейнера на весь экран
 												alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
 												//position: 'fixed', // Закрепляет блок относительно окна
@@ -2976,7 +3088,9 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
 											}
 										} > ↔️: {
 											depot.mansAmount
-										} < /p> <
+										} < /p>
+
+										<
 										p style = {
 											{
 												margin: '0'
@@ -3013,7 +3127,7 @@ color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачност�
     flexDirection: "column",
     alignItems: "flex-start",
     width: "300px",
-    height: "70px",
+    height: "60px",
     border: "1px solid #808080",
     resize: "vertical",
     boxSizing: "border-box"

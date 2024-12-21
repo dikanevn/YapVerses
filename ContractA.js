@@ -84,7 +84,7 @@ uint256 speedkoef;
    function updateDepotWallAmount(address user, uint256 wallAmount) external;
 function updateWallPowerAmount(address user, uint256 x, uint256 y, uint256 wallPowerAmount) external;
 function updateDepotTheEndCount(address user, uint256 theEndCount) external;
-
+function updateDepotTrainingCompleted(address user, uint256 trainingCompleted) external;
 
     function updateDepotPart1(
         address user,
@@ -348,7 +348,11 @@ function updateDepotInitialSettings(address user) internal {
 
     // Устанавливаем значение speedkoef
     mainGrid.updateDepotSpeedkoef(user, 1);
-}
+    mainGrid.updateDepotTrainingCompleted(user, 0);
+	
+	
+	
+	}
 
 
 
@@ -480,7 +484,10 @@ function validateRequire(IMainGrid.Depot memory depot) internal view {
 	
 
 	
-
+function setTrainingCompleted(uint256 trainingCompleted, uint256 /* unused */) external {
+    require(trainingCompleted == 0 || trainingCompleted == 1, "Invalid value for trainingCompleted");
+    mainGrid.updateDepotTrainingCompleted(msg.sender, trainingCompleted);
+}
 
 
 function placeBox(uint256 x, uint256 y, uint256 /* unused */) external {

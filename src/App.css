@@ -80,6 +80,73 @@ body.wallF * {
 }
 
 
+/* Для ячейки с контентом "contentEmpty" */
+.contentEmpty {
+    background-image: url('contentEmpty.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #127852;
+}
+
+/* Для ячейки с инструментом "Ruins" */
+.Ruins {
+    background-image: url('Ruins.png'); /* Примерный файл */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #290000;
+}
+
+/* Для ячейки с контентом "Iron" */
+.Iron {
+    background-image: url('Iron.png'); /* Примерный файл */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: silver;
+}
+
+/* Для ячейки с контентом "Coal" */
+.Coal {
+    background-image: url('Coal.png'); /* Примерный файл */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #474747;
+}
+
+/* Для ячейки с контентом "Update" или "Null" */
+.Update {
+    background-image: url('Update.png'); /* Примерный файл */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #035a66;
+}
+
+/* Для всех остальных ячеек */
+.default {
+    background-image: url('default.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #121212;
+}
+
+/* Для ячейки с инструментом "Ruins" */
+.Space {
+    background-image: url('Space.png'); /* Примерный файл */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #290000;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 @keyframes signalPulse {
   0% {
     transform: scale(1);

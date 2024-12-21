@@ -42,10 +42,10 @@ struct Depot {
     uint256 isPaused;       // 1 - пауза активна, 0 - игра идёт
     uint256 pausedDuration; // Накопленное время паузы
     uint256 pauseStartTime; // Время начала текущей паузы
-	 uint256 wallAmount;
-	 uint256 theEndCount;
-uint256 speedkoef;
-
+    uint256 wallAmount;
+    uint256 theEndCount;
+    uint256 speedkoef;
+    uint256 trainingCompleted; // Новый параметр: 0 - обучение не завершено, 1 - завершено
 }
 
 
@@ -319,6 +319,11 @@ function updateDepotGridSize(address user, uint256 gridSize) external onlyAllowe
 
     // Просто прибавляем разницу в количестве ячеек
     depot.theEndCount += (newTotalCells - previousTotalCells);
+}
+
+function updateDepotTrainingCompleted(address user, uint256 trainingCompleted) external onlyAllowedContracts {
+    require(trainingCompleted == 0 || trainingCompleted == 1, "Invalid value for trainingCompleted");
+    depots[user].trainingCompleted = trainingCompleted;
 }
 
 function updateDepotSpeedkoef(address user, uint256 speedkoef) external onlyAllowedContracts {

@@ -84,7 +84,7 @@ uint256 speedkoef;
    function updateDepotWallAmount(address user, uint256 wallAmount) external;
 function updateWallPowerAmount(address user, uint256 x, uint256 y, uint256 wallPowerAmount) external;
 function updateDepotTheEndCount(address user, uint256 theEndCount) external;
-
+function updateDepotTrainingCompleted(address user, uint256 trainingCompleted) external;
 
     function updateDepotPart1(
         address user,
@@ -383,7 +383,7 @@ if (
     &&
     (
         keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("bulldozerF")) || // Добавляем дополнительное условие
-        bulldozerAmount <= 180 // Проверяем количество бульдозеров
+        bulldozerAmount <= 380 // Проверяем количество бульдозеров
     )
 	 &&
     (
@@ -994,6 +994,9 @@ uint256 newIronAmount = cell.ironAmount +
         }
     }
 
+
+
+
     // Обработка производственных построек (печь, фабрика)
     function _handleProductionBuildings(
         address user,
@@ -1081,8 +1084,8 @@ if (
 if (factorySettingsHash == keccak256(abi.encodePacked("bulldozerF"))) {
    
         depot.bulldozerAmount += 1;
-        if (depot.bulldozerAmount > 200) {
-            depot.bulldozerAmount = 200; // Ограничиваем максимум
+        if (depot.bulldozerAmount > 400) {
+            depot.bulldozerAmount = 400; // Ограничиваем максимум
         }
    
 }

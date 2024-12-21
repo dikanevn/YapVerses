@@ -410,6 +410,11 @@
 						"internalType": "uint256",
 						"name": "speedkoef",
 						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "trainingCompleted",
+						"type": "uint256"
 					}
 				],
 				"internalType": "struct MainGrid.Depot",
@@ -953,6 +958,24 @@
 			}
 		],
 		"name": "updateDepotTheEndCount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "trainingCompleted",
+				"type": "uint256"
+			}
+		],
+		"name": "updateDepotTrainingCompleted",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
