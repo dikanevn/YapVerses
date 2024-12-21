@@ -1053,7 +1053,20 @@ if (
 
 
         // Обработка фабрики для различных настроек
-        if (toolHash == keccak256(abi.encodePacked("Factory")) && cell.componentsAmount >= 10) {
+        if (
+			toolHash == keccak256(abi.encodePacked("Factory")) 
+			&& 
+			cell.componentsAmount >= 10
+			&& 
+			keccak256(abi.encodePacked(cell.factorySettings)) != keccak256(abi.encodePacked("componentsF")) 
+			&&
+			keccak256(abi.encodePacked(cell.factorySettings)) != keccak256(abi.encodePacked("factorySettingsEmptyF"))
+			
+		
+		
+		
+		
+		) {
             bytes32 factorySettingsHash = keccak256(abi.encodePacked(cell.factorySettings));
             while (cell.componentsAmount >= 10) {
                 cell.componentsAmount -= 10;
@@ -1073,25 +1086,24 @@ if (
 if (factorySettingsHash == keccak256(abi.encodePacked("bulldozerF"))) {
    
         depot.bulldozerAmount += 1;
-        if (depot.bulldozerAmount > 400) {
-            
-			 break;// Ограничиваем максимум
-        }
-		        if (depot.furnaceAmount > 400) {
-            
-			 break;// Ограничиваем максимум
-        }
-   
+
+
+} 
+
+
+
+else {
+    cell.componentsAmount += 10;
+    revert("Operation terminated: invalid factory setting");
 }
-
-
-
-				else {
-                    cell.componentsAmount += 10;
-                    break;
-                }
             }
         }
+		
+		
+		
+		
+		
+		
     }
 
     // Обновление mainGrid с обновленными данными ячеек

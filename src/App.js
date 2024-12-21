@@ -30,13 +30,13 @@ let isNonceInitializing = false;
 		
 		
 		
-		
+const [currentNonce, setCurrentNonce] = useState(null);
 		const contractAddressMain = "0x8Bd55C46f42FDb1b190Bc9CB7145418e43478199";
 		
 		
 		
 		const contractAddressAAA = "0x8A7cCfC2caE632aD89b98617cC060bD85B14BC7A";
-		const contractAddressBBB = "0x78D120B957C856B124D4ABdC13Ee7F6f2ef9311b";
+		const contractAddressBBB = "0x49b918B7F1870fB5613Bfb28Ed73869491124Cbd";
 		
 		
 		
@@ -435,29 +435,31 @@ setTrainingCompletedState(Number(trainingCompleted)); // Устанавлива�
 
 
 
-
 		
 useEffect(() => {
-    const startIntervalWithDelay = async () => {
-        await new Promise((resolve) => setTimeout(resolve, 11000)); // Задержка 15 секунд
+    const checkTimeAndSendSignal = () => {
+        if (!currentNonce) { // Проверяем, инициализирован ли nonce
+            console.log("Nonce не инициализирован. Ожидание...");
+            return;
+        }
 
-        // Устанавливаем интервал на 6 секунд
-        const intervalId = setInterval(() => {
+        const currentSeconds = new Date().getSeconds(); // Получаем текущую секунду
+        if (currentSeconds % 5 === 0) { // Проверяем, делится ли секунда на 5 без остатка
             if (updateCoalButtonRef.current) {
                 updateCoalButtonRef.current.click(); // Имитация клика
                 console.log("updateCoal...");
+            } else {
+                console.error("updateCoalButtonRef.current is null");
             }
-        }, 6000); // 6000 миллисекунд = 6 секунд
-
-        // Очистка интервала при размонтировании компонента
-        return () => clearInterval(intervalId);
+        }
     };
 
-    startIntervalWithDelay(); // Запуск функции с задержкой
-}, []); // Пустой массив зависимостей - эффект выполняется один раз при монтировании
+    const intervalId = setInterval(checkTimeAndSendSignal, 1000); // Проверяем каждую секунду
 
-	
-	
+    // Очистка интервала при размонтировании компонента
+    return () => clearInterval(intervalId);
+}, [currentNonce]);
+
 	
 	
 	
@@ -626,7 +628,6 @@ const gasLLimit = async (contractMethod, params, contract) => {
 		
 		
 const [nonceInitializing, setNonceInitializing] = useState(false); // Флаг инициализации nonce
-const [currentNonce, setCurrentNonce] = useState(null);
 		
 		
 const initializeNonce = async (provider, setNonceInitializing) => {
@@ -878,7 +879,7 @@ const gasLimit = Math.ceil(2 * estimatedGas); // Округляем вверх �
         await tx.wait();
 		
 		
-if (contractMethod != 'updateCoal' && contractMethod != 'starttimeeUpdate') {
+if (contractMethod != 'updateCoal'){ 
 //if (contractMethod != 'updateCoal') {
     setLogMessages((prev) => [
         { text: `Сигнал отправлен.`, color: 'LimeGreen' },
@@ -1261,13 +1262,13 @@ useEffect(() => {
 		
 		
 		
-		
+		/*
 		const executeAllFunctions = async () => {
 			
 			updateCoal();
 			//console.log("Meteorit function executed successfully.");
 		};
-		
+		*/
 		
 		
 		
@@ -1543,12 +1544,16 @@ const updateTrainingCompleted = () => {
 				case "initializeGrid":
 					await initializeGrid();
 					break;
+					/*
 				case "updateCoal":
 					await updateCoal();
 					break;
+					*/
+					/*
 				case "updateAll":
 					await executeAllFunctions();
 					break;
+					*/
 				case "meteoritfunction":
 					await meteoritfunction();
 					break;
@@ -2627,7 +2632,7 @@ height: '28.19px',
 														width: '30px',
 														height: '30px',
 
-		backgroundColor: cell.tool === "Space" ? '#000' : cell.content === "contentEmpty" ? '#127852' : cell.tool === "Ruins" ? '#290000' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#035a66' : cell.content === "Null" ? '#035a66' : '#121212',
+		backgroundColor: cell.tool === "Ruins" ? '#290000' : cell.tool === "Space" ? '#000' : cell.content === "contentEmpty" ? '#127852' : cell.tool === "Ruins" ? '#290000' : cell.content === "Iron" ? 'silver' : cell.content === "Coal" ? '#474747' : cell.content === "Update" ? '#035a66' : cell.content === "Null" ? '#035a66' : '#121212',
 														display: 'flex',
 														justifyContent: 'center',
 														alignItems: 'center',
