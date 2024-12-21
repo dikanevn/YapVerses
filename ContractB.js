@@ -860,7 +860,7 @@ if (
 
     // Проверка, нужно ли вызвать функцию метеорита
     function _shouldCallMeteorit(IMainGrid.Depot memory depot) internal view returns (bool) {
-        return (block.timestamp - depot.pausedDuration - depot.lastmeteoritTimeChecked > depot.mmmtime / depot.speedkoef);
+        return (block.timestamp * 10**6 - depot.pausedDuration *10**6 - depot.lastmeteoritTimeChecked > depot.mmmtime / depot.speedkoef);
     }
 
     // Вызов функции метеорита
