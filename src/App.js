@@ -35,8 +35,8 @@ const [currentNonce, setCurrentNonce] = useState(null);
 		
 		
 		
-		const contractAddressAAA = "0x8A7cCfC2caE632aD89b98617cC060bD85B14BC7A";
-		const contractAddressBBB = "0x49b918B7F1870fB5613Bfb28Ed73869491124Cbd";
+		const contractAddressAAA = "0x99151a2CeeC982aac5D335EAB172AcbAfF4dA389";
+		const contractAddressBBB = "0x82308CA2289fb0cB9356b487125320671eCDC417";
 		
 		
 		
@@ -1009,7 +1009,35 @@ if (contractMethod != 'updateCoal'){
 
 
 
+useEffect(() => {
+    if (!provider) return;
 
+    const contractBBB = new ethers.Contract(contractAddressBBB, SimpleGridAbiBBB, provider);
+
+    const handleAllEvents = (log) => {
+        try {
+            // Декодируем данные события
+            const parsedLog = contractBBB.interface.parseLog(log);
+            console.log("Событие:", parsedLog);
+
+            setLogMessages((prev) => [
+                {
+                    text: `Event: ${parsedLog.name}\nArgs: ${JSON.stringify(parsedLog.args)}`,
+                    color: "LimeGreen",
+                },
+                ...prev,
+            ]);
+        } catch (error) {
+            console.error("Ошибка при обработке события:", error);
+        }
+    };
+
+    provider.on(contractAddressBBB, handleAllEvents);
+
+    return () => {
+        provider.off(contractAddressBBB, handleAllEvents);
+    };
+}, [provider]);
 
 /*
 
@@ -2411,6 +2439,14 @@ paddingTop: '3px',
     <option value="2x">2x</option>
     <option value="5x">5x</option>
     <option value="10x">10x</option>
+    <option value="20x">20x</option>	
+    <option value="40x">40x</option>	
+    <option value="100x">100x</option>	
+    <option value="200x">200x</option>	
+    <option value="400x">400x</option>	
+    <option value="1000x">1000x</option>	
+	
+	
 </select>
 
 
@@ -2700,7 +2736,7 @@ display: 'flex',
 justifyContent: 'center',
 alignItems: 'center',
 fontSize: '20px',
-color: 'rgba(255, 255, 255, 0.65)', // Текст с 50% прозрачности
+//color: 'rgba(255, 255, 255, 1)', // Текст с 50% прозрачности
 //backgroundColor: 'rgba(0, 0, 0, 0.5)', // Фон с 50% прозрачности
 															}
 														} > 📡 < /div>)

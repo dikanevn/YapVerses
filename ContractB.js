@@ -171,6 +171,10 @@ contract ContractBBB {
 
     // Константы направлений
     enum Direction { UP, RIGHT, DOWN, LEFT }
+	
+	
+	
+	
 
     // Нонс для генерации случайных чисел
     uint256 private nonce;	// Модификатор для ограничения доступа администратору
@@ -382,8 +386,11 @@ if (
         keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("wallF")) || // Добавляем дополнительное условие
        depot.wallAmount <= 380 // Проверяем количество бульдозеров
     )
-	
-	
+	 &&
+    (
+        keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("furnaceF")) || // Добавляем дополнительное условие
+       depot.wallAmount <= 380 // Проверяем количество бульдозеров
+    )	
 	
 	
 	
@@ -487,7 +494,7 @@ function meteoritfunction(uint256 externalRandom) public {
      require(gridSize > 0, "Grid size is not initialized");
     //emit Debug("Grid size initialized", gridSize);
 
-if (block.timestamp - depot.pausedDuration - depot.lastmeteoritTimeChecked > depot.mmmtime / depot.speedkoef) {
+if ((block.timestamp * 10**6 - depot.pausedDuration * 10**6 - depot.lastmeteoritTimeChecked) > (depot.mmmtime / depot.speedkoef)) {
         //emit Debug("Condition for meteorit event met", block.timestamp);
 
         // Шаг 1: Выбор случайной целевой ячейки
@@ -510,7 +517,7 @@ if (block.timestamp - depot.pausedDuration - depot.lastmeteoritTimeChecked > dep
     }
 	mainGrid.updateDepotLastMeteoritTimeChecked(msg.sender, depot.lastmeteoritTimeChecked);
     mainGrid.updateDepotBlockTimestamp(msg.sender, block.timestamp);
-    mainGrid.updateDepotEarly(msg.sender, block.timestamp - depot.pausedDuration - depot.lastmeteoritTimeChecked);
+    mainGrid.updateDepotEarly(msg.sender, block.timestamp - depot.pausedDuration - (depot.lastmeteoritTimeChecked / 10**6) );
 
 }	
 	
@@ -787,55 +794,66 @@ if (
 
 
 
+    event MeteoritCalled(address indexed user, uint256 timestamp, uint256 meteorCount);
+    event CellProcessed(address indexed user, uint256 cellIndex, bool updated);
+    event MainGridUpdated(address indexed user, uint256 totalUpdatedCells);
+    event DepotUpdated(address indexed user, uint256 timestamp);
+    event FunctionStarted(address indexed user, uint256 timestamp);
+    event FunctionFinished(address indexed user, uint256 timestamp);
+
+    function updateCoal(uint256 externalRandom) public {
+        address user = msg.sender;
+        emit FunctionStarted(user, block.timestamp);
+
+        uint256 maxBox = mainGrid.getMaxBox();
+
+        // Получаем данные депо и размер сетки
+        IMainGrid.Depot memory depot = mainGrid.getDepot(user);
+        require(depot.isPaused == 0, "paused");
+        //require(depot.theEndCount > 100, "Game Over");
+        uint256 gridSize = depot.gridSize;
+
+        // Проверяем и вызываем функцию метеорита при необходимости
+        uint256 maxMeteors = depot.iterationLimitDepot; // Максимальное количество вызовов meteoritfunction за один раз
+        uint256 meteorCount = 0;
+
+        while (_shouldCallMeteorit(depot) && meteorCount < maxMeteors) {
+            _meteoritFunction(externalRandom + meteorCount);
+            emit MeteoritCalled(user, block.timestamp, meteorCount);
+            meteorCount++;
 
 
-function updateCoal(uint256 externalRandom) public {
-    address user = msg.sender;
-    uint256 maxBox = mainGrid.getMaxBox();
+            // Повторно загружаем `depot` после изменения
+            depot = mainGrid.getDepot(user);
+        }
 
-    // Получаем данные депо и размер сетки
-    IMainGrid.Depot memory depot = mainGrid.getDepot(user);
-    require(depot.isPaused == 0, "paused");
-    //require(depot.theEndCount > 100, "Game Over");
-    uint256 gridSize = depot.gridSize;
+        uint256 totalCells = gridSize * gridSize;
 
-    // Обновляем временные метки депо
+        // Генерация и перемешивание индексов ячеек
+        uint256[] memory indices = _generateShuffledIndices(externalRandom, totalCells);
 
-    // Проверяем и вызываем функцию метеорита при необходимости
-    uint256 maxMeteors = depot.iterationLimitDepot; // Максимальное количество вызовов meteoritfunction за один раз
-    uint256 meteorCount = 0;
+        // Обработка ячеек и сбор обновленных данных
+        (
+            IMainGrid.Cell[] memory updatedCells,
+            bool[] memory isUpdated
+        ) = _processCells(user, indices, gridSize, totalCells, depot, maxBox);
 
-while (_shouldCallMeteorit(depot) && meteorCount < maxMeteors) {
-    _meteoritFunction(externalRandom + meteorCount);
-    meteorCount++;
+        // Логируем обработку каждой ячейки
+        for (uint256 i = 0; i < totalCells; i++) {
+            emit CellProcessed(user, indices[i], isUpdated[i]);
+        }
 
-    // Обновляем временные метки после каждого вызова
-    depot.lastmeteoritTimeChecked += depot.mmmtime / depot.speedkoef;
-    mainGrid.updateDepotLastMeteoritTimeChecked(user, depot.lastmeteoritTimeChecked);
+        // Обновляем измененные ячейки в mainGrid
+        _updateMainGrid(user, indices, updatedCells, isUpdated, gridSize, totalCells);
+        emit MainGridUpdated(user, totalCells);
 
-    // Повторно загружаем `depot` после изменения
-    depot = mainGrid.getDepot(user);
-}
+        // Обновляем количества в депо
+        _updateDepotAmounts(user, depot);
+        mainGrid.updateDepotBlockTimestamp(user, block.timestamp);
+        emit DepotUpdated(user, block.timestamp);
 
-
-    uint256 totalCells = gridSize * gridSize;
-
-    // Генерация и перемешивание индексов ячеек
-    uint256[] memory indices = _generateShuffledIndices(externalRandom, totalCells);
-
-    // Обработка ячеек и сбор обновленных данных
-    (
-        IMainGrid.Cell[] memory updatedCells,
-        bool[] memory isUpdated
-    ) = _processCells(user, indices, gridSize, totalCells, depot, maxBox);
-
-    // Обновляем измененные ячейки в mainGrid
-    _updateMainGrid(user, indices, updatedCells, isUpdated, gridSize, totalCells);
-
-    // Обновляем количества в депо
-    _updateDepotAmounts(user, depot);
-	 mainGrid.updateDepotBlockTimestamp(user, block.timestamp);
-}
+        emit FunctionFinished(user, block.timestamp);
+    }
 
 
 
@@ -1068,35 +1086,32 @@ if (
 		
 		) {
             bytes32 factorySettingsHash = keccak256(abi.encodePacked(cell.factorySettings));
-            while (cell.componentsAmount >= 10) {
-                cell.componentsAmount -= 10;
-                if (factorySettingsHash == keccak256(abi.encodePacked("drillsF"))) {
-                    depot.drillsAmount += 1;
-                } else if (factorySettingsHash == keccak256(abi.encodePacked("boxesF"))) {
-                    depot.boxesAmount += 1;
-                } else if (factorySettingsHash == keccak256(abi.encodePacked("mansF"))) {
-                    depot.mansAmount += 1;
-                } else if (factorySettingsHash == keccak256(abi.encodePacked("furnaceF"))) {
-                    depot.furnaceAmount += 1;
-                } else if (factorySettingsHash == keccak256(abi.encodePacked("factoryF"))) {
-                    depot.factoryAmount += 1;
-                } else 
-					
-				
-if (factorySettingsHash == keccak256(abi.encodePacked("bulldozerF"))) {
-   
+while (cell.componentsAmount >= 10) {
+    cell.componentsAmount -= 10;
+    if (factorySettingsHash == keccak256(abi.encodePacked("drillsF"))) {
+        depot.drillsAmount += 1;
+    } else if (factorySettingsHash == keccak256(abi.encodePacked("boxesF"))) {
+        depot.boxesAmount += 1;
+    } else if (factorySettingsHash == keccak256(abi.encodePacked("mansF"))) {
+        depot.mansAmount += 1;
+    } else if (factorySettingsHash == keccak256(abi.encodePacked("furnaceF"))) {
+        depot.furnaceAmount += 1;
+    } else if (factorySettingsHash == keccak256(abi.encodePacked("factoryF"))) {
+        depot.factoryAmount += 1;
+    } else if (factorySettingsHash == keccak256(abi.encodePacked("bulldozerF"))) {
         depot.bulldozerAmount += 1;
-
-
-} 
-
-
-
-else {
-    cell.componentsAmount += 10;
-    revert("Operation terminated: invalid factory setting");
+    } else if (factorySettingsHash == keccak256(abi.encodePacked("wallF"))) {
+        // Ничего не делаем, просто пропускаем
+    } else {
+        cell.componentsAmount += 10;
+        revert("Operation terminated: invalid factory setting");
+    }
 }
-            }
+
+			
+			
+			
+			
         }
 		
 		

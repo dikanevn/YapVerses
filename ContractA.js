@@ -326,17 +326,17 @@ function updateDepotInitialSettings(address user) internal {
         10,  // mansAmount
         10,  // furnaceAmount
         10,  // factoryAmount
-        100  // wallAmount
+        500  // wallAmount
     );
 
     mainGrid.updateDepotPart2(
         user,
         block.timestamp, // starttimee
-        block.timestamp, // lastmeteoritTimeChecked
+        block.timestamp**6, // lastmeteoritTimeChecked
         block.timestamp, // blocktimestamp
         400,             // bulldozerAmount
         0,               // early
-        10,              // mmmtime
+        10**6,              // mmmtime
         40,              // mmmdrillSpeed
         20,              // iterationLimitDepot
         0,               // isPaused
@@ -785,22 +785,14 @@ mainGrid.updateDepotTheEndCount(msg.sender, depot.theEndCount);
 	
 	
 function iterationLimitDepotUpdate(uint256 decrementValue) external {
-    // Получаем данные депо
 
-    // Логика проверки (если нужно)
-
-    // Вызываем метод обновления mmmtime
     mainGrid.updateDepotiterationLimitDepot(msg.sender, decrementValue);
 }
 
 
 
 function mmmtimeUpdate(uint256 decrementValue) external {
-    // Получаем данные депо
 
-    // Логика проверки (если нужно)
-
-    // Вызываем метод обновления mmmtime
     mainGrid.updateDepotMmmtime(msg.sender, decrementValue);
 }
 
@@ -885,6 +877,7 @@ function unsetPause(uint256) external {
     mainGrid.updateDepotPausedDuration(msg.sender, newPausedDuration); // Обновляем накопленную паузу
     mainGrid.setDepotPause(msg.sender, 0); // Снимаем паузу
     mainGrid.updateDepotPauseStartTime(msg.sender, 0); // Сбрасываем время начала паузы
+	mainGrid.updateDepotSpeedkoef(msg.sender, 1);
 }
 
 function updateSpeedKoef(uint256 newSpeedKoef, uint256 /* unused */) external {
