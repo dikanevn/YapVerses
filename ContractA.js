@@ -188,6 +188,8 @@ contract ContractAAA {
 
 
 
+// Объявление события
+event GridInitialized(address indexed user, uint256 timestamp);
 
 function initializeGrid(uint256 /* unused */) external {
     for (uint256 x = 0; x < 10; x++) {
@@ -197,11 +199,11 @@ function initializeGrid(uint256 /* unused */) external {
     }
 
     updateDepotInitialSettings(msg.sender);
-	
-	
-	
-	
+
+    // Эмит события
+    emit GridInitialized(msg.sender, block.timestamp);
 }
+
 
 function initializeCell(address user, uint256 x, uint256 y) internal {
     uint256 random = generateRandom(x, y, user);
@@ -332,7 +334,7 @@ function updateDepotInitialSettings(address user) internal {
     mainGrid.updateDepotPart2(
         user,
         block.timestamp, // starttimee
-        block.timestamp**6, // lastmeteoritTimeChecked
+        block.timestamp * 10**6, // lastmeteoritTimeChecked
         block.timestamp, // blocktimestamp
         400,             // bulldozerAmount
         0,               // early

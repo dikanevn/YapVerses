@@ -35,8 +35,8 @@ const [currentNonce, setCurrentNonce] = useState(null);
 		
 		
 		
-		const contractAddressAAA = "0x99151a2CeeC982aac5D335EAB172AcbAfF4dA389";
-		const contractAddressBBB = "0x616995EB7cF03136dF13e1969C51ed652144e4B6";
+		const contractAddressAAA = "0x6DA7506683b29cC2901D445c2EfFa6592c15aF49";
+		const contractAddressBBB = "0xC970849723e6337a7E4b40b7CAcB620F1EeffAf8";
 		
 		
 		
@@ -388,6 +388,60 @@ setTrainingCompletedState(Number(trainingCompleted)); // Устанавлива�
         isFetching.current = false;
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1003,41 +1057,91 @@ if (contractMethod != 'updateCoal'){
 
 
 
-
-
-
-
-
+/*
 
 useEffect(() => {
     if (!provider) return;
 
+    // Инициализация контрактов
     const contractBBB = new ethers.Contract(contractAddressBBB, SimpleGridAbiBBB, provider);
+    const contractAAA = new ethers.Contract(contractAddressAAA, SimpleGridAbiAAA, provider);
 
-    const handleAllEvents = (log) => {
+    const handleAllEventsBBB = (log) => {
         try {
-            // Декодируем данные события
-            const parsedLog = contractBBB.interface.parseLog(log);
-            console.log("Событие:", parsedLog);
+            const parsedLog = contractBBB.interface.parseLog(log); // Парсим лог события
+            console.log("Событие из BBB:", parsedLog);
 
             setLogMessages((prev) => [
                 {
-                    text: `Event: ${parsedLog.name}\nArgs: ${JSON.stringify(parsedLog.args)}`,
+                    text: `BBB Event: ${parsedLog.name}\nArgs: ${JSON.stringify(parsedLog.args)}`,
                     color: "LimeGreen",
                 },
                 ...prev,
             ]);
         } catch (error) {
-            console.error("Ошибка при обработке события:", error);
+            console.error("Ошибка при обработке события из BBB:", error);
         }
     };
 
-    provider.on(contractAddressBBB, handleAllEvents);
+    const handleAllEventsAAA = (log) => {
+        try {
+            const parsedLog = contractAAA.interface.parseLog(log); // Парсим лог события
+            console.log("Событие из AAA:", parsedLog);
 
+            setLogMessages((prev) => [
+                {
+                    text: `AAA Event: ${parsedLog.name}\nArgs: ${JSON.stringify(parsedLog.args)}`,
+                    color: "SkyBlue",
+                },
+                ...prev,
+            ]);
+        } catch (error) {
+            console.error("Ошибка при обработке события из AAA:", error);
+        }
+    };
+
+    // Слушаем события для BBB
+    provider.on(
+        {
+            address: contractAddressBBB,
+            topics: [],
+        },
+        handleAllEventsBBB
+    );
+
+    // Слушаем события для AAA
+    provider.on(
+        {
+            address: contractAddressAAA,
+            topics: [],
+        },
+        handleAllEventsAAA
+    );
+
+    // Очистка подписки при размонтировании компонента
     return () => {
-        provider.off(contractAddressBBB, handleAllEvents);
+        provider.off(
+            {
+                address: contractAddressBBB,
+                topics: [],
+            },
+            handleAllEventsBBB
+        );
+        provider.off(
+            {
+                address: contractAddressAAA,
+                topics: [],
+            },
+            handleAllEventsAAA
+        );
     };
 }, [provider]);
+
+
+*/
+
+
+
 
 /*
 
@@ -2546,7 +2650,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("getDepot"), // Цвет кнопки
 							cursor: "pointer"
 						}
-					} title="Скорость игры"> ⏳ < /button> 
+					} title="Depot"> 📘 < /button> 
 
 
 
