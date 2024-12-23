@@ -46,6 +46,12 @@ struct Depot {
     uint256 theEndCount;
     uint256 speedkoef;
     uint256 trainingCompleted; // Новый параметр: 0 - обучение не завершено, 1 - завершено
+    uint256 normalizedTime;
+    uint256 lastUpdateTime;
+    uint256 previousSpeed;
+	
+	
+	
 }
 
 
@@ -407,6 +413,17 @@ function updateDepotPauseStartTime(address user, uint256 pauseStartTime) externa
 }
 
 
+function updateDepotNormalizedTime(address user, uint256 normalizedTime) external onlyAllowedContracts {
+    depots[user].normalizedTime = normalizedTime;
+}
+
+function updateDepotLastUpdateTime(address user, uint256 lastUpdateTime) external onlyAllowedContracts {
+    depots[user].lastUpdateTime = lastUpdateTime;
+}
+
+function updateDepotPreviousSpeed(address user, uint256 previousSpeed) external onlyAllowedContracts {
+    depots[user].previousSpeed = previousSpeed;
+}
 
 
 

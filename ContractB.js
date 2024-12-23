@@ -41,6 +41,10 @@ interface IMainGrid {
 	 uint256 wallAmount;	
 	 	 uint256 theEndCount;
 uint256 speedkoef;
+    uint256 trainingCompleted; // Новый параметр: 0 - обучение не завершено, 1 - завершено
+    uint256 normalizedTime;
+    uint256 lastUpdateTime;
+    uint256 previousSpeed;
 
 
 
@@ -84,8 +88,9 @@ uint256 speedkoef;
    function updateDepotWallAmount(address user, uint256 wallAmount) external;
 function updateWallPowerAmount(address user, uint256 x, uint256 y, uint256 wallPowerAmount) external;
 function updateDepotTheEndCount(address user, uint256 theEndCount) external;
-
-
+    function updateDepotNormalizedTime(address user, uint256 normalizedTime) external;
+    function updateDepotLastUpdateTime(address user, uint256 lastUpdateTime) external;
+    function updateDepotPreviousSpeed(address user, uint256 previousSpeed) external;
     function updateDepotPart1(
         address user,
 		uint256 gridSize,
@@ -157,11 +162,23 @@ function updateDepotTheEndCount(address user, uint256 theEndCount) external;
 
 
 contract ContractBBB {
+	
+	
+	
 	IMainGrid private mainGrid;
 	address public admin;
 	uint256 public constant oreProbability = 20;
+	
+	
+	
+    uint256 constant SCALE = 1e18; // Масштабирование для фиксированной точки
 
-	// События
+    // Параметры функции f(t) = a * e^(k * t) + 1, масштабированные на 1e18
+    uint256 public aExponential = 5e16;          // 0.05 * 1e18
+    uint256 public kExponentialScaled = 1.8e14;  // 0.00018 * 1e18	// События
+	
+	
+	
 	event AdminChanged(address indexed oldAdmin, address indexed newAdmin);
 	event MainGridAddressChanged(address indexed oldAddress, address indexed newAddress);
 	event Debug(string message, uint256 value);
@@ -196,7 +213,7 @@ function validateRequire(IMainGrid.Depot memory depot) internal view {
     require(block.timestamp - depot.blocktimestamp < 300, "Wait for the update");
     require(depot.isPaused == 0, "paused");
     require(depot.theEndCount > 100, "Game Over");
-	require(depot.early < 300, "Wait for the update");
+	//require(depot.early < 300, "Wait for the update");
 }
 	
 	
@@ -252,16 +269,29 @@ function validateRequire(IMainGrid.Depot memory depot) internal view {
 		uint256 MaxBox = mainGrid.getMaxBox();
 
 		// Проверяем условия для переноса ресурсов
-		if (
-			(
-				keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) ||
-				keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Furnace"))
-			) && (
-				keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Drill")) ||
-				keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Box"))
-			)
-		) {
-			uint256 resourceToMove = source.coalAmount / 5;
+if (
+    (
+        (
+            keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) &&
+            destination.coalAmount < 100000 // Условие для Box
+			
+			
+        ) || 
+        (
+            keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Furnace")) &&
+            destination.coalAmount < 100000 // Условие для Furnace
+			&&
+            destination.ironplateAmount < 10000 // Условие для Furnace
+			
+			
+        )
+    ) && (
+        keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Drill")) ||
+        keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Box"))
+    )
+) {
+
+			uint256 resourceToMove = source.coalAmount ;
 			uint256 availableSpaceInBox = MaxBox - (destination.coalAmount + destination.ironAmount + destination.ironplateAmount + destination.componentsAmount);
 			uint256 resourceTransferred;
 
@@ -289,16 +319,24 @@ function validateRequire(IMainGrid.Depot memory depot) internal view {
 		uint256 MaxBox = mainGrid.getMaxBox();
 
 		// Проверяем условия для переноса ресурсов
-		if (
-			(
-				keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) ||
-				keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Furnace"))
-			) && (
-				keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Drill")) ||
-				keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Box"))
-			)
-		) {
-			uint256 resourceToMove = source.ironAmount / 5;
+if (
+    (
+        (
+            keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) &&
+            destination.ironAmount < 100000 // Условие для Box
+        ) || 
+        (
+            keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Furnace")) &&
+            destination.ironAmount < 100000 // Условие для Furnace
+			&&
+            destination.ironplateAmount < 10000
+        )
+    ) && (
+        keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Drill")) ||
+        keccak256(abi.encodePacked(source.tool)) == keccak256(abi.encodePacked("Box"))
+    )
+) {
+			uint256 resourceToMove = source.ironAmount ;
 			uint256 availableSpaceInBox = MaxBox - (destination.coalAmount + destination.ironAmount + destination.ironplateAmount + destination.componentsAmount);
 			uint256 resourceTransferred;
 
@@ -329,10 +367,18 @@ function validateRequire(IMainGrid.Depot memory depot) internal view {
 		// Проверяем условия для переноса ресурсов
 if (
     keccak256(abi.encodePacked(source.factorySettings)) != keccak256(abi.encodePacked("componentsF")) && // Проверка source
-    (keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("componentsF")) || // Проверка destination
-    keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) ||
-	keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("wallF")))
+    (
+        (
+            keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("componentsF")) &&
+            destination.componentsAmount <= 1000 // Ограничение componentsAmount для componentsF
+        ) ||
+        keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box")) ||
+        keccak256(abi.encodePacked(destination.factorySettings)) == keccak256(abi.encodePacked("wallF"))
+    ) &&
+    destination.ironplateAmount < 10000 // Ограничение ironplateAmount
 ) {
+
+
 			uint256 resourceToMove = source.ironplateAmount / 5;
 			uint256 availableSpaceInBox = MaxBox - (destination.coalAmount + destination.ironAmount + destination.ironplateAmount + destination.componentsAmount);
 			uint256 resourceTransferred;
@@ -366,8 +412,7 @@ if (
     (
         (
             keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Factory")) &&
-            keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("componentsF")) &&
-            keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("bulldozerF")) // Проверяем, что это не bulldozerF
+            keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("componentsF"))
         ) || 
         keccak256(abi.encodePacked(destination.tool)) == keccak256(abi.encodePacked("Box"))
     ) 
@@ -379,22 +424,22 @@ if (
     &&
     (
         keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("bulldozerF")) || // Добавляем дополнительное условие
-        depot.furnaceAmount <= 380 // Проверяем количество бульдозеров
+        depot.bulldozerAmount <= 380 // Проверяем количество бульдозеров
     )
-	 &&
+    &&
     (
         keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("wallF")) || // Добавляем дополнительное условие
-       depot.wallAmount <= 380 // Проверяем количество бульдозеров
+        depot.wallAmount <= 380 // Проверяем количество стен
     )
-	 &&
+    &&
     (
         keccak256(abi.encodePacked(destination.factorySettings)) != keccak256(abi.encodePacked("furnaceF")) || // Добавляем дополнительное условие
-       depot.wallAmount <= 380 // Проверяем количество бульдозеров
-    )	
-	
-	
-	
+        depot.furnaceAmount <= 380 // Проверяем количество бульдозеров
+    )
+    &&
+    destination.componentsAmount < 1000 // Ограничение componentsAmount
 ) {
+
 			uint256 resourceToMove = source.componentsAmount / 5;
 			uint256 availableSpaceInBox = MaxBox - (destination.coalAmount + destination.ironAmount + destination.ironplateAmount + destination.componentsAmount);
 			uint256 resourceTransferred;
@@ -481,46 +526,78 @@ function removeTool(uint256 x, uint256 y, uint256 /* unused */) public {
 
 
 
+    event MeteoritFrequencyUpdated(
+        address indexed user,
+        uint256 frequencyFactor,
+        uint256 adjustedMeteoritTime
+    );
 
+    event MeteoritCalledBBB(
+        address indexed user,
+        uint256 timestamp,
+        uint256 targetX,
+        uint256 targetY,
+        uint256 startX,
+        uint256 startY
+    );
 
-// Основная функция обработки метеорита
-function meteoritfunction(uint256 externalRandom) public {
-    IMainGrid.Depot memory depot = mainGrid.getDepot(msg.sender);
+    event TimeMetricsUpdated(
+        address indexed user,
+        uint256 lastMeteoritTimeChecked,
+        uint256 blockTimestamp,
+        uint256 early
+    );
 
-    uint256 gridSize = depot.gridSize;
+    function meteoritfunction(uint256 externalRandom) public {
+        IMainGrid.Depot memory depot = mainGrid.getDepot(msg.sender);
 
-    require(depot.isPaused == 0, "paused");
-   // require(depot.theEndCount > 100, "Game Over");
-     require(gridSize > 0, "Grid size is not initialized");
-    //emit Debug("Grid size initialized", gridSize);
+        uint256 gridSize = depot.gridSize;
+        require(depot.isPaused == 0, "paused");
+        require(gridSize > 0, "Grid size is not initialized");
 
-if ((block.timestamp * 10**6 - depot.pausedDuration * 10**6 - depot.lastmeteoritTimeChecked) > (depot.mmmtime / depot.speedkoef)) {
-        //emit Debug("Condition for meteorit event met", block.timestamp);
+        // Вычисляем частоту вызова
+        uint256 frequencyFactor = f(depot.normalizedTime * SCALE); // f(t)
+        require(frequencyFactor > SCALE, "Frequency factor must be > 1e18");
 
-        // Шаг 1: Выбор случайной целевой ячейки
-        (uint256 targetX, uint256 targetY) = selectRandomCell(gridSize, externalRandom);
-        //emit Debug("Target cell selected", targetX * gridSize + targetY);
+        // Учитываем скорость и частоту
+        uint256 adjustedMeteoritTime = depot.mmmtime * SCALE / (depot.speedkoef * frequencyFactor);
 
-        // Шаг 2: Выбор случайной стороны для начала движения
-        Direction edgeDirection = selectRandomEdgeDirection(externalRandom);
-        //emit Debug("Starting edge direction selected", uint256(edgeDirection));
+        // Логируем обновление частоты вызова
+        emit MeteoritFrequencyUpdated(msg.sender, frequencyFactor, adjustedMeteoritTime);
 
-// Шаг 3: Вычисление начальной позиции метеорита на выбранной стороне с использованием targetX и targetY
-(uint256 startX, uint256 startY) = getEdgeStartPosition(edgeDirection, gridSize, targetX, targetY);
-       // emit Debug("Starting edge position", startX * gridSize + startY);
+        // Проверка на необходимость вызова метеорита
+        if ((block.timestamp * 10**6 * SCALE- depot.pausedDuration * 10**6 * SCALE - depot.lastmeteoritTimeChecked* SCALE) > adjustedMeteoritTime) {
+            // Логика вызова метеорита (шаги 1-4)
+            (uint256 targetX, uint256 targetY) = selectRandomCell(gridSize, externalRandom);
+            Direction edgeDirection = selectRandomEdgeDirection(externalRandom);
+            (uint256 startX, uint256 startY) = getEdgeStartPosition(edgeDirection, gridSize, targetX, targetY);
+            moveMeteorite(startX, startY, gridSize, depot);
 
-        // Шаг 4: Движение метеорита внутрь сетки
-        moveMeteorite(startX, startY, gridSize, depot);
+            // Эмит события вызова метеорита
+            emit MeteoritCalledBBB(msg.sender, block.timestamp, targetX, targetY, startX, startY);
 
-        // Обновляем временные метки депо
-        depot.lastmeteoritTimeChecked += depot.mmmtime / depot.speedkoef;
+            // Обновляем временные метки
+            depot.lastmeteoritTimeChecked += adjustedMeteoritTime;
+        }
+
+        // Сохраняем обновления в депо
+        mainGrid.updateDepotLastMeteoritTimeChecked(msg.sender, depot.lastmeteoritTimeChecked);
+        mainGrid.updateDepotBlockTimestamp(msg.sender, block.timestamp);
+        mainGrid.updateDepotEarly(
+            msg.sender,
+            block.timestamp - depot.pausedDuration - (depot.lastmeteoritTimeChecked / 10**6)
+        );
+
+        // Эмит события обновления временных метрик
+        emit TimeMetricsUpdated(
+            msg.sender,
+            depot.lastmeteoritTimeChecked,
+            block.timestamp,
+            block.timestamp - depot.pausedDuration - (depot.lastmeteoritTimeChecked / 10**6)
+        );
     }
-	mainGrid.updateDepotLastMeteoritTimeChecked(msg.sender, depot.lastmeteoritTimeChecked);
-    mainGrid.updateDepotBlockTimestamp(msg.sender, block.timestamp);
-    mainGrid.updateDepotEarly(msg.sender, block.timestamp - depot.pausedDuration - (depot.lastmeteoritTimeChecked / 10**6) );
 
-}	
-	
+
 	
 // Функция выбора случайной ячейки
 function selectRandomCell(uint256 gridSize, uint256 externalRandom) private view returns (uint256, uint256) {
@@ -803,23 +880,31 @@ if (
 
     function updateCoal(uint256 externalRandom) public {
         address user = msg.sender;
-        emit FunctionStarted(user, block.timestamp);
+       // emit FunctionStarted(user, block.timestamp);
 
         uint256 maxBox = mainGrid.getMaxBox();
 
         // Получаем данные депо и размер сетки
         IMainGrid.Depot memory depot = mainGrid.getDepot(user);
         require(depot.isPaused == 0, "paused");
-        //require(depot.theEndCount > 100, "Game Over");
+        require(depot.theEndCount > 100, "Game Over");
         uint256 gridSize = depot.gridSize;
+		//Обновляем Нормалайзед тайм. 
+		
+uint256 elapsedTime = block.timestamp - depot.lastUpdateTime;
+uint256 updatedNormalizedTime = depot.normalizedTime + elapsedTime * depot.speedkoef;
+mainGrid.updateDepotNormalizedTime(msg.sender, updatedNormalizedTime);
+    mainGrid.updateDepotLastUpdateTime(msg.sender, block.timestamp);  
+		
+		
 
         // Проверяем и вызываем функцию метеорита при необходимости
         uint256 maxMeteors = depot.iterationLimitDepot; // Максимальное количество вызовов meteoritfunction за один раз
         uint256 meteorCount = 0;
 
         while (_shouldCallMeteorit(depot) && meteorCount < maxMeteors) {
-            _meteoritFunction(externalRandom + meteorCount);
-            emit MeteoritCalled(user, block.timestamp, meteorCount);
+            meteoritfunction(externalRandom + meteorCount);
+            //emit MeteoritCalled(user, block.timestamp, meteorCount);
             meteorCount++;
 
 
@@ -827,32 +912,32 @@ if (
             depot = mainGrid.getDepot(user);
         }
 
-        uint256 totalCells = gridSize * gridSize;
+        //uint256 totalCells = gridSize * gridSize;
 
         // Генерация и перемешивание индексов ячеек
-        uint256[] memory indices = _generateShuffledIndices(externalRandom, totalCells);
+        uint256[] memory indices = _generateShuffledIndices(externalRandom, gridSize * gridSize);
 
         // Обработка ячеек и сбор обновленных данных
         (
             IMainGrid.Cell[] memory updatedCells,
             bool[] memory isUpdated
-        ) = _processCells(user, indices, gridSize, totalCells, depot, maxBox);
+        ) = _processCells(user, indices, gridSize, depot, maxBox);
 
         // Логируем обработку каждой ячейки
-        for (uint256 i = 0; i < totalCells; i++) {
-            emit CellProcessed(user, indices[i], isUpdated[i]);
+        for (uint256 i = 0; i < gridSize * gridSize; i++) {
+           // emit CellProcessed(user, indices[i], isUpdated[i]);
         }
 
         // Обновляем измененные ячейки в mainGrid
-        _updateMainGrid(user, indices, updatedCells, isUpdated, gridSize, totalCells);
-        emit MainGridUpdated(user, totalCells);
+        _updateMainGrid(user, indices, updatedCells, isUpdated, gridSize, gridSize * gridSize);
+       // emit MainGridUpdated(user, gridSize * gridSize);
 
         // Обновляем количества в депо
         _updateDepotAmounts(user, depot);
         mainGrid.updateDepotBlockTimestamp(user, block.timestamp);
-        emit DepotUpdated(user, block.timestamp);
+       // emit DepotUpdated(user, block.timestamp);
 
-        emit FunctionFinished(user, block.timestamp);
+       // emit FunctionFinished(user, block.timestamp);
     }
 
 
@@ -863,11 +948,7 @@ if (
         return (block.timestamp * 10**6 - depot.pausedDuration * 10**6 - depot.lastmeteoritTimeChecked > depot.mmmtime / depot.speedkoef);
     }
 
-    // Вызов функции метеорита
-    function _meteoritFunction(uint256 externalRandom) internal {
-        // Предполагается, что функция meteoritfunction уже определена
-        meteoritfunction(externalRandom);
-    }
+
 
     // Генерация и перемешивание индексов ячеек
     function _generateShuffledIndices(uint256 externalRandom, uint256 totalCells) internal view returns (uint256[] memory) {
@@ -893,17 +974,17 @@ if (
         address user,
         uint256[] memory indices,
         uint256 gridSize,
-        uint256 totalCells,
+        //uint256 totalCells,
         IMainGrid.Depot memory depot,
         uint256 maxBox
     )
         internal
         returns (IMainGrid.Cell[] memory updatedCells, bool[] memory isUpdated)
     {
-        updatedCells = new IMainGrid.Cell[](totalCells);
-        isUpdated = new bool[](totalCells);
+        updatedCells = new IMainGrid.Cell[](gridSize * gridSize);
+        isUpdated = new bool[](gridSize * gridSize);
 
-        for (uint256 iter = 0; iter < totalCells; iter++) {
+        for (uint256 iter = 0; iter < gridSize * gridSize; iter++) {
             uint256 index = indices[iter];
             (uint256 x, uint256 y) = _getCoordinates(index, gridSize);
 
@@ -1054,9 +1135,9 @@ if (
         cell.componentsAmount -= 10; // Сжигаем 10 компонентов
         depot.furnaceAmount -= 1; // Сжигаем 10 бульдозеров из депо
 		cell.ironplateAmount -= 200;
-		depot.wallAmount += 15;
+		depot.wallAmount += 3;
 
-        if (depot.wallAmount > 400) {
+        if (depot.wallAmount > 380) {
            // Ограничиваем максимум
             break; // Прерываем цикл
         }      // Увеличиваем количество стен в депо
@@ -1087,26 +1168,35 @@ if (
 		) {
             bytes32 factorySettingsHash = keccak256(abi.encodePacked(cell.factorySettings));
 while (cell.componentsAmount >= 10) {
-    cell.componentsAmount -= 10;
-    if (factorySettingsHash == keccak256(abi.encodePacked("drillsF"))) {
-        depot.drillsAmount += 1;
-    } else if (factorySettingsHash == keccak256(abi.encodePacked("boxesF"))) {
-        depot.boxesAmount += 1;
-    } else if (factorySettingsHash == keccak256(abi.encodePacked("mansF"))) {
-        depot.mansAmount += 1;
-    } else if (factorySettingsHash == keccak256(abi.encodePacked("furnaceF"))) {
-        depot.furnaceAmount += 1;
-    } else if (factorySettingsHash == keccak256(abi.encodePacked("factoryF"))) {
-        depot.factoryAmount += 1;
-    } else if (factorySettingsHash == keccak256(abi.encodePacked("bulldozerF"))) {
-        depot.bulldozerAmount += 1;
-    } else if (factorySettingsHash == keccak256(abi.encodePacked("wallF"))) {
-        // Ничего не делаем, просто пропускаем
+    if (factorySettingsHash == keccak256(abi.encodePacked("bulldozerF"))) {
+        // Проверяем, хватает ли компонентов для создания бульдозера
+        if (cell.componentsAmount >= 50) {
+            cell.componentsAmount -= 50;
+            depot.bulldozerAmount += 1;
+        } else {
+            break; // Прерываем цикл, если компонентов недостаточно для бульдозера
+        }
     } else {
-        cell.componentsAmount += 10;
-        revert("Operation terminated: invalid factory setting");
+        cell.componentsAmount -= 10;
+        if (factorySettingsHash == keccak256(abi.encodePacked("drillsF"))) {
+            depot.drillsAmount += 1;
+        } else if (factorySettingsHash == keccak256(abi.encodePacked("boxesF"))) {
+            depot.boxesAmount += 1;
+        } else if (factorySettingsHash == keccak256(abi.encodePacked("mansF"))) {
+            depot.mansAmount += 1;
+        } else if (factorySettingsHash == keccak256(abi.encodePacked("furnaceF"))) {
+            depot.furnaceAmount += 1;
+        } else if (factorySettingsHash == keccak256(abi.encodePacked("factoryF"))) {
+            depot.factoryAmount += 1;
+        } else if (factorySettingsHash == keccak256(abi.encodePacked("wallF"))) {
+            // Ничего не делаем, просто пропускаем
+        } else {
+            cell.componentsAmount += 10;
+            revert("Operation terminated: invalid factory setting");
+        }
     }
 }
+
 
 			
 			
@@ -1163,9 +1253,50 @@ while (cell.componentsAmount >= 10) {
 
 
 
+//uint256 constant SCALE = 1e18; // Масштабирование для фиксированной точки
 
+/**
+ * @dev Вычисляет e^x, где x масштабировано на 1e18.
+ * Используется разложение в ряд Тейлора до 20-го члена.
+ * @param x Масштабированное значение x (1e18 = 1).
+ * @return result Масштабированное значение e^x (1e18 = 1).
+ */
+function exp(uint256 x) internal pure returns (uint256) {
+    // Разложение в ряд Тейлора для e^x
+    // e^x = 1 + x + x^2/2! + x^3/3! + ... + x^20/20!
+    uint256 result = SCALE; // 1 * SCALE
+    uint256 term = SCALE;   // Начальный термин: 1 * SCALE
 
+    for (uint8 i = 1; i <= 20; i++) { // Увеличено до 20-го члена
+        term = (term * x) / SCALE; // Умножаем на x и масштабируем
+        term = term / i;            // Делим на факториал
+        result += term;             // Добавляем к результату
+    }
 
+    return result;
+}
+
+/**
+ * @dev Вычисляет функцию f(t) = a * e^(k * t) + 1.
+ * @param tScaled Масштабированное значение t (1e18 = 1).
+ * @return fResult Масштабированное значение f(t) (1e18 = 1).
+ */
+function f(uint256 tScaled) public view returns (uint256) {
+    // Вычисляем k * t, масштабированное на SCALE
+    uint256 kt = (kExponentialScaled * tScaled) / SCALE;
+
+    // Вычисляем e^(k * t)
+    uint256 ekt = exp(kt);
+
+    // Вычисляем a * e^(k * t), масштабированное на SCALE
+    uint256 a_eckt = (aExponential * ekt) / SCALE;
+
+    // 1, масштабированное на SCALE
+    uint256 one = SCALE;
+
+    // Возвращаем f(t) = a * e^(k * t) + 1, масштабированное на SCALE
+    return a_eckt + one;
+}
 
 
 

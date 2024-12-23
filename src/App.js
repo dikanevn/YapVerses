@@ -31,12 +31,12 @@ let isNonceInitializing = false;
 		
 		
 const [currentNonce, setCurrentNonce] = useState(null);
-		const contractAddressMain = "0x8Bd55C46f42FDb1b190Bc9CB7145418e43478199";
+		const contractAddressMain = "0x001C835AadA02bbF30718aC5D69bC591da121F88";
 		
 		
 		
-		const contractAddressAAA = "0xa81Bc1FdF51738E1dA597AF2C02d02157EC18899";
-		const contractAddressBBB = "0xC970849723e6337a7E4b40b7CAcB620F1EeffAf8";
+		const contractAddressAAA = "0x08BC1ECe24234a8033AdC33988b62f2Ec070C402";
+		const contractAddressBBB = "0x94cCF1a59a865022675af6FDcB5953a650CDd31a";
 		
 		
 		
@@ -50,7 +50,6 @@ const [currentNonce, setCurrentNonce] = useState(null);
 		const [logMessages, setLogMessages] = useState([]);
 		const [activeCells, setActiveCells] = useState([]);
 		const [isPressed, setIsPressed] = useState(false);
-		//const defaultPrivateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ваш тестовый приватный ключ
 		const defaultPrivateKey = ""; // Ваш тестовый приватный ключ
 		const [userPrivateKey, setUserPrivateKey] = useState(defaultPrivateKey);
 		const [isKeyConfirmed, setIsKeyConfirmed] = useState(!!defaultPrivateKey); // Подтверждаем, только если ключ непустой
@@ -64,13 +63,14 @@ const [isGamePaused, setIsGamePaused] = useState(0); // 1 - пауза, 0 - иг
 const buttonActionRef = useRef(false);
 const [earlyValue, setEarlyValue] = useState(0); // Для отображения переменной early
 const [speedkoefState, setSpeedkoefState] = useState(0); // Для отображения переменной early
-
-
 const [mmmtimeValue, setMmmtimeValue] = useState(0); // Для отображения переменной mmmtime
 const [meteoritCount, setMeteoritCount] = useState(0); // Для отображения количества метеоритов
 const [hasGameOverAlertShown, setHasGameOverAlertShown] = useState(false);
 const [hasEarlyAlertShown, setHasEarlyAlertShown] = useState(false);
 const [trainingCompletedState, setTrainingCompletedState] = useState(1); // Начальное значение 1
+const [meteoriteFrequency, setMeteoriteFrequency] = useState(0); // Частота метеоритов
+ const [isToggled, setIsToggled] = useState(true);
+const [raznica, setRaznica] = useState(false);
 
 		const [logMessage, setLogMessage] = useState(""); // Состояние для хранения лог-сообщения
 		const [logErrorMessage, setlogErrorMessage] = useState(""); // Состояние для хранения лог-сообщения
@@ -340,7 +340,11 @@ const fetchGrid = async () => {
             const theEndCount = result.theEndCount.toString();
             const speedkoef = result.speedkoef.toString();
             const trainingCompleted = result.trainingCompleted.toString();
-			
+const normalizedTime = result.normalizedTime.toString();
+const lastUpdateTime = result.lastUpdateTime.toString();
+const previousSpeed = result.previousSpeed.toString();
+
+
 			
             setDepot({
                 gridSize,
@@ -364,6 +368,9 @@ const fetchGrid = async () => {
                 pauseStartTime,
                 speedkoef,
 				trainingCompleted,
+				normalizedTime,
+				lastUpdateTime,
+				previousSpeed,
 				
             });
 			
@@ -489,8 +496,13 @@ setTrainingCompletedState(Number(trainingCompleted)); // Устанавлива�
 
 
 
-		
 useEffect(() => {
+    if (!isToggled) {
+        return; // Не выполнять код, если isToggled выключен
+    }
+    if (raznica) {
+        return; // Не выполнять код, если raznica 
+    }
     const checkTimeAndSendSignal = () => {
         if (!currentNonce) { // Проверяем, инициализирован ли nonce
             console.log("Nonce не инициализирован. Ожидание...");
@@ -498,10 +510,10 @@ useEffect(() => {
         }
 
         const currentSeconds = new Date().getSeconds(); // Получаем текущую секунду
-        if (currentSeconds % 15 === 0) { // Проверяем, делится ли секунда на 5 без остатка
+        if (currentSeconds % 5 === 0) { // Проверяем, делится ли секунда на 5 без остатка
             if (updateCoalButtonRef.current) {
                 updateCoalButtonRef.current.click(); // Имитация клика
-                console.log("updateCoal...");
+                //console.log("updateCoal...");
             } else {
                 console.error("updateCoalButtonRef.current is null");
             }
@@ -510,11 +522,10 @@ useEffect(() => {
 
     const intervalId = setInterval(checkTimeAndSendSignal, 1000); // Проверяем каждую секунду
 
-    // Очистка интервала при размонтировании компонента
+    // Очистка интервала при размонтировании компонента или выключении isToggled
     return () => clearInterval(intervalId);
-}, [currentNonce]);
+}, [currentNonce, isToggled, raznica]);
 
-	
 	
 	
 	
@@ -856,7 +867,6 @@ const sendTransaction = async (contractMethod, params = [], contractAddress, con
 
 
 
-// Добавлено логирование nonce
 const processQueue = async () => {
     try {
         let signerInstance;
@@ -870,23 +880,32 @@ const processQueue = async () => {
 
         while (transactionQueue.length > 0) {
             const transaction = transactionQueue[0];
-            //console.log(`Processing transaction ${transaction.contractMethod} with nonce ${currentNonce}`);
+            try {
+               // console.log(`Processing transaction ${transaction.contractMethod} with nonce ${transaction.nonce}`);
 
-            await executeTransaction(
-                transaction.contractMethod,
-                transaction.params,
-                transaction.contractAddress,
-                transaction.contractABI,
-                signerInstance
-            );
+                await executeTransaction(
+                    transaction.contractMethod,
+                    transaction.params,
+                    transaction.contractAddress,
+                    transaction.contractABI,
+                    signerInstance
+                );
 
+               // console.log(`Transaction ${transaction.contractMethod} successful with nonce ${transaction.nonce}`);
+            } catch (error) {
+                console.error(`Ошибка выполнения транзакции ${transaction.contractMethod} с nonce ${transaction.nonce}:`, error);
+            }
+
+            // Удаляем транзакцию из очереди в любом случае
             transactionQueue.shift();
-            //console.log("Transaction successful.");
         }
     } catch (error) {
         console.error("Ошибка обработки очереди транзакций:", error);
     }
 };
+
+
+
 
 const executeTransaction = async (contractMethod, params = [], contractAddressIN, contractAbiIN, signer) => {
     const cellId = params.length >= 2 ? `${params[0]}-${params[1]}` : null;
@@ -902,8 +921,7 @@ if (contractMethod != 'updateCoal') {
     ]);
 }
 		
-		
-		
+
 
         setLoading(true);
 
@@ -963,10 +981,10 @@ if (contractMethod != 'updateCoal'){
     } catch (error) {
 		
 		
-		console.error("Ошибка executeTransaction:", error);
+		//console.error("Ошибка executeTransaction:", error);
 
 //if (contractMethod != 'updateCoal') {
-        console.error(`${contractMethod}`, error);
+        console.error(`${contractMethod}`, truncateError(error));
 		
 		
 		
@@ -1007,27 +1025,108 @@ if (contractMethod != 'updateCoal'){
 
 
 
+// Переменная для хранения времени последней проверки nonce
 
 
+useEffect(() => {
+    const intervalId = setInterval(async () => {
+        const currentTime = new Date().getSeconds();
+        if (currentTime % 15 === 0) {
+            //console.log("Проверка nonce");
+
+            // Вызов функции, которая сама управляет переменными
+            await checkAndFixNonce();
+        }
+    }, 950);
+
+    return () => clearInterval(intervalId); // Очищаем интервал при размонтировании
+}, [userPrivateKey,provider,currentNonce]); // Убираем зависимости
+
+const checkAndFixNonce = async () => {
+    try {
+        let signerInstance;
+        if (userPrivateKey) {
+            signerInstance = new ethers.Wallet(userPrivateKey, provider);
+        } else if (provider) {
+            signerInstance = provider.getSigner();
+        } else {
+            throw new Error("Provider не инициализирован. Убедитесь, что кошелек подключен.");
+        }
+
+        const userAddress = await signerInstance.getAddress();
+        const networkNonce = await provider.getTransactionCount(userAddress);
+
+        // Проверка разницы между currentNonce и networkNonce
+        const nonceDifference = currentNonce - networkNonce;
+		
+        if (nonceDifference > 5) {
+			
+			
+            console.log(`⚠️  Разница: ${nonceDifference}`);
+			setRaznica(true);
+						    setLogMessages((prev) => [
+        { text: `Разница:${nonceDifference}`, color: 'red' },
+        ...prev,
+    ]);
+        } else {
+if (raznica) {
+    setRaznica(false);
+}
+}
+        if (currentNonce > networkNonce) {
+            console.log("Проверяем время последней транзакции через API...");
+
+            // URL для API-запроса с ограничением на последние 100 транзакций
+            const apiUrl = `https://pacific-explorer.sepolia-testnet.manta.network/api?module=account&action=txlist&address=${userAddress}&startblock=2672807&endblock=99999999&sort=desc&offset=100`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.status === "1" && data.result.length > 0) {
+                    const lastTransaction = data.result[0];
+                    const lastTransactionTime = parseInt(lastTransaction.timeStamp) * 1000; // Время в миллисекундах
+
+                    const timeDiffSeconds = Math.floor((Date.now() - lastTransactionTime) / 1000); // Разница в секундах
+
+                    /* console.log(
+                        `Последняя транзакция была выполнена ${timeDiffSeconds} секунд назад `
+                    ); */
+
+                    if (timeDiffSeconds > 40) {
+                        console.log("Пробуем исправить пропущенные nonce вызовом EmptyFunctionForNonce");
+                        const contract = new ethers.Contract(contractAddressAAA, SimpleGridAbiAAA, signerInstance);
+
+                        for (let i = currentNonce; i < networkNonce; i++) {
+                            await contract.EmptyFunctionForNonce(i, { nonce: i });
+                            console.log(`Nonce ${i} успешно потрачен.`);
+                        }
+
+                        // Здесь удалено изменение currentNonce напрямую
+                    }
+                } else {
+                    console.log("Транзакции не найдены для данного адреса или произошла ошибка API.");
+                }
+
+            } catch (apiError) {
+                console.error("Ошибка при запросе к API для получения транзакций:", apiError);
+            }
+        } else {
+            // console.log("Все в порядке с nonce.");
+        }
+    } catch (error) {
+        console.error("Ошибка при проверке/исправлении nonce:", error);
+    }
+};
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+const truncateError = (error, maxLength = 50) => {
+    const errorMessage = error.toString(); // Преобразуем ошибку в строку
+    if (errorMessage.length > maxLength) {
+        return `${errorMessage.slice(0, maxLength)}... [Обрезано]`;
+    }
+    return errorMessage;
+};
 
 
 
@@ -1063,6 +1162,7 @@ if (contractMethod != 'updateCoal'){
 
 /*
 
+
 useEffect(() => {
     if (!provider) return;
 
@@ -1075,13 +1175,6 @@ useEffect(() => {
             const parsedLog = contractBBB.interface.parseLog(log); // Парсим лог события
             console.log("Событие из BBB:", parsedLog);
 
-            setLogMessages((prev) => [
-                {
-                    text: `BBB Event: ${parsedLog.name}\nArgs: ${JSON.stringify(parsedLog.args)}`,
-                    color: "LimeGreen",
-                },
-                ...prev,
-            ]);
         } catch (error) {
             console.error("Ошибка при обработке события из BBB:", error);
         }
@@ -1092,13 +1185,6 @@ useEffect(() => {
             const parsedLog = contractAAA.interface.parseLog(log); // Парсим лог события
             console.log("Событие из AAA:", parsedLog);
 
-            setLogMessages((prev) => [
-                {
-                    text: `AAA Event: ${parsedLog.name}\nArgs: ${JSON.stringify(parsedLog.args)}`,
-                    color: "SkyBlue",
-                },
-                ...prev,
-            ]);
         } catch (error) {
             console.error("Ошибка при обработке события из AAA:", error);
         }
@@ -1142,12 +1228,20 @@ useEffect(() => {
 }, [provider]);
 
 
+
 */
 
 
-
-
-/*
+    useEffect(() => {
+        if (logMessages.length > 100) {
+            setLogMessages((prev) => prev.slice(0, 100)); // Оставляем только первые 100 элементов
+        }
+    }, [logMessages]);
+	
+	
+	
+	
+	/*
 
 
 const prevDynamicEarlyValue = useRef(null);
@@ -1480,6 +1574,10 @@ ${depot.pausedDuration} - Paused Duration
 ${depot.pauseStartTime} - Pause Start Time
 ${depot.theEndCount} - The End Count
 ${depot.trainingCompleted} - trainingCompleted
+${depot.normalizedTime} - Normalized Time
+${depot.lastUpdateTime} - Last Update Time
+${depot.previousSpeed} - Previous Speed
+${depot.speedkoef} - speedkoef
 `;
 				
 				console.log(depotDataMessage);
@@ -1758,10 +1856,19 @@ useEffect(() => {
 
 		
 		*/
+const calculateMeteoriteFrequency = (normalizedTime) => {
+    const a = 0.05; // Коэффициент a
+    const k = 0.00018; // Коэффициент k
+    return a * Math.exp(k * normalizedTime) + 1;
+};
 		
 		
-		
-		
+useEffect(() => {
+    if (depot.normalizedTime) {
+        const frequency = calculateMeteoriteFrequency(depot.normalizedTime);
+        setMeteoriteFrequency(frequency); // Обновляем состояние
+    }
+}, [depot.normalizedTime]);
 		
 		
 		
@@ -2013,7 +2120,7 @@ return (
     display: 'flex',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    cursor: "pointer",
+    //cursor: "pointer",
     width: "310px",
     margin: '0 auto', // Центрирование по ширине
 
@@ -2026,7 +2133,7 @@ return (
 					onClick = {
 						(e) => {
 							e.stopPropagation(); // Останавливаем всплытие события
-							if (window.confirm("Подтверждение на поиск нового астероида. Текущий, если он есть, будет потерян в просторах космоса навсегда!")) {
+							if (window.confirm("Подтверждение на поиск нового астероида. Текущий, если он есть, будет потерян в просторах космоса навсегда.")) {
 								executeAction("initializeGrid");
 							}
 						}
@@ -2531,14 +2638,15 @@ height: '28.19px',
         borderColor: 'buttonborder',
         borderImage: 'initial',
         cursor: "pointer",
-        textAlign: 'left',
-        paddingInline: '2px',
+       textAlign: 'left',
+        paddingInline: '0px',
         margin: '0px',
-        width: '6.7em',
+       // width: '6.7em',
         width: '43.05px',
         height: '28.19px',
+		 fontSize: '10px',
 									paddingRight: '1px',
-paddingTop: '3px',
+paddingTop: '5px',
     }}
     title="Скорость игры"
 >
@@ -2547,9 +2655,10 @@ paddingTop: '3px',
     <option value="2x">2x</option>
     <option value="5x">5x</option>
     <option value="10x">10x</option>
-    <option value="20x">20x</option>	
-    <option value="40x">40x</option>	
-    <option value="100x">100x</option>	
+    <option value="25x">25x</option>	
+    <option value="50x">50x</option>	
+    <option value="99x">99x</option>	
+	
     <option value="200x">200x</option>	
     <option value="400x">400x</option>	
     <option value="1000x">1000x</option>	
@@ -2654,7 +2763,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("getDepot"), // Цвет кнопки
 							cursor: "pointer"
 						}
-					} title="Depot"> 📘 < /button> 
+					} title="Нажми F12"> 📘 < /button> 
 
 
 
@@ -2703,8 +2812,21 @@ height: '28.19px',
 
 					
 
-					
-					
+        <button
+            onClick={() => {
+                setIsToggled(!isToggled); // Переключение состояния
+            }}
+            style={{
+                width: '43.05px',
+                height: '28.19px',
+                backgroundColor: isToggled ? 'blue' : '#767999', // Меняет цвет при переключении
+                cursor: "pointer",
+				 borderStyle: isToggled ? "inset" : "outset", // Если пауза не активна
+            }}
+            title="Синхронизация"
+        >
+            {isToggled ? "🔄" : "🔄"} {/* Меняет иконку при переключении */}
+        </button>					
 					
 					
 					
@@ -2742,9 +2864,8 @@ height: '28.19px',
 							fontSize: '17px', // Размер шрифта
 							//border: "1px solid #ccc",
 						}
-					} > Вы пролетели уже {
-						//Distance
-					} км. < /p>  < > {
+					} > Плотность метеоритов  {meteoriteFrequency.toFixed(4)}
+					 < /p>  < > {
 					grid && grid.length > 0 && ( < div style = {
 							{
 								display: 'flex', // Используем flexbox для выравнивания
@@ -3166,7 +3287,7 @@ fontSize: '20px',
         fontSize: '17px',
         textAlign: 'center',
         marginTop: '1px',
-        animation: dynamicEarlyValue > 40 ? 'blink 1s infinite' : 'none' // Анимация только при условии
+        animation: dynamicEarlyValue > 60 ? 'blink 1s infinite' : 'none' // Анимация только при условии
     }}
 >
     Синхронизация {dynamicEarlyValue * speedkoefState} сек. назад

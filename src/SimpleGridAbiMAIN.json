@@ -415,6 +415,21 @@
 						"internalType": "uint256",
 						"name": "trainingCompleted",
 						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "normalizedTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lastUpdateTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "previousSpeed",
+						"type": "uint256"
 					}
 				],
 				"internalType": "struct MainGrid.Depot",
@@ -711,6 +726,24 @@
 			},
 			{
 				"internalType": "uint256",
+				"name": "lastUpdateTime",
+				"type": "uint256"
+			}
+		],
+		"name": "updateDepotLastUpdateTime",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
 				"name": "mansAmount",
 				"type": "uint256"
 			}
@@ -752,6 +785,24 @@
 			}
 		],
 		"name": "updateDepotMmmtime",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "normalizedTime",
+				"type": "uint256"
+			}
+		],
+		"name": "updateDepotNormalizedTime",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -904,6 +955,24 @@
 			}
 		],
 		"name": "updateDepotPausedDuration",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "previousSpeed",
+				"type": "uint256"
+			}
+		],
+		"name": "updateDepotPreviousSpeed",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
