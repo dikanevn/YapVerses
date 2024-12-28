@@ -1106,7 +1106,7 @@ function updatePendingChronicle(string memory name, string memory message, uint2
     (uint256 currentScore, address recordAddress, string memory currentName, string memory currentMessage, uint256 recordTime) = mainGrid.getChronicle(recordId);
     require(recordAddress == msg.sender, "Invalid pending chronicle owner");
 
-    // Запрещаем обновлять на "empty", если текущее имя или сообщение уже "empty"
+
     require(keccak256(abi.encodePacked(currentName)) != keccak256(abi.encodePacked("empty")), "Current name is 'empty'");
     require(keccak256(abi.encodePacked(currentMessage)) != keccak256(abi.encodePacked("empty")), "Current message is 'empty'");
 
