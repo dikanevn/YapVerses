@@ -2718,24 +2718,23 @@ for (let id = Number(firstRecordId); id < Number(nextRecordId); id++) {
 		
 
 
-    const handleSubmit = async () => {
-        try {
-                    let signerInstance;
-        if (userPrivateKey) {
-            signerInstance = new ethers.Wallet(userPrivateKey, provider);
-        } else if (provider) {
-            signerInstance = provider.getSigner();
-        } else {
-            throw new Error("Provider не инициализирован. Убедитесь, что кошелек подключен.");
-        }
-            const newContract = new ethers.Contract(contractAddressAAA, SimpleGridAbiAAA, signerInstance);
-            const tx = await newContract.updatePendingChronicle(name, message, 0);
-            await tx.wait();
-            setPendingRecord(null); // Очищаем pendingRecord после отправки
-        } catch (error) {
-            console.error("Ошибка при отправке хроники:", error);
-        }
-    };	
+const handleSubmit = async () => {
+    try {
+        // Используем sendTransaction для вызова функции контракта
+        await sendTransaction(
+            "updatePendingChronicle", // Имя функции контракта
+            [name, message],       // Параметры вызова
+            contractAddressAAA,       // Адрес контракта
+            SimpleGridAbiAAA          // ABI контракта
+        );
+
+        // Очищаем pendingRecord после успешного вызова
+        setPendingRecord(null);
+    } catch (error) {
+        console.error("Ошибка при отправке хроники:", error);
+    }
+};
+
 	
     const handleLater = () => {
         setPendingRecord(null); // Просто закрываем окно
@@ -2743,31 +2742,21 @@ for (let id = Number(firstRecordId); id < Number(nextRecordId); id++) {
 
 const handleNever = async () => {
     try {
-        let signerInstance;
-        
-        // Используем приватный ключ или провайдер для получения подписанта
-        if (userPrivateKey) {
-            signerInstance = new ethers.Wallet(userPrivateKey, provider);
-        } else if (provider) {
-            signerInstance = provider.getSigner();
-        } else {
-            throw new Error("Provider не инициализирован. Убедитесь, что кошелек подключен.");
-        }
+        // Используем sendTransaction для вызова функции контракта
+        await sendTransaction(
+            "updatePendingChronicle", // Имя функции контракта
+            ["empty", "empty"],    // Параметры вызова
+            contractAddressAAA,       // Адрес контракта
+            SimpleGridAbiAAA          // ABI контракта
+        );
 
-        // Инициализируем контракт с подписантом
-        const newContract = new ethers.Contract(contractAddressAAA, SimpleGridAbiAAA, signerInstance);
-        
-        // Отправляем транзакцию с параметрами "empty"
-        const tx = await newContract.updatePendingChronicle("empty", "empty", 0);
-        await tx.wait();
-
-        // Очищаем pendingRecord после отправки
+        // Очищаем pendingRecord после успешного вызова
         setPendingRecord(null);
-
     } catch (error) {
         console.error("Ошибка при обновлении хроники с 'Никогда':", error);
     }
 };
+
 
 
 
