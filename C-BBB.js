@@ -714,9 +714,18 @@ function updateCoal(uint256 externalRandom) public {
         require(elapsedTime <= type(uint256).max / depot.speedkoef, "Overflow in elapsedTime scaling");
 
         uint256 updatedNormalizedTime = depot.normalizedTime + elapsedTime * depot.speedkoef;
+		
+		
+		
+		
         require(updatedNormalizedTime >= depot.normalizedTime, "Overflow in normalizedTime calculation");
 
         mainGrid.updateDepotLastUpdateTime(msg.sender, block.timestamp);
+		
+		if (depot.gotoLevel == 100){
+			updatedNormalizedTime = 1;
+		}
+		
         mainGrid.updateDepotNormalizedTime(msg.sender, updatedNormalizedTime);
     }
 }

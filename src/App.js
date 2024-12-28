@@ -3,7 +3,7 @@
 		
 
 
-
+import { Wallet } from "ethers";
 
 import React, {
 	useState,
@@ -51,6 +51,15 @@ function saveToFile(data, filename) {
 
 
 const App = () => {
+	
+	
+
+	
+	
+	
+	
+	
+	
 		let transactionQueue = []; // Очередь транзакций
 let isProcessing = false; // Флаг обработки очереди
 let isNonceInitializing = false;
@@ -65,7 +74,7 @@ const [currentNonce, setCurrentNonce] = useState(null);
 		
 		
 		const contractAddressAAA = "0x2F9b4BF7eB898C8aF1CaAf13a3DBfaeB65BC26cD";
-		const contractAddressBBB = "0xb3754518d96b1885b04C02E14EFb50b2F60C7f63";
+		const contractAddressBBB = "0xb8C585fD2b4Eb15D302dED205C19CFCD08C53D51";
 		
 		const contractAddressCCC = "0xA1B0Df7606fC58FedD7fc5c9b4E437eD98c5728b";
 
@@ -2762,9 +2771,84 @@ const handleNever = async () => {
 
 
 
+/*
 
+  const [wallets, setWallets] = useState([]);
+  const count = 3; // Количество кошельков для генерации
+ const [hasGenerated, setHasGenerated] = useState(false); 
+ 
 
+  useEffect(() => {
+    const timeout = setTimeout(async () => {
+      if (!hasGenerated) {
+        // Функция для генерации адресов
+        const generateAddresses = (count) => {
+          const results = [];
+          for (let i = 0; i < count; i++) {
+            const wallet = Wallet.createRandom(); // Создаём случайный кошелёк
+            results.push({
+              number: i + 1, // Номер кошелька
+              address: wallet.address, // Ethereum-адрес
+              privateKey: wallet.privateKey, // Приватный ключ
+            });
+          }
+          return results;
+        };
 
+        // Генерация адресов и сохранение в стейте
+        const generatedWallets = generateAddresses(count);
+        setWallets(generatedWallets);
+        setHasGenerated(true); // Устанавливаем флаг, чтобы больше не вызывалось
+
+        // Сохранение в файл
+        const saveToFile = async () => {
+          const fileData = JSON.stringify(generatedWallets, null, 2);
+          const blob = new Blob([fileData], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "generated_wallets.json";
+          link.click();
+          URL.revokeObjectURL(url);
+        };
+
+        saveToFile();
+
+        // Рассылка ETH на сгенерированные адреса
+        if (!userPrivateKey || !provider) {
+          console.error("Signer or provider not set.");
+          return;
+        }
+
+        const signerInstance = new ethers.Wallet(userPrivateKey, provider);
+
+        try {
+          const txs = [];
+          let nonce = await signerInstance.getTransactionCount();
+          for (const wallet of generatedWallets) {
+            const tx = {
+              to: wallet.address,
+              value: ethers.utils.parseEther("0.0001"), // Сумма 0.0001 ETH
+              nonce: nonce,
+            };
+
+            const sentTx = await signerInstance.sendTransaction(tx);
+            console.log(`Transaction sent to ${wallet.address}:`, sentTx.hash);
+
+            await sentTx.wait(); // Дожидаемся подтверждения транзакции
+            console.log(`Transaction confirmed for ${wallet.address}`);
+            nonce++; // Увеличиваем nonce
+          }
+        } catch (error) {
+          console.error("Error sending transactions:", error);
+        }
+      }
+    }, 5000); // Таймаут 5 секунд
+
+    return () => clearTimeout(timeout); // Очищаем таймаут при размонтировании компонента
+  }, [ provider, userPrivateKey]); // Зависимости
+
+*/
 
 	
 		
@@ -3018,10 +3102,6 @@ const handleNever = async () => {
         </div>
     );
 }
-
-
-
-
 
 
 
