@@ -2,11 +2,60 @@
 
 pragma solidity ^0.8.0;
 
+interface IPreviousContract {
+
+    struct TopPlayer {
+        address playerAddress;
+        uint256 bestScore;
+    }
+
+    function nextRecordId() external view returns (uint256);
+    function getTopPlayers() external view returns (TopPlayer[100] memory);
+	 function admin() external view returns (address); // Новая функция
+
+}
+
+
+
+
 contract MainGrid {
 	
-uint256 public constant MaxBox = 400000;
 	
+IPreviousContract public previous;
+//uint256 public constant MaxBox = 400000;
+// Определение структуры Chronicle
+    struct Chronicle { 
+        uint256 recordScore;
+        address recordAddress;  
+        string recordName;  
+        string recordMessage;
+		uint256 recordTime;
+    }
+
+// Определение mapping для связывания идентификаторов с Chronicle
+mapping(uint256 => Chronicle) public chronicles;
+
+
+    uint256 public firstRecordId;
+    uint256 public nextRecordId;
+	uint256 public contractCreatedTime;
 	
+	struct Playerstat {
+		uint256 bestScore; 
+		string name; 
+        uint256 firstGameTimestamp; // Время начала первой игры
+		string link;
+    }
+
+    mapping(address => Playerstat) private playerstats;
+	
+
+
+IPreviousContract.TopPlayer[100] public topPlayers;
+mapping(address => uint256) public pendingChronicles;
+
+
+
 	
     struct Cell {
         string content;// "Coal", "contentEmpty", "Iron", "Update";
@@ -45,10 +94,11 @@ struct Depot {
     uint256 wallAmount;
     uint256 theEndCount;
     uint256 speedkoef;
-    uint256 trainingCompleted; // Новый параметр: 0 - обучение не завершено, 1 - завершено
+    uint256 trainingCompleted; // Новый параметр: 1 - обучение завершено, 2 - не завершено
     uint256 normalizedTime;
     uint256 lastUpdateTime;
-    uint256 previousSpeed;
+    uint256 frequencyFactor;
+    uint256 gotoLevel;
 	
 	
 	
@@ -58,11 +108,13 @@ struct Depot {
     struct Grid {
         mapping(uint256 => mapping(uint256 => Cell)) cells; // Динамический размер
     }
-
+	bool public isOnlyAllowedContractsEnabled = false;
     mapping(address => Depot) private depots;
     mapping(address => Grid) private grids;
 
     mapping(address => bool) private allowedContracts;
+	
+	
     address[] private allowedContractsList;
 
     address public admin;
@@ -76,15 +128,41 @@ struct Depot {
         _;
     }
 
-    modifier onlyAllowedContracts() {
-        //require(allowedContracts[msg.sender], "Not an allowed contract");
-        _;
-    }
+modifier onlyAllowedContracts() { if (isOnlyAllowedContractsEnabled) { require(allowedContracts[msg.sender], "Not an allowed contract"); } _; }
 
-    constructor() {
-        admin = msg.sender;
-    }
+constructor(address _previousContract) {
+    require(_previousContract != address(0), "Previous contract address is required");
+    previous = IPreviousContract(_previousContract);
 
+    // Проверяем, что администратор предыдущего контракта равен 0x000...dEaD
+    address previousAdmin = IPreviousContract(_previousContract).admin();
+    require(previousAdmin == 0x000000000000000000000000000000000000dEaD, "Previous admin is not the dead address");
+
+    admin = msg.sender;
+
+    // Получаем `nextRecordId` из предыдущего контракта
+    firstRecordId = previous.nextRecordId();
+    nextRecordId = firstRecordId;
+    contractCreatedTime = block.timestamp;
+
+    // Получаем топ-100 игроков из предыдущего контракта
+    IPreviousContract.TopPlayer[100] memory previousTopPlayers = previous.getTopPlayers();
+
+    for (uint256 i = 0; i < 100; i++) {
+        topPlayers[i] = IPreviousContract.TopPlayer({
+            playerAddress: previousTopPlayers[i].playerAddress,
+            bestScore: previousTopPlayers[i].bestScore
+        });
+    }
+}
+
+
+function enableOnlyAllowedContracts() public onlyAdmin { isOnlyAllowedContractsEnabled = true; } 
+
+function disableOnlyAllowedContracts() public onlyAdmin { isOnlyAllowedContractsEnabled = false; }
+
+	
+	
     function allowContract(address contractAddress) external onlyAdmin {
         require(!allowedContracts[contractAddress], "Already allowed");
         allowedContracts[contractAddress] = true;
@@ -92,29 +170,43 @@ struct Depot {
         emit ContractAllowed(contractAddress);
     }
 
-    function disallowContract(address contractAddress) external onlyAdmin {
-        require(allowedContracts[contractAddress], "Not allowed");
-        allowedContracts[contractAddress] = false;
-        emit ContractDisallowed(contractAddress);
+function disallowContract(address contractAddress) external onlyAdmin {
+    require(allowedContracts[contractAddress], "Not allowed");
+    allowedContracts[contractAddress] = false;
+
+    // Удаляем адрес из списка
+    for (uint256 i = 0; i < allowedContractsList.length; i++) {
+        if (allowedContractsList[i] == contractAddress) {
+            allowedContractsList[i] = allowedContractsList[allowedContractsList.length - 1];
+            allowedContractsList.pop();
+            break;
+        }
     }
+
+    emit ContractDisallowed(contractAddress);
+}
+
 
     function getAllowedContracts() external view returns (address[] memory) {
         return allowedContractsList;
     }
 
-    function changeAdmin(address newAdmin) external onlyAdmin {
-        require(newAdmin != admin, "Already the current admin");
-        emit AdminChanged(admin, newAdmin);
-        admin = newAdmin;
-    }
+function changeAdmin(address newAdmin) external onlyAdmin {
+    require(newAdmin != address(0), "New admin cannot be zero address");
+    require(newAdmin != admin, "Already the current admin");
+    require(allowedContractsList.length == 0, "Allowed contracts list must be empty before changing admin");
+    require(isOnlyAllowedContractsEnabled == true, "isOnlyAllowedContractsEnabled not true");
+    emit AdminChanged(admin, newAdmin);
+    admin = newAdmin;
+}
 
 
-
+/*
 
 function getMaxBox() external pure returns (uint256) {
     return MaxBox;
 }
-
+*/
 
 
 function updateContent(
@@ -192,14 +284,27 @@ function updateIronplateAmount(
 ) external onlyAllowedContracts {
     grids[user].cells[x][y].ironplateAmount = ironplateAmount;
 }
-
+/*
+// Определяем событие
+event ComponentsAmountUpdated(
+    address indexed user,
+    uint256 indexed x,
+    uint256 indexed y,
+    uint256 oldComponentsAmount,
+    uint256 newComponentsAmount
+);
+*/
 function updateComponentsAmount(
     address user,
     uint256 x,
     uint256 y,
     uint256 componentsAmount
 ) external onlyAllowedContracts {
+
+
+    // Обновляем значение компонентов
     grids[user].cells[x][y].componentsAmount = componentsAmount;
+
 }
 
 function updateFactorySettings(
@@ -421,14 +526,99 @@ function updateDepotLastUpdateTime(address user, uint256 lastUpdateTime) externa
     depots[user].lastUpdateTime = lastUpdateTime;
 }
 
-function updateDepotPreviousSpeed(address user, uint256 previousSpeed) external onlyAllowedContracts {
-    depots[user].previousSpeed = previousSpeed;
+function updateDepotFrequencyFactor(address user, uint256 frequencyFactor) external onlyAllowedContracts {
+    depots[user].frequencyFactor = frequencyFactor;
+}
+
+function updateDepotGotoLevel(address user, uint256 gotoLevel) external onlyAllowedContracts {
+    depots[user].gotoLevel = gotoLevel;
+}
+
+
+
+
+    // Обновление bestScore
+    function updateBestScore(address user, uint256 newScore) external  onlyAllowedContracts {
+        playerstats[user].bestScore = newScore;
+    }
+
+    function updateName(address user, string calldata newText) external  onlyAllowedContracts {
+        playerstats[user].name = newText;
+    }
+	
+    function updateFirstGameTimestamp(address user, uint256 time) external  onlyAllowedContracts {
+        playerstats[user].firstGameTimestamp = time;
+    }
+
+
+	// Обновление link
+    function updateLink(address user, string calldata newText) external  onlyAllowedContracts {
+        playerstats[user].link = newText;
+    }
+	
+function updateAllTopPlayers( IPreviousContract.TopPlayer[100] calldata newTopPlayers) external  onlyAllowedContracts {
+    for (uint256 i = 0; i < 100; i++) {
+        topPlayers[i] = newTopPlayers[i];
+    }
+}
+function updateTopPlayer(uint256 index, IPreviousContract.TopPlayer calldata newTopPlayer) external onlyAllowedContracts {
+    require(index < 100, "Index out of bounds"); // Проверяем, что индекс не выходит за пределы массива
+    topPlayers[index] = newTopPlayer; // Обновляем элемент массива по указанному индексу
+}
+
+
+function getPlayerstat(address user) external view returns (Playerstat memory) {
+    return playerstats[user];
+}
+
+
+function addChronicle(
+    uint256 recordId,
+    uint256 score,
+    address addr,
+    string memory name,
+    string memory message,
+    uint256 recordTime
+) external onlyAllowedContracts {
+    require(score > 0, "Score must be greater than zero");
+    require(addr != address(0), "Invalid address");
+    require(recordTime > 0, "Record time must be valid");
+    require(recordId >= firstRecordId && recordId <= nextRecordId, "Record ID out of bounds");
+
+    chronicles[recordId] = Chronicle({
+        recordScore: score,
+        recordAddress: addr,
+        recordName: name,
+        recordMessage: message,
+        recordTime: recordTime // Время теперь передается как аргумент
+    });
 }
 
 
 
 
 
+
+
+function getChronicle(uint256 id) public view returns (uint256, address, string memory, string memory, uint256) {
+    require(id >= firstRecordId && id < nextRecordId, "Chronicle does not exist in this contract");
+    Chronicle memory chronicle = chronicles[id];
+    return (chronicle.recordScore, chronicle.recordAddress, chronicle.recordName, chronicle.recordMessage, chronicle.recordTime);
+}
+
+
+
+function getTopPlayers() external view returns (IPreviousContract.TopPlayer[100] memory) {
+    return topPlayers;
+}
+
+    function incrementNextRecordId() external onlyAllowedContracts {
+        nextRecordId++;
+    }
+
+function setPendingChronicle(address user, uint256 recordId) external onlyAllowedContracts {
+    pendingChronicles[user] = recordId;
+}
 
 
 

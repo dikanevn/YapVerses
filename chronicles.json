@@ -1,0 +1,30 @@
+[
+  {
+    "contract": {
+      "address": "0x3531c395e0e88B65C85fa7c8F2d7a8Df0Fb70E19",
+      "numberInMassive": 0
+    },
+    "chronicle": {
+      "id": "0",
+      "recordScore": "6480",
+      "recordAddress": "0x04bc090479B99175A335596144F83c39aA7b0122",
+      "recordName": "dikanevn",
+      "recordMessage": "Poehali!",
+      "recordTime": "26.12.2024, 21:37:34"
+    }
+  },
+  {
+    "contract": {
+      "address": "0x6F2dcEcE263Efd4E8F4FB4FFF61eaB958078f2Fb",
+      "numberInMassive": 1
+    },
+    "chronicle": {
+      "id": "1",
+      "recordScore": "6481",
+      "recordAddress": "0x04bc090479B99175A335596144F83c39aA7b0122",
+      "recordName": "Sergej",
+      "recordMessage": "I am the father of @dikanevn. Read my hypothesis on the Golos blockchain: https://golos.id/@dikaniovs",
+      "recordTime": "27.12.2024, 04:40:14"
+    }
+  }
+]

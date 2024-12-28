@@ -1,6 +1,63 @@
 [
 	{
-		"inputs": [],
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "recordId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "score",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "addr",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "message",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "recordTime",
+				"type": "uint256"
+			}
+		],
+		"name": "addChronicle",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "contractAddress",
+				"type": "address"
+			}
+		],
+		"name": "allowContract",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_previousContract",
+				"type": "address"
+			}
+		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
 	},
@@ -22,6 +79,19 @@
 		],
 		"name": "AdminChanged",
 		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newAdmin",
+				"type": "address"
+			}
+		],
+		"name": "changeAdmin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -51,52 +121,7 @@
 	},
 	{
 		"inputs": [],
-		"name": "MaxBox",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "admin",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "contractAddress",
-				"type": "address"
-			}
-		],
-		"name": "allowContract",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newAdmin",
-				"type": "address"
-			}
-		],
-		"name": "changeAdmin",
+		"name": "disableOnlyAllowedContracts",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -116,341 +141,16 @@
 	},
 	{
 		"inputs": [],
-		"name": "getAllowedContracts",
-		"outputs": [
-			{
-				"internalType": "address[]",
-				"name": "",
-				"type": "address[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "x",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "y",
-				"type": "uint256"
-			}
-		],
-		"name": "getCell",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "content",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "tool",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "coalAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "lastTimeChecked",
-						"type": "uint256"
-					},
-					{
-						"internalType": "string",
-						"name": "man",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "ironAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "ironplateAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "componentsAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "string",
-						"name": "factorySettings",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "previouscontent",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "wallPowerAmount",
-						"type": "uint256"
-					}
-				],
-				"internalType": "struct MainGrid.Cell",
-				"name": "",
-				"type": "tuple"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "indices",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256",
-				"name": "gridSize",
-				"type": "uint256"
-			}
-		],
-		"name": "getCellsBatch",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "content",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "tool",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "coalAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "lastTimeChecked",
-						"type": "uint256"
-					},
-					{
-						"internalType": "string",
-						"name": "man",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "ironAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "ironplateAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "componentsAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "string",
-						"name": "factorySettings",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "previouscontent",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "wallPowerAmount",
-						"type": "uint256"
-					}
-				],
-				"internalType": "struct MainGrid.Cell[]",
-				"name": "",
-				"type": "tuple[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "getDepot",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "uint256",
-						"name": "gridSize",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "drillsAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "boxesAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "mansAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "furnaceAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "factoryAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "starttimee",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "lastmeteoritTimeChecked",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "blocktimestamp",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "bulldozerAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "early",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "mmmtime",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "mmmdrillSpeed",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "iterationLimitDepot",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "isPaused",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "pausedDuration",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "pauseStartTime",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "wallAmount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "theEndCount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "speedkoef",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "trainingCompleted",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "normalizedTime",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "lastUpdateTime",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "previousSpeed",
-						"type": "uint256"
-					}
-				],
-				"internalType": "struct MainGrid.Depot",
-				"name": "",
-				"type": "tuple"
-			}
-		],
-		"stateMutability": "view",
+		"name": "enableOnlyAllowedContracts",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
 		"inputs": [],
-		"name": "getMaxBox",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "pure",
+		"name": "incrementNextRecordId",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -467,6 +167,67 @@
 			}
 		],
 		"name": "setDepotPause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "recordId",
+				"type": "uint256"
+			}
+		],
+		"name": "setPendingChronicle",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "playerAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "bestScore",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct IPreviousContract.TopPlayer[100]",
+				"name": "newTopPlayers",
+				"type": "tuple[100]"
+			}
+		],
+		"name": "updateAllTopPlayers",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "newScore",
+				"type": "uint256"
+			}
+		],
+		"name": "updateBestScore",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -672,6 +433,24 @@
 			},
 			{
 				"internalType": "uint256",
+				"name": "frequencyFactor",
+				"type": "uint256"
+			}
+		],
+		"name": "updateDepotFrequencyFactor",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
 				"name": "furnaceAmount",
 				"type": "uint256"
 			}
@@ -690,11 +469,47 @@
 			},
 			{
 				"internalType": "uint256",
+				"name": "gotoLevel",
+				"type": "uint256"
+			}
+		],
+		"name": "updateDepotGotoLevel",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
 				"name": "gridSize",
 				"type": "uint256"
 			}
 		],
 		"name": "updateDepotGridSize",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "iterationLimitDepot",
+				"type": "uint256"
+			}
+		],
+		"name": "updateDepotiterationLimitDepot",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -932,24 +747,6 @@
 			},
 			{
 				"internalType": "uint256",
-				"name": "pauseStartTime",
-				"type": "uint256"
-			}
-		],
-		"name": "updateDepotPauseStartTime",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
 				"name": "pausedDuration",
 				"type": "uint256"
 			}
@@ -968,11 +765,11 @@
 			},
 			{
 				"internalType": "uint256",
-				"name": "previousSpeed",
+				"name": "pauseStartTime",
 				"type": "uint256"
 			}
 		],
-		"name": "updateDepotPreviousSpeed",
+		"name": "updateDepotPauseStartTime",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -1076,24 +873,6 @@
 			},
 			{
 				"internalType": "uint256",
-				"name": "iterationLimitDepot",
-				"type": "uint256"
-			}
-		],
-		"name": "updateDepotiterationLimitDepot",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
 				"name": "x",
 				"type": "uint256"
 			},
@@ -1109,6 +888,24 @@
 			}
 		],
 		"name": "updateFactorySettings",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "time",
+				"type": "uint256"
+			}
+		],
+		"name": "updateFirstGameTimestamp",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -1205,6 +1002,24 @@
 				"type": "address"
 			},
 			{
+				"internalType": "string",
+				"name": "newText",
+				"type": "string"
+			}
+		],
+		"name": "updateLink",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
 				"internalType": "uint256",
 				"name": "x",
 				"type": "uint256"
@@ -1239,6 +1054,24 @@
 			}
 		],
 		"name": "updateMmmtime",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "newText",
+				"type": "string"
+			}
+		],
+		"name": "updateName",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -1302,6 +1135,36 @@
 	{
 		"inputs": [
 			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "playerAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "bestScore",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct IPreviousContract.TopPlayer",
+				"name": "newTopPlayer",
+				"type": "tuple"
+			}
+		],
+		"name": "updateTopPlayer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "address",
 				"name": "user",
 				"type": "address"
@@ -1325,6 +1188,589 @@
 		"name": "updateWallPowerAmount",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "admin",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "chronicles",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "recordScore",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "recordAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "recordName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "recordMessage",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "recordTime",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "firstRecordId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllowedContracts",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "x",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "y",
+				"type": "uint256"
+			}
+		],
+		"name": "getCell",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "content",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "tool",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "coalAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lastTimeChecked",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "man",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "ironAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "ironplateAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "componentsAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "factorySettings",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "previouscontent",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "wallPowerAmount",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct MainGrid.Cell",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "indices",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256",
+				"name": "gridSize",
+				"type": "uint256"
+			}
+		],
+		"name": "getCellsBatch",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "content",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "tool",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "coalAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lastTimeChecked",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "man",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "ironAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "ironplateAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "componentsAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "factorySettings",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "previouscontent",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "wallPowerAmount",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct MainGrid.Cell[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			}
+		],
+		"name": "getChronicle",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getDepot",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "gridSize",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "drillsAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "boxesAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "mansAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "furnaceAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "factoryAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "starttimee",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lastmeteoritTimeChecked",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "blocktimestamp",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "bulldozerAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "early",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "mmmtime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "mmmdrillSpeed",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "iterationLimitDepot",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "isPaused",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "pausedDuration",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "pauseStartTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "wallAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "theEndCount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "speedkoef",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "trainingCompleted",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "normalizedTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lastUpdateTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "frequencyFactor",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "gotoLevel",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct MainGrid.Depot",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getPlayerstat",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "bestScore",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "firstGameTimestamp",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "link",
+						"type": "string"
+					}
+				],
+				"internalType": "struct MainGrid.Playerstat",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTopPlayers",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "playerAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "bestScore",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct IPreviousContract.TopPlayer[100]",
+				"name": "",
+				"type": "tuple[100]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "isOnlyAllowedContractsEnabled",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "nextRecordId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "pendingChronicles",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "previous",
+		"outputs": [
+			{
+				"internalType": "contract IPreviousContract",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "topPlayers",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "playerAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "bestScore",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	}
 ]

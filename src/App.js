@@ -16,12 +16,39 @@ import {
 	ethers
 }
 from 'ethers';
+import SimpleGridAbiCCC from './SimpleGridAbiCCC.json';
 import SimpleGridAbiBBB from './SimpleGridAbiBBB.json';
 import SimpleGridAbiAAA from './SimpleGridAbiAAA.json';
 import SimpleGridAbiMAIN from './SimpleGridAbiMAIN.json';
 
 document.body.style.backgroundColor = "#000";
 document.body.style.color = "#000";
+
+
+function saveToFile(data, filename) {
+    // Convert data to JSON string
+    const jsonData = JSON.stringify(data, null, 2);
+
+    // Create a Blob from the JSON string
+    const blob = new Blob([jsonData], { type: 'application/json' });
+
+    // Create a URL for the Blob
+    const url = URL.createObjectURL(blob);
+
+    // Create a temporary anchor element to trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+
+    // Append the link to the document body and trigger the download
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up the DOM
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}	
+
 
 const App = () => {
 		let transactionQueue = []; // Очередь транзакций
@@ -31,16 +58,18 @@ let isNonceInitializing = false;
 		
 		
 const [currentNonce, setCurrentNonce] = useState(null);
-		const contractAddressMain = "0x001C835AadA02bbF30718aC5D69bC591da121F88";
-		
-		
-		
-		const contractAddressAAA = "0x08BC1ECe24234a8033AdC33988b62f2Ec070C402";
-		const contractAddressBBB = "0x94cCF1a59a865022675af6FDcB5953a650CDd31a";
-		
-		
-		
 
+
+		const contractAddressMain = "0x70B613765AE92fd1D3BF12Af216671b04203712A";
+		
+		
+		
+		const contractAddressAAA = "0x2F9b4BF7eB898C8aF1CaAf13a3DBfaeB65BC26cD";
+		const contractAddressBBB = "0xb3754518d96b1885b04C02E14EFb50b2F60C7f63";
+		
+		const contractAddressCCC = "0xA1B0Df7606fC58FedD7fc5c9b4E437eD98c5728b";
+
+		
 		const [grid, setGrid] = useState([]);
 		const [depot, setDepot] = useState([]);
 		const [loading, setLoading] = useState(false);
@@ -67,13 +96,25 @@ const [mmmtimeValue, setMmmtimeValue] = useState(0); // Для отображе�
 const [meteoritCount, setMeteoritCount] = useState(0); // Для отображения количества метеоритов
 const [hasGameOverAlertShown, setHasGameOverAlertShown] = useState(false);
 const [hasEarlyAlertShown, setHasEarlyAlertShown] = useState(false);
-const [trainingCompletedState, setTrainingCompletedState] = useState(1); // Начальное значение 1
+const [trainingCompletedState, setTrainingCompletedState] = useState(1); // Новый параметр: 0 - обучение не завершено, 1 - завершено
 const [meteoriteFrequency, setMeteoriteFrequency] = useState(0); // Частота метеоритов
- const [isToggled, setIsToggled] = useState(true);
+const [isToggled, setIsToggled] = useState(true);
+const [logMessage, setLogMessage] = useState(""); // Состояние для хранения лог-сообщения
+const [logBigErrorMessage, setlogBigErrorMessage] = useState(""); // Состояние для хранения лог-сообщения
 const [raznica, setRaznica] = useState(false);
-
-		const [logMessage, setLogMessage] = useState(""); // Состояние для хранения лог-сообщения
-		const [logErrorMessage, setlogErrorMessage] = useState(""); // Состояние для хранения лог-сообщения
+const [gotoGameLevel, setGotoGameLevel] = useState(200); // Инициализация состояния для gotoLevel
+		const [playerstat, setPlayerstat] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [topPlayers, setTopPlayers] = useState([]);		
+    const [isChronicleOpen, setIsChronicleOpen] = useState(false);
+    const [contractsChain, setContractsChain] = useState([]);
+const [allChronicles, setAllChronicles] = useState([]);
+    const [isSchoolOpen, setIsSchoolOpen] = useState(true);
+const [pendingRecord, setPendingRecord] = useState(null);
+    const [name, setName] = useState("");
+    const [message, setMessage] = useState("");		
+  const [hasPendingPopupBeenShown, setHasPendingPopupBeenShown] = useState(false);
+		
 		useEffect(() => {
 			// Очистка состояния при обновлении страницы
 			setGrid([]);
@@ -319,6 +360,7 @@ const fetchGrid = async () => {
             signerInstance = new ethers.Wallet(userPrivateKey, provider);
             const userAddress = await signerInstance.getAddress();
             const result = await newContract.getDepot(userAddress);
+			
             const gridSize = result.gridSize.toString();
             const drillsAmount = result.drillsAmount.toString();
             const boxesAmount = result.boxesAmount.toString();
@@ -342,8 +384,8 @@ const fetchGrid = async () => {
             const trainingCompleted = result.trainingCompleted.toString();
 const normalizedTime = result.normalizedTime.toString();
 const lastUpdateTime = result.lastUpdateTime.toString();
-const previousSpeed = result.previousSpeed.toString();
-
+const gotoLevel = result.gotoLevel.toString();
+const frequencyFactor = result.frequencyFactor.toString();
 
 			
             setDepot({
@@ -370,7 +412,8 @@ const previousSpeed = result.previousSpeed.toString();
 				trainingCompleted,
 				normalizedTime,
 				lastUpdateTime,
-				previousSpeed,
+				frequencyFactor,
+				gotoLevel,
 				
             });
 			
@@ -386,6 +429,30 @@ setTrainingCompletedState(Number(trainingCompleted)); // Устанавлива�
             setMeteoritCount(Math.floor(Number(early) / Math.floor(Number(mmmtime))));
             setDynamicEarlyValue(Math.round(Number(early) + lag));
             setIsGamePaused(parseInt(isPaused));
+            setGotoGameLevel(parseInt(gotoLevel));
+			
+			
+			
+const playerStatResult = await newContract.getPlayerstat(userAddress);
+
+const playerStatsData = {
+    bestScore: playerStatResult.bestScore.toString(),
+    name: playerStatResult.name,
+    firstGameTimestamp: playerStatResult.firstGameTimestamp.toString(),
+    link: playerStatResult.link,
+};
+
+// Обновляем состояние для Playerstat
+setPlayerstat(playerStatsData);
+			
+			
+			
+			
+			
+			
+			
+			
+			
         } catch (error) {
         } finally {
             setLoading(false);
@@ -498,11 +565,22 @@ setTrainingCompletedState(Number(trainingCompleted)); // Устанавлива�
 
 useEffect(() => {
     if (!isToggled) {
+
         return; // Не выполнять код, если isToggled выключен
     }
     if (raznica) {
+            console.log("raznica. Ожидание updateCoal..");
         return; // Не выполнять код, если raznica 
     }
+    if (parseInt(depot.theEndCount, 10) <= 100) {
+
+        return; 
+    }	
+    if (isGamePaused === 1) {
+          
+        return;
+    }	
+	
     const checkTimeAndSendSignal = () => {
         if (!currentNonce) { // Проверяем, инициализирован ли nonce
             console.log("Nonce не инициализирован. Ожидание...");
@@ -524,14 +602,16 @@ useEffect(() => {
 
     // Очистка интервала при размонтировании компонента или выключении isToggled
     return () => clearInterval(intervalId);
-}, [currentNonce, isToggled, raznica]);
-
+}, [currentNonce, isToggled, raznica, depot.theEndCount, isGamePaused]);
 	
 	
 	
 	
 const prevTheEndCountRef = useRef(null); // Инициализация useRef в теле компонента
 
+
+
+/*
 useEffect(() => {
     if (
         prevTheEndCountRef.current !== null && // Убедиться, что это не первый рендер
@@ -550,6 +630,26 @@ useEffect(() => {
     // Обновляем предыдущее значение
     prevTheEndCountRef.current = parseInt(depot.theEndCount, 10);
 }, [depot.theEndCount, hasGameOverAlertShown]);
+
+*/
+
+useEffect(() => {
+    const interval = setInterval(() => {
+		if (parseInt(depot.theEndCount, 10) <= 100 && parseInt(depot.theEndCount, 10) != 0) {
+            setlogBigErrorMessage("ПОТРАЧЕНО");
+        } else {
+			if (isGamePaused === 0){
+            setlogBigErrorMessage("");
+			}
+        }
+    }, 5000); // Интервал в 5 секунд
+
+    return () => clearInterval(interval); // Очищаем интервал при размонтировании
+}, [depot.theEndCount,isGamePaused]);
+
+
+
+
 	
 const [dynamicEarlyValue, setDynamicEarlyValue] = useState(0); // Состояние для увеличивающегося значения
 
@@ -719,7 +819,7 @@ const initializeNonce = async (provider, setNonceInitializing) => {
         ...prev,
     ]);
 		    setLogMessages((prev) => [
-        { text: `Связь установлена.`, color: '#bcbf00' },
+        { text: `Связь установлена.`, color: 'LimeGreen' },
         ...prev,
     ]);
         return nonce;
@@ -807,8 +907,15 @@ const randomNum = Math.floor(Math.random() * 1000000) + 1;
 let externalNonce = null; // Инициализация внешней переменной
 
 const sendTransaction = async (contractMethod, params = [], contractAddress, contractABI) => {
-    if (isGamePaused === 1 && contractMethod !== "unsetPause" && contractMethod !== "initializeGrid") {
-        console.log(`Транзакция "${contractMethod}" заблокирована, так как игра находится на паузе.`);
+    if (parseInt(depot.theEndCount, 10) <= 100 && isGamePaused === 1 && contractMethod !== "unsetPause" && contractMethod !== "initializeGrid" & contractMethod !== "updatePlayerName" & contractMethod !== "updatePlayerLink") {
+        console.log(`Транзакция "${contractMethod}" заблокирована.`);
+		/*
+		setLogMessages((prev) => [
+            { text: `Пауза`, color: 'red' },
+            ...prev.slice(1),
+        ]);
+*/
+
         return;
     }
 
@@ -820,6 +927,7 @@ const sendTransaction = async (contractMethod, params = [], contractAddress, con
     }
 
     if (currentNonce === null) {
+		
         setLogMessages((prev) => [
             { text: `Дождитесь связи с астероидом.`, color: 'red' },
             ...prev.slice(1),
@@ -828,6 +936,9 @@ const sendTransaction = async (contractMethod, params = [], contractAddress, con
         setTimeout(() => {
             setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
         }, 500);
+		
+				setlogBigErrorMessage("Нет связи.");
+setTimeout(() => setlogBigErrorMessage(""), 2000);
         return;
     }
 
@@ -983,14 +1094,14 @@ if (contractMethod != 'updateCoal'){
 		
 		//console.error("Ошибка executeTransaction:", error);
 
-//if (contractMethod != 'updateCoal') {
-        console.error(`${contractMethod}`, truncateError(error));
+
+        console.error(`executeTransaction ${contractMethod} :`, truncateError(error));
 		
 		
 		
 		
         setLogMessages((prev) => [
-            { text: `${error.message}`, color: 'red' },
+            { text: `${contractMethod} ${error.message}`, color: 'red' },
             ...prev.slice(1),
         ]);
 
@@ -1015,13 +1126,298 @@ if (contractMethod != 'updateCoal'){
             setActiveCells((prev) => prev.filter((id) => id !== cellId));
         }
 
-        setTimeout(() => {
-            setlogErrorMessage("");
-        }, 3000);
+
     } finally {
         setLoading(false);
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1042,7 +1438,16 @@ useEffect(() => {
     return () => clearInterval(intervalId); // Очищаем интервал при размонтировании
 }, [userPrivateKey,provider,currentNonce]); // Убираем зависимости
 
+let isFixingNonce = false;
+
 const checkAndFixNonce = async () => {
+	if (isFixingNonce) {
+    console.log("checkAndFixNonce уже выполняется...");
+    return;
+}
+isFixingNonce = true;
+
+	
     try {
         let signerInstance;
         if (userPrivateKey) {
@@ -1058,23 +1463,26 @@ const checkAndFixNonce = async () => {
 
         // Проверка разницы между currentNonce и networkNonce
         const nonceDifference = currentNonce - networkNonce;
-		
+		console.log(`Разница: ${nonceDifference}`);
         if (nonceDifference > 5) {
 			
 			
             console.log(`⚠️  Разница: ${nonceDifference}`);
+			/*
 			setRaznica(true);
+			
 						    setLogMessages((prev) => [
         { text: `Разница:${nonceDifference}`, color: 'red' },
         ...prev,
     ]);
+	*/
         } else {
 if (raznica) {
     setRaznica(false);
 }
 }
-        if (currentNonce > networkNonce) {
-            console.log("Проверяем время последней транзакции через API...");
+        if (currentNonce > networkNonce+5) {
+            //console.log("Проверяем время последней транзакции через API...");
 
             // URL для API-запроса с ограничением на последние 100 транзакций
             const apiUrl = `https://pacific-explorer.sepolia-testnet.manta.network/api?module=account&action=txlist&address=${userAddress}&startblock=2672807&endblock=99999999&sort=desc&offset=100`;
@@ -1093,14 +1501,19 @@ if (raznica) {
                         `Последняя транзакция была выполнена ${timeDiffSeconds} секунд назад `
                     ); */
 
-                    if (timeDiffSeconds > 40) {
+                    if (timeDiffSeconds > 25) {
                         console.log("Пробуем исправить пропущенные nonce вызовом EmptyFunctionForNonce");
                         const contract = new ethers.Contract(contractAddressAAA, SimpleGridAbiAAA, signerInstance);
 
-                        for (let i = currentNonce; i < networkNonce; i++) {
-                            await contract.EmptyFunctionForNonce(i, { nonce: i });
-                            console.log(`Nonce ${i} успешно потрачен.`);
-                        }
+for (let i = networkNonce; i < currentNonce; i++) {
+    try {
+        await contract.EmptyFunctionForNonce(i, { nonce: i });
+        console.log(`Nonce ${i} успешно потрачен.`);
+    } catch (error) {
+        console.error(`Ошибка при вызове EmptyFunctionForNonce для nonce ${i}:`, error.message);
+    }
+}
+
 
                         // Здесь удалено изменение currentNonce напрямую
                     }
@@ -1116,11 +1529,18 @@ if (raznica) {
         }
     } catch (error) {
         console.error("Ошибка при проверке/исправлении nonce:", error);
-    }
+    } finally  {
+    isFixingNonce = false;
+	}
+
+	
+	
+	
+	
 };
 
 
-const truncateError = (error, maxLength = 50) => {
+const truncateError = (error, maxLength = 10000) => {
     const errorMessage = error.toString(); // Преобразуем ошибку в строку
     if (errorMessage.length > maxLength) {
         return `${errorMessage.slice(0, maxLength)}... [Обрезано]`;
@@ -1160,7 +1580,7 @@ const truncateError = (error, maxLength = 50) => {
 
 
 
-/*
+
 
 
 useEffect(() => {
@@ -1169,12 +1589,13 @@ useEffect(() => {
     // Инициализация контрактов
     const contractBBB = new ethers.Contract(contractAddressBBB, SimpleGridAbiBBB, provider);
     const contractAAA = new ethers.Contract(contractAddressAAA, SimpleGridAbiAAA, provider);
+    const contractMain = new ethers.Contract(contractAddressMain, SimpleGridAbiMAIN, provider);
+    const contractCCC = new ethers.Contract(contractAddressCCC, SimpleGridAbiCCC, provider);
 
     const handleAllEventsBBB = (log) => {
         try {
             const parsedLog = contractBBB.interface.parseLog(log); // Парсим лог события
             console.log("Событие из BBB:", parsedLog);
-
         } catch (error) {
             console.error("Ошибка при обработке события из BBB:", error);
         }
@@ -1184,9 +1605,26 @@ useEffect(() => {
         try {
             const parsedLog = contractAAA.interface.parseLog(log); // Парсим лог события
             console.log("Событие из AAA:", parsedLog);
-
         } catch (error) {
             console.error("Ошибка при обработке события из AAA:", error);
+        }
+    };
+
+    const handleAllEventsMain = (log) => {
+        try {
+            const parsedLog = contractMain.interface.parseLog(log); // Парсим лог события
+            console.log("Событие из Main:", parsedLog);
+        } catch (error) {
+            console.error("Ошибка при обработке события из Main:", error);
+        }
+    };
+
+    const handleAllEventsCCC = (log) => {
+        try {
+            const parsedLog = contractCCC.interface.parseLog(log); // Парсим лог события
+            console.log("Событие из CCC:", parsedLog);
+        } catch (error) {
+            console.error("Ошибка при обработке события из CCC:", error);
         }
     };
 
@@ -1208,6 +1646,24 @@ useEffect(() => {
         handleAllEventsAAA
     );
 
+    // Слушаем события для Main
+    provider.on(
+        {
+            address: contractAddressMain,
+            topics: [],
+        },
+        handleAllEventsMain
+    );
+
+    // Слушаем события для CCC
+    provider.on(
+        {
+            address: contractAddressCCC,
+            topics: [],
+        },
+        handleAllEventsCCC
+    );
+
     // Очистка подписки при размонтировании компонента
     return () => {
         provider.off(
@@ -1224,12 +1680,27 @@ useEffect(() => {
             },
             handleAllEventsAAA
         );
+        provider.off(
+            {
+                address: contractAddressMain,
+                topics: [],
+            },
+            handleAllEventsMain
+        );
+        provider.off(
+            {
+                address: contractAddressCCC,
+                topics: [],
+            },
+            handleAllEventsCCC
+        );
     };
 }, [provider]);
 
 
 
-*/
+
+
 
 
     useEffect(() => {
@@ -1553,31 +2024,31 @@ wallPowerAmount: ${cell.wallPowerAmount}
 				const depot = await newContract.getDepot(userAddress);
 				// Формируем сообщение со всеми данными депо
 				const depotDataMessage = `
+${depot.normalizedTime} - normalizedTime
 ${depot.speedkoef} - speedkoef
-${depot.gridSize} - Grid Size
-${depot.drillsAmount} - Drills
-${depot.boxesAmount} - Boxes
-${depot.mansAmount} - Mans
-${depot.furnaceAmount} - Furnace
-${depot.factoryAmount} - Factory
-${depot.starttimee} - Start Time
-${depot.lastmeteoritTimeChecked} - Last Meteorite Time Checked
-${depot.blocktimestamp} - Block Timestamp
-${depot.bulldozerAmount} - Bulldozer
-${depot.wallAmount} - Walls
-${depot.early} - Early
-${depot.mmmtime} - MMM Time
-${depot.mmmdrillSpeed} - MMM Drill Speed
-${depot.iterationLimitDepot} - Iteration Limit Depot
-${depot.isPaused} - (1 - Pause, 0 - Game)
-${depot.pausedDuration} - Paused Duration
-${depot.pauseStartTime} - Pause Start Time
-${depot.theEndCount} - The End Count
+${depot.gridSize} - gridSize
+${depot.drillsAmount} - drillsAmount
+${depot.boxesAmount} - boxesAmount
+${depot.mansAmount} - mansAmount
+${depot.furnaceAmount} - furnaceAmount
+${depot.factoryAmount} - factoryAmount
+${depot.starttimee} - starttimee
+${depot.lastmeteoritTimeChecked} - lastmeteoritTimeChecked
+${depot.blocktimestamp} - blocktimestamp
+${depot.bulldozerAmount} - bulldozerAmount
+${depot.wallAmount} - wallAmount
+${depot.early} - early
+${depot.mmmtime} - mmmtime
+${depot.mmmdrillSpeed} - mmmdrillSpeed
+${depot.iterationLimitDepot} - iterationLimitDepot
+${depot.isPaused} - isPaused (1 - Pause, 0 - Game)
+${depot.pausedDuration} - pausedDuration
+${depot.pauseStartTime} - pauseStartTime
+${depot.theEndCount} - theEndCount
 ${depot.trainingCompleted} - trainingCompleted
-${depot.normalizedTime} - Normalized Time
-${depot.lastUpdateTime} - Last Update Time
-${depot.previousSpeed} - Previous Speed
-${depot.speedkoef} - speedkoef
+${depot.lastUpdateTime} - lastUpdateTime
+${depot.frequencyFactor} - frequencyFactor
+${depot.gotoLevel} - gotoLevel
 `;
 				
 				console.log(depotDataMessage);
@@ -1644,6 +2115,21 @@ const updateTrainingCompleted = () => {
 		const unsetPause = () => {
 			sendTransaction("unsetPause", [], contractAddressAAA, SimpleGridAbiAAA);
 		};		
+		const setGotoLevel = () => {
+			sendTransaction("setGotoLevel", [110], contractAddressAAA, SimpleGridAbiAAA);
+		};			
+		
+const togglePause = () => {
+    if (isGamePaused === 1) {
+        unsetPause();
+    } else {
+        setPause();
+    }
+};		
+		
+		
+		
+		
 		
 		
 		
@@ -1796,18 +2282,34 @@ const updateTrainingCompleted = () => {
 					break;
 					
 					
-				case "starttimeeUpdate":
-					const decrementValue = prompt("Во время криосна автоперезапуск манипуляторов не работает. Проснуться через (введённое число будет умножено на скорость игры) сек:");
-					if (decrementValue) {
-						try {
-							await sendTransaction("starttimeeUpdate", [decrementValue], contractAddressAAA, SimpleGridAbiAAA);
-							console.log(`Starttimee уменьшено на ${decrementValue}`);
-						}
-						catch (error) {
-							console.error("Ошибка при обновлении starttimee:", error);
-						}
-					}
-					break;
+case "updatePlayerName":
+    const newName = prompt("Введите новое имя или ник:");
+    if (newName) {
+        try {
+            await sendTransaction("updatePlayerName", [newName], contractAddressAAA, SimpleGridAbiAAA);
+            console.log(`Имя игрока обновлено на: ${newName}`);
+        } catch (error) {
+            console.error("Ошибка при обновлении имени игрока:", error);
+        }
+    } else {
+        console.error("Имя игрока не было обновлено, так как оно не было введено.");
+    }
+    break;
+
+case "updatePlayerLink":
+    const newLink = prompt("Введите новую ссылку:");
+    if (newLink) {
+        try {
+            await sendTransaction("updatePlayerLink", [newLink], contractAddressAAA, SimpleGridAbiAAA);
+            console.log(`Ссылка игрока обновлена на: ${newLink}`);
+        } catch (error) {
+            console.error("Ошибка при обновлении ссылки игрока:", error);
+        }
+    } else {
+        console.error("Ссылка игрока не была обновлена, так как она не была введена.");
+    }
+    break;
+
 					
 					
 					
@@ -1871,17 +2373,406 @@ useEffect(() => {
 }, [depot.normalizedTime]);
 		
 		
+    useEffect(() => {
+        const handleKeyPress = (event) => {
+            if (event.key && (event.key.toLowerCase() === "q" || event.key.toLowerCase() === "й")) {
+                setAction("getCell");
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyPress);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyPress);
+        };
+    }, []); // Пустой массив зависимостей, чтобы установить обработчик один раз
+
+
+ const frequencyFactor = parseFloat(depot.frequencyFactor) / 10 ** 18;
+
+// Предположим, что frequencyFactor = 1 означает 1 метеорит за 20 секунд.
+const meteorFrequencyInSeconds = frequencyFactor / 20 ;
+    const formattedDensity = meteorFrequencyInSeconds.toFixed(2); // Обрезаем до 4 знаков после запятой
+			
 		
+useEffect(() => {
+    const interval = setInterval(() => {
+        if (isGamePaused === 1 && parseInt(depot.theEndCount, 10) > 100) {
+            setlogBigErrorMessage("Пауза");
+        } else if (isGamePaused === 0 && parseInt(depot.theEndCount, 10) > 100) {
+            setlogBigErrorMessage("");
+        }
+    }, 3000); // Интервал в 5 секунд
+
+    return () => clearInterval(interval); // Очистка интервала при размонтировании
+}, [isGamePaused,depot.theEndCount]);
+
+		/*
+const showTopPlayersAlert = () => {
+    const topPlayers = [
+        { name: "Player1", link: "https://google.com" },
+        { name: "Player2", link: "https://google.com" },
+        { name: "Player3", link: "https://google.com" },
+    ];
+
+    const message = topPlayers
+        .map(player => `${player.name}: ${player.link}`)
+        .join("\n");
+
+    alert(`Top Players:\n\n${message}`);
+};
+*/
+
+/*
+    const openModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+    };		
+	*/
+	
+
+
+const openModal = async () => {
+    try {
+        const signer = getSigner();
+        const contract = new ethers.Contract(contractAddressMain, SimpleGridAbiMAIN, provider);
+
+        const players = await contract.getTopPlayers();
+
+        // Сохраняем и отображаем всех игроков
+        const formattedPlayers = await Promise.all(
+            players.map(async (player, index) => {
+                if (!Array.isArray(player) || player.length < 2) {
+                    console.warn(`Игрок ${index + 1} имеет некорректные данные:`, player);
+                    return {
+                        address: "Unknown",
+                        score: "0", // Значение по умолчанию
+                        bestScore: "N/A",
+                        name: "N/A",
+                        firstGameTimestamp: "N/A",
+                        link: "N/A",
+                        rank: index + 1,
+                    };
+                }
+
+                const address = player[0];
+                const score = player[1].toString();
+
+                const playerStatResult = await contract.getPlayerstat(address);
+                const playerStatsData = {
+                    bestScore: playerStatResult.bestScore.toString(),
+                    name: playerStatResult.name,
+                    firstGameTimestamp: (() => {
+                        try {
+                            if (!playerStatResult.firstGameTimestamp) {
+                                return "N/A";
+                            }
+
+                            const timestamp = parseInt(playerStatResult.firstGameTimestamp.toString(), 10);
+
+                            if (timestamp <= 0) {
+                                return "N/A";
+                            }
+
+                            return new Date(timestamp * 1000).toLocaleDateString();
+                        } catch (error) {
+                            console.error("Ошибка при обработке firstGameTimestamp:", error);
+                            return "N/A";
+                        }
+                    })(),
+                    link: playerStatResult.link,
+                };
+
+                return {
+                    address,
+                    score,
+                    ...playerStatsData,
+                    rank: index + 1,
+                };
+            })
+        );
+
+        setTopPlayers(formattedPlayers);
+        setIsModalOpen(true);
+    } catch (error) {
+        console.error("Ошибка при получении топ-игроков:", error);
+    }
+};
+
+
+
+
+
+
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+    };	
+	
+    const closeChronicle = () => {
+        setIsChronicleOpen(false);
+    };		
+	
+	
+    const closeSchool = () => {
+        setIsSchoolOpen(false);
+    };	
+
+	
+const calculatedDistance = depot.gotoLevel === "110" 
+    ? depot.normalizedTime 
+    : depot.gotoLevel === "100" 
+    ? "0" 
+    : null;
+
+
+
+const fetchContractsChain = async () => {
+    if (!provider) {
+        throw new Error("Provider is not initialized."); // Бросаем ошибку, если провайдер не инициализирован
+    }
+
+    try {
+        const mainGridContract = new ethers.Contract(
+            contractAddressMain,
+            SimpleGridAbiMAIN,
+            provider
+        );
+
+        let currentContractAddress = await mainGridContract.previous();
+        const chain = [{ address: contractAddressMain, name: 'MainGrid' }];
+
+        while (currentContractAddress !== ethers.constants.AddressZero) {
+            await new Promise((resolve) => setTimeout(resolve, 100)); // Задержка
+
+            try {
+                const previousContract = new ethers.Contract(
+                    currentContractAddress,
+                    SimpleGridAbiMAIN,
+                    provider
+                );
+
+                let contractName = "Previous Contract";
+
+                try {
+                    const contractInfo = await previousContract.getContractInfo();
+                    if (contractInfo && contractInfo.name) {
+                        contractName = contractInfo.name;
+                    }
+                } catch (e) {
+                    console.log("Error getting contract name", e);
+                }
+
+                chain.unshift({ address: currentContractAddress, name: contractName });
+                console.log("Current contract added:", { address: currentContractAddress, name: contractName });
+
+                currentContractAddress = await previousContract.previous();
+            } catch (error) {
+                console.error("Error fetching previous contract:", error);
+                break; // Останавливаем цикл при ошибке
+            }
+        }
+
+        setContractsChain(chain);
+        console.log("Contracts chain:", chain);
+        return chain; 
+    } catch (error) {
+        console.error("Error fetching contracts chain:", error);
+        throw error; // Бросаем ошибку при общей ошибке
+    }
+};
+
+	
+const getAllChronicles = (chain) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const newChronicles = [];
+
+            for (let i = 0; i < chain.length; i++) {
+                const contractData = chain[i];
+                const contractAddress = contractData.address;
+
+                try {
+                    const contract = new ethers.Contract(
+                        contractAddress,
+                        SimpleGridAbiMAIN,
+                        provider
+                    );
+
+                    const firstRecordId = await contract.firstRecordId();
+                    const nextRecordId = await contract.nextRecordId();
+
+for (let id = Number(firstRecordId); id < Number(nextRecordId); id++) {
+    try {
+        const chronicleData = await contract.getChronicle(id);
+        newChronicles.push({
+            contract: {
+                address: contractAddress,
+                numberInMassive: i,
+            },
+            chronicle: {
+                id: id.toString(),
+                recordScore: chronicleData[0]?.toString() || "N/A",
+                recordAddress: chronicleData[1] || "Адрес не найден",
+                recordName: chronicleData[2] || "Имя не найдено",
+                recordMessage: chronicleData[3] || "Сообщение отсутствует",
+                recordTime: chronicleData[4] ? new Date(chronicleData[4] * 1000).toLocaleString() : "Время не найдено" // Добавляем время записи
+            }
+        });
+        console.log("Chronicle added:", {
+            contract: { address: contractAddress, numberInMassive: i },
+            chronicle: { id: id.toString(), recordScore: chronicleData[0].toString(), recordAddress: chronicleData[1], recordName: chronicleData[2], recordMessage: chronicleData[3], recordTime: chronicleData[4] ? new Date(chronicleData[4] * 1000).toLocaleString() : "Время не найдено" }
+        });
+    } catch (chronicleError) {
+        console.error(`Error getting chronicle with ID ${id} from ${contractAddress}:`, chronicleError);
+        newChronicles.push({
+            contract: {
+                address: contractAddress,
+                numberInMassive: i,
+            },
+            chronicle: { id: id.toString(), error: chronicleError.message }
+        });
+    }
+}
+
+                } catch (contractError) {
+                    console.error(`Error getting contract info from ${contractAddress}:`, contractError);
+                    newChronicles.push({
+                        contract: {
+                            address: contractAddress,
+                            numberInMassive: i,
+                        },
+                        chronicle: { error: contractError.message }
+                    });
+                }
+            }
+
+            setAllChronicles(newChronicles);
+			//saveToFile(newChronicles, 'chronicles.json');
+            console.log("All chronicles:", newChronicles); // Лог выполняется *после* всех запросов
+
+            resolve(newChronicles); // Промис разрешается *после* лога
+        } catch (error) {
+            console.error("Error in getAllChronicles:", error);
+            reject(error);
+        }
+    });
+};
+
+    useEffect(() => {
+        let intervalId;
+
+        const checkPendingChronicles = async () => {
+            try {
+                if (!provider) {
+                    console.error("Провайдер не инициализирован.");
+                    return;
+                }
+
+                let signerInstance;
+                if (userPrivateKey) {
+                    signerInstance = new ethers.Wallet(userPrivateKey, provider);
+                } else {
+                    console.error("Приватный ключ не установлен или не подтверждён.");
+                    return;
+                }
+
+                // Инициализируем контракт с подписантом
+                const newContract = new ethers.Contract(contractAddressMain, SimpleGridAbiMAIN, signerInstance);
+
+                // Получаем адрес пользователя из MetaMask
+                const userAddress = await signerInstance.getAddress();
+
+                // Проверяем pendingChronicles
+                const recordId = await newContract.pendingChronicles(userAddress);
+                if (recordId > 0 && !hasPendingPopupBeenShown) {
+                    setPendingRecord(recordId); // Сохраняем ID записи, если он есть
+                    setHasPendingPopupBeenShown(true); // Помечаем, что окно уже было вызвано
+                    console.log("pendingRecord:", recordId);
+                }
+            } catch (error) {
+                console.error("Ошибка при проверке pendingChronicles:", error);
+            }
+        };
+
+        // Устанавливаем интервал для вызова checkPendingChronicles
+        intervalId = setInterval(checkPendingChronicles, 5184);
+
+        // Очищаем интервал при размонтировании компонента
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [provider, userPrivateKey, hasPendingPopupBeenShown]);
 		
-		
-		
-		
-		
+
+
+    const handleSubmit = async () => {
+        try {
+                    let signerInstance;
+        if (userPrivateKey) {
+            signerInstance = new ethers.Wallet(userPrivateKey, provider);
+        } else if (provider) {
+            signerInstance = provider.getSigner();
+        } else {
+            throw new Error("Provider не инициализирован. Убедитесь, что кошелек подключен.");
+        }
+            const newContract = new ethers.Contract(contractAddressAAA, SimpleGridAbiAAA, signerInstance);
+            const tx = await newContract.updatePendingChronicle(name, message, 0);
+            await tx.wait();
+            setPendingRecord(null); // Очищаем pendingRecord после отправки
+        } catch (error) {
+            console.error("Ошибка при отправке хроники:", error);
+        }
+    };	
+	
+    const handleLater = () => {
+        setPendingRecord(null); // Просто закрываем окно
+    };
+
+const handleNever = async () => {
+    try {
+        let signerInstance;
+        
+        // Используем приватный ключ или провайдер для получения подписанта
+        if (userPrivateKey) {
+            signerInstance = new ethers.Wallet(userPrivateKey, provider);
+        } else if (provider) {
+            signerInstance = provider.getSigner();
+        } else {
+            throw new Error("Provider не инициализирован. Убедитесь, что кошелек подключен.");
+        }
+
+        // Инициализируем контракт с подписантом
+        const newContract = new ethers.Contract(contractAddressAAA, SimpleGridAbiAAA, signerInstance);
+        
+        // Отправляем транзакцию с параметрами "empty"
+        const tx = await newContract.updatePendingChronicle("empty", "empty", 0);
+        await tx.wait();
+
+        // Очищаем pendingRecord после отправки
+        setPendingRecord(null);
+
+    } catch (error) {
+        console.error("Ошибка при обновлении хроники с 'Никогда':", error);
+    }
+};
+
+
+
+
+
+
+
+	
 		
 		
 		
 	if (isUsingPrivateKey && !isKeyConfirmed) {
-    const isMobile = window.innerWidth <= 768;
+    //const isMobile = window.innerWidth <= 768;
+	
 
     return (
         <div
@@ -1958,14 +2849,31 @@ useEffect(() => {
                         }
                     }}
                     style={{
-                        backgroundColor: '#28a745',
-                        color: 'white',
-                        border: 'none',
-                        padding: '6.9px 13.8px', // Увеличено на 15%
-                        borderRadius: '0px',
-                        fontSize: '13.8px', // Увеличено на 15%
-                        cursor: 'pointer',
-                        boxShadow: '0px 2.3px 4.6px rgba(0,0,0,0.3)', // Увеличено на 15%
+							width: "70%",
+							height: '28.19px',
+							textRendering: 'auto',
+							color: 'buttontext',
+							letterSpacing: 'normal',
+							wordSpacing: 'normal',
+							lineHeight: 'normal',
+							textTransform: 'none',
+							textIndent: '0px',
+							textShadow: 'none',
+							display: 'inline-block',
+							textAlign: 'center',
+							alignItems: 'flex-start',
+							cursor: 'pointer',
+							boxSizing: 'border-box',
+							backgroundColor: isPressed ? 'blue' : '#28a745', // Изменение цвета фона при нажатии
+							margin: '0em',
+							paddingBlock: '1px',
+							paddingInline: '6px',
+							borderWidth: '2px',
+							borderStyle: isPressed ? 'inset' : 'outset', // Изменение стиля границы
+							borderColor: 'buttonborder',
+							borderImage: 'initial',
+							color: 'white',
+							//letterSpacing: '0.410em',
                     }}
                 >
                     Подтвердить
@@ -1982,7 +2890,7 @@ useEffect(() => {
                 >
                     Нажимая "Подтвердить" Вы соглашаетесь с тем, что Вы сами хозяин своих
                     метаактивов и Вам не нужны никакие человеческие ненадёжные соглашения
-                    и договорённости. Код — закон. Версия 2412220232.
+                    и договорённости. Код — закон.
                 </p>
             </div>
 
@@ -2011,14 +2919,31 @@ useEffect(() => {
                 </p>
                 <button
                     style={{
-                        backgroundColor: '#626300',
-                        color: 'gray',
-                        border: 'none',
-                        padding: '6.9px 13.8px', // Увеличено на 15%
-                        borderRadius: '0px',
-                        fontSize: '13.8px', // Увеличено на 15%
-                        cursor: 'not-allowed',
-                        boxShadow: '0px 2.3px 4.6px rgba(0,0,0,0.3)', // Увеличено на 15%
+							width: "70%",
+							height: '28.19px',
+							textRendering: 'auto',
+							color: 'buttontext',
+							letterSpacing: 'normal',
+							wordSpacing: 'normal',
+							lineHeight: 'normal',
+							textTransform: 'none',
+							textIndent: '0px',
+							textShadow: 'none',
+							display: 'inline-block',
+							textAlign: 'center',
+							alignItems: 'flex-start',
+							cursor: 'pointer',
+							boxSizing: 'border-box',
+							backgroundColor: isPressed ? 'blue' : '#626300', // Изменение цвета фона при нажатии
+							margin: '0em',
+							paddingBlock: '1px',
+							paddingInline: '6px',
+							borderWidth: '2px',
+							borderStyle: isPressed ? 'inset' : 'outset', // Изменение стиля границы
+							borderColor: 'buttonborder',
+							borderImage: 'initial',
+							color: '#aaa',
+							//letterSpacing: '0.410em',
                     }}
                     disabled
                 >
@@ -2057,8 +2982,39 @@ useEffect(() => {
                     }}
                 >
                     Список пока пуст
+					<br />
+					 
                 </p>
+				
             </div>
+<p
+    style={{
+        margin: '0',
+        fontSize: '9.65px', // Увеличено на 15%
+        color: '#777',
+        textAlign: 'center', // Выравнивание по центру
+    }}
+>
+<br />
+    <a
+        href="https://telegra.ph/Manta-sepolia-testnet-info-12-27"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+            color: '#00f', // Цвет ссылки
+            textDecoration: 'underline', // Подчеркивание
+            fontSize: '9.65px', // Размер шрифта соответствует остальному тексту
+        }}
+    >
+        Как пополнить баланс в Manta Pacific Testnet
+
+    </a>
+			    <br /> <br />
+    Версия 2412280221
+    <br />
+</p>
+
+
         </div>
     );
 }
@@ -2086,21 +3042,189 @@ useEffect(() => {
 
 
 
-
-
-
-
-		//////////////////////////////////////////////////////////////////////////
-		//////////////////////////////////////////////////////////////////////////
-		//////////////////////////////////////////////////////////////////////////
-		//////////////////////////////////////////////////////////////////////////
-		//////////////////////////////////////////////////////////////////////////
-		//////////////////////////////////////////////////////////////////////////
-		//////////////////////////////////////////////////////////////////////////
-		//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 return (
+
+
     <div
         className="App"
+		
+		
+		
+		
+		
+		
+		
         onClick={() => {
             if (!buttonActionRef.current) {
                 setAction("getCell");
@@ -2129,23 +3253,598 @@ return (
 					} >
 					
 
-					< button
-					onClick = {
-						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие события
-							if (window.confirm("Подтверждение на поиск нового астероида. Текущий, если он есть, будет потерян в просторах космоса навсегда.")) {
-								executeAction("initializeGrid");
-							}
-						}
-					}
-					style = {
-						{
-		width: '43.05px',
-height: '28.19px',
-							backgroundColor: getButtonColor("initializeGrid"),
-							cursor: "pointer"
-						}
-					} title="Начать новый астероид."> 🔭 < /button> 					
+				   {/* Вставьте этот блок прямо перед основным JSX */}
+{logBigErrorMessage && (
+    <div
+        style={{
+            position: 'fixed',
+            top: '280px',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: 'red',
+            fontSize: '40px', // Размер шрифта
+            fontWeight: 'bold',
+            textShadow: `
+                0px -0px 0 black, 
+                0px 0px 0 black, 
+                0px 0px 0 black, 
+                2px 2px 0 black
+            `,
+            zIndex: 1000, // Поверх всех элементов
+            textAlign: 'center',
+            whiteSpace: 'nowrap', // Запрещаем перенос текста
+            maxWidth: '100%', // Устанавливаем ширину в пределах экрана
+            overflow: 'hidden', // Прячем лишний текст, если он выходит за пределы
+        }}
+    >
+        {logBigErrorMessage}
+    </div>
+)}
+
+
+
+
+
+
+
+
+
+
+<>
+
+{/* Popup для pendingRecord */}
+            {pendingRecord && pendingRecord > 0 && (
+                <>
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                            zIndex: 999,
+                        }}
+                    ></div>
+                    <div
+                        style={{
+                            position: "fixed",
+                            left: "50%",
+                            top: "50%",
+                            transform: "translate(-50%, -50%)",
+                            backgroundColor: "#363636",
+                            padding: "20px",
+                            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                            zIndex: 1000,
+                            width: "240px",
+                            border: "1px solid #808080",
+                            //borderRadius: "8px",
+                        }}
+                    >
+					
+					      <button
+        onClick={handleLater}
+        style={{
+          width: "100%",
+          height: "28.19px",
+          backgroundColor: "#767999", // Adjust button color
+          color: "white", // Adjust button text color
+          cursor: "pointer",
+          marginTop: "10px", // Add some margin below the button
+        }}
+      >
+        Close
+      </button>
+					
+					
+					
+                        <h3 style={{ textAlign: "center", color: "#ccc" }}>
+                            Ура! Вы поставили новый рекорд 🏆! Ваш адрес кошелька уже сохранён в летописи 📜. Вы также можете оставить послание потомкам:
+                        </h3>
+                        <input
+                            type="text"
+                            placeholder="Введите имя или ник"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            style={{
+                                width: "90%",
+                                padding: "10px",
+                                marginBottom: "10px",
+                                //borderRadius: "4px",
+                                border: "1px solid #444",
+                                backgroundColor: "#222",
+                                color: "#fff",
+                            }}
+                        />
+                        <textarea
+                            placeholder="Введите текст"
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            style={{
+                                width: "90%",
+                                padding: "10px",
+                                marginBottom: "10px",
+                                //borderRadius: "4px",
+                                border: "1px solid #444",
+                                backgroundColor: "#222",
+                                color: "#fff",
+                                resize: "none",
+                                height: "80px",
+                            }}
+                        />
+                        <button
+                            onClick={handleSubmit}
+                            style={{
+                                width: "100%",
+                                padding: "10px",
+                                marginBottom: "10px",
+                                backgroundColor: "#28a745",
+                                color: "#fff",
+                                border: "none",
+                                //borderRadius: "4px",
+                                cursor: "pointer",
+                            }}
+                        >
+                            Отправить
+                        </button>
+                        <button
+                            onClick={handleLater}
+                            style={{
+                                width: "48%",
+                                padding: "10px",
+                                marginRight: "4%",
+                                backgroundColor: "#767999",
+                                color: "#fff",
+                                border: "none",
+                                //borderRadius: "4px",
+                                cursor: "pointer",
+                            }}
+                        >
+                            Позже
+                        </button>
+                        <button
+                            onClick={handleNever}
+                            style={{
+                                width: "48%",
+                                padding: "10px",
+                                backgroundColor: "#d9534f",
+                                color: "#fff",
+                                border: "none",
+                                //borderRadius: "4px",
+                                cursor: "pointer",
+                            }}
+                        >
+                            Никогда
+                        </button>
+                    </div>
+                </>
+            )}
+
+
+</>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<>
+
+{isModalOpen && (
+    <>
+        <div
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                zIndex: 999,
+            }}
+            onClick={closeModal}
+        ></div>
+        <div
+            style={{
+                position: "fixed",
+                left: "50%",
+				top: "40px",
+                transform: "translate(-50%, 0%)",
+                backgroundColor: "gray",
+                padding: "20px",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                zIndex: 1000,
+                width: "220px", // Ширина окна
+                maxHeight: "450px", 
+                overflowY: "auto",
+				border: "1px solid #808080",
+            }}
+        >            <button
+                onClick={closeModal}
+                style={{
+							width: "100%",
+							height: '28.19px',
+							textRendering: 'auto',
+							color: 'buttontext',
+							letterSpacing: 'normal',
+							wordSpacing: 'normal',
+							lineHeight: 'normal',
+							textTransform: 'none',
+							textIndent: '0px',
+							textShadow: 'none',
+							display: 'inline-block',
+							textAlign: 'center',
+							alignItems: 'flex-start',
+							cursor: 'pointer',
+							boxSizing: 'border-box',
+							backgroundColor: isPressed ? 'blue' : '#767999', // Изменение цвета фона при нажатии
+							margin: '0em',
+							paddingBlock: '1px',
+							paddingInline: '6px',
+							borderWidth: '2px',
+							borderStyle: isPressed ? 'inset' : 'outset', // Изменение стиля границы
+							borderColor: 'buttonborder',
+							borderImage: 'initial',
+							color: 'white',
+							//letterSpacing: '0.410em',
+                }}
+            >
+                Close
+            </button>
+            <h3 style={{ textAlign: "center", marginBottom: "10px"}}>Top 100 Players</h3>
+            <div>
+                {topPlayers.length === 0 ? (
+                    <p style={{ textAlign: "center", color: "#ccc" }}>Loading...</p>
+                ) : (
+                    topPlayers.map((player, index) => (
+                        <div 
+                            key={index} 
+                            style={{ 
+                                margin: "10px 0", 
+                                borderBottom: "1px solid lightgray", 
+                                paddingBottom: "10px" 
+                            }}
+                        >
+<div><strong>{player.rank}</strong></div>
+<div><strong>Score:</strong> {player.score}</div>
+<div>
+  <strong>Address: </strong> 
+  <a 
+    href={`https://pacific-explorer.sepolia-testnet.manta.network/address/${player.address}`} 
+    target="_blank" 
+    rel="noopener noreferrer"
+  >
+    {`${player.address.slice(0, 6)}...${player.address.slice(-4)}`}
+  </a>
+</div>
+<div><strong>Name:</strong> {player.name}</div>
+
+	 {/*
+<div><strong>Best Score:</strong> {player.bestScore}</div>
+	 */}
+	  {/*
+<div>
+    <strong>First Game:</strong>{" "}
+    {typeof player.firstGameTimestamp === "string"
+        ? player.firstGameTimestamp // Уже отформатированное значение
+        : new Date(player.firstGameTimestamp * 1000).toLocaleString()}
+</div>
+*/}
+<div>
+    <strong>Link:</strong>{" "}
+                                <a
+                                    href={
+                                        player.link.startsWith("http://") || player.link.startsWith("https://")
+                                            ? player.link
+                                            : `https://${player.link}`
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ color: "blue", textDecoration: "underline" }}
+                                >
+                                    {player.link}
+                                </a>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+            <button
+                onClick={closeModal}
+                style={{
+							width: "100%",
+							height: '28.19px',
+							textRendering: 'auto',
+							color: 'buttontext',
+							letterSpacing: 'normal',
+							wordSpacing: 'normal',
+							lineHeight: 'normal',
+							textTransform: 'none',
+							textIndent: '0px',
+							textShadow: 'none',
+							display: 'inline-block',
+							textAlign: 'center',
+							alignItems: 'flex-start',
+							cursor: 'pointer',
+							boxSizing: 'border-box',
+							backgroundColor: isPressed ? 'blue' : '#767999', // Изменение цвета фона при нажатии
+							margin: '0em',
+							paddingBlock: '1px',
+							paddingInline: '6px',
+							borderWidth: '2px',
+							borderStyle: isPressed ? 'inset' : 'outset', // Изменение стиля границы
+							borderColor: 'buttonborder',
+							borderImage: 'initial',
+							color: 'white',
+							//letterSpacing: '0.410em',
+                }}
+            >
+                Close
+            </button>
+        </div>
+    </>
+)}
+
+
+</>
+			
+<>			
+			
+{isChronicleOpen && (
+    <>
+        <div
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                zIndex: 999,
+            }}
+            onClick={closeChronicle}
+        ></div>
+        <div
+      style={{
+                position: "fixed",
+                left: "50%",
+				top: "40px",
+                transform: "translate(-50%, 0%)",
+                backgroundColor: "gray",
+                padding: "20px",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                zIndex: 1000,
+                width: "220px", // Ширина окна
+                maxHeight: "450px", 
+                overflowY: "auto", 
+				border: "1px solid #808080",
+      }}
+    >
+      <button
+        onClick={closeChronicle}
+        style={{
+          width: "100%",
+          height: "28.19px",
+          backgroundColor: "#767999", // Adjust button color
+          color: "white", // Adjust button text color
+          cursor: "pointer",
+          marginBottom: "10px", // Add some margin below the button
+        }}
+      >
+        Close
+      </button>
+<h3 style={{ textAlign: "center" }}>Летопись</h3>
+<div>
+    {allChronicles.length === 0 ? (
+        <p style={{ textAlign: "center" }}>Loading...</p>
+    ) : (
+<ul style={{ padding: 0, margin: 0, listStyleType: "none" }}> {/* Убираем отступы и маркеры у списка */}
+    {allChronicles.map((chronicle, index) => (
+        <li 
+            key={index} 
+            style={{ 
+                borderBottom: "1px solid lightgray", 
+                marginBottom: "5px", // Уменьшенные отступы
+                paddingBottom: "5px", // Уменьшенные отступы
+                paddingTop: "5px", // Уменьшенные отступы сверху
+                listStyleType: "none" // Убираем маркеры у элементов списка
+            }}
+        >
+{chronicle.chronicle.id && (
+    <p style={{ margin: "0px 0"}}>
+        <strong style={{ marginLeft: "0px" }}>🪶{chronicle.chronicle.id}</strong>
+    </p>
+)}
+
+
+            {chronicle.chronicle.recordAddress && (
+                <p style={{ margin: "0px 0" }}>
+                    <strong></strong> 
+                    <a 
+                        href={`https://pacific-explorer.sepolia-testnet.manta.network/address/${chronicle.chronicle.recordAddress}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                    >
+                        {`${chronicle.chronicle.recordAddress.slice(0, 6)}...${chronicle.chronicle.recordAddress.slice(-4)}`}
+                    </a>
+                </p>
+            )}
+			{chronicle.chronicle.recordScore && <p style={{ margin: "0px 0", color: "#793e7a" }}><strong></strong> {chronicle.chronicle.recordScore}</p>} 
+            <p style={{ margin: "0px 0" }}><strong></strong> {chronicle.chronicle.recordName}</p> 
+            
+            {chronicle.chronicle.recordMessage && <p style={{ margin: "0px 0" }}><strong></strong> {chronicle.chronicle.recordMessage}</p>} 
+            {chronicle.chronicle.recordTime && <p style={{ margin: "0px 0", color: "#555" }}><strong></strong> {chronicle.chronicle.recordTime}</p>} 
+            {/* ... и так далее для всех полей */}
+        </li>
+    ))}
+</ul>
+
+    )}
+</div>
+      <button
+        onClick={closeChronicle}
+        style={{
+          width: "100%",
+          height: "28.19px",
+          backgroundColor: "#767999", // Adjust button color
+          color: "white", // Adjust button text color
+          cursor: "pointer",
+          marginTop: "10px", // Add some margin below the button
+        }}
+      >
+        Close
+      </button>
+    </div>
+  </>
+)}			
+			
+
+
+
+
+
+
+
+
+
+
+</>
+
+
+<>
+
+
+
+{isSchoolOpen && (
+    <>
+        <div
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                zIndex: 999,
+            }}
+            onClick={closeSchool}
+        ></div>
+        <div
+            style={{
+                position: "fixed",
+                left: "50%",
+				top: "40px",
+                transform: "translate(-50%, 0%)",
+                backgroundColor: "#363636",
+                padding: "20px",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                zIndex: 1000,
+                width: "220px", // Ширина окна
+                maxHeight: "450px", 
+                overflowY: "auto", 
+				border: "1px solid #808080",
+                
+            }}
+        >
+            <button
+                onClick={closeSchool}
+                style={{
+                    width: "100%",
+                    height: "30px",
+                    backgroundColor: "#767999",
+                    color: "white",
+                    cursor: "pointer",
+                    marginBottom: "10px",
+                }}
+            >
+                Close
+            </button>
+            <h3 style={{ textAlign: "center", color: "#ccc" }}>Обучение</h3>
+            <div style={{ fontSize: "14px", color: "#ccc" }}>
+                <p>⦁ Вернуться к обучению вы всегда сможете по кнопке 🎓.</p>
+                <ul style={{ padding: 0, margin: 0, listStyleType: "none" }}>
+                    <li>⦁ Найдите астероид - кнопка 🔭.</li><br />
+                    <li>⦁ Начните добывать ⛏️ с тёмных и светлых клеток железо (i) и уголь (c).</li><br />
+                    <li>⦁ Поставьте печь 🔥 и с помощью манипуляторов ⬇️➡️ и ящиков 📦 доставьте в неё ⛏️➡️🔥 уголь и железо для производства шестерёнок ⚙️.</li><br />
+                    <li>⦁ Манипуляторы не могут брать из других манипуляторов. Так: ➡️➡️ не сработает.</li><br />
+                    <li>⦁ 🏗️ - Застраивать повреждённые метеоритами клетки.</li><br />
+                    <li>⦁ Ставьте заводы 🏭 и настраивайте 🧩 их на нужное производство.</li><br />
+                    <li>⦁ ❌ - Убрать постройку.</li><br />
+                    <li>⦁ Стена 🧱 выдерживает 8-9 ударов метеоритов. Можно ставить поверх текущих стен. </li><br />
+                    <li>⦁ ⏸️ Пауза (да-да, пауза в блокчейне).</li><br />
+                    <li>⦁ 1x - Регулировать скорость игры.</li><br />
+                
+               
+                    <li>
+					⦁ Когда будешь готов жми 🚀 - и если пролетишь достаточно далеко - попадёшь в топ 100 🏆, а если  дальше всех и станешь топ 1 - сможешь оставить нестираемую запись в летопись 📜 для потомков - будущих покорителей метавселенных.Историю пишут победители.  
+					</li>
+                <h4>&nbsp;&nbsp;&nbsp;Остальные кнопки:</h4>
+                
+                    <li>⦁ Пустая кнопка - отжимает другие кнопки (клавиша <strong>q</strong>).</li>
+					<li>
+					⦁ 🔄 - Автосинхронизация.  
+					</li>
+					<li>
+					⦁ 🔂 - Один шаг синхронизации.  
+					</li>
+					<li>
+					⦁ 📘 - Это вам не надо, это мне.  
+					</li>
+					<li>
+					⦁ 📄 - BlockExplorer.  
+					</li>
+					<li>
+					⦁ 👤 - Обновить имя.  
+					</li>
+					<li>
+					⦁ 🌐 - Обновить ссылку.  
+					</li>
+					<li>
+					⦁ 👥 - Чатик.  
+					</li>
+					<li>
+					⦁ 🏛️ - DAO (Функция в разработке).  
+					</li>
+					<li>
+					⦁ Вроде всё. Удачи!
+					</li>
+                </ul>
+            </div>
+            <button
+                onClick={closeSchool}
+                style={{
+                    width: "100%",
+                    height: "30px",
+                    backgroundColor: "#767999",
+                    color: "white",
+                    cursor: "pointer",
+                    marginTop: "10px",
+                }}
+            >
+                Close
+            </button>
+        </div>
+    </>
+)}
+
+
+
+
+</>
+
+
+
+
+            {/* Остальная часть компонента */}
 					
 					
 					
@@ -2196,45 +3895,102 @@ height: '28.19px',
 							color: 'white',
 							letterSpacing: '0.410em',
 						}
-					} title="Эта кнопка отжимает другие кнопки."
+					} title="Эта кнопка отжимает другие кнопки(q)."
 					>&nbsp;&nbsp;< /button>
 					
+<button
+    onClick={async (e) => {
+        e.stopPropagation(); // Останавливаем всплытие
+
+		setIsSchoolOpen(true);
+    }}
+    style={{
+        width: '43.05px',
+        height: '28.19px',
+        backgroundColor: isSchoolOpen ? 'blue' : '#767999',
+		borderStyle: isSchoolOpen ? 'inset' : 'outset',
+        cursor: "pointer"
+    }}
+    title="Летопись"
+>
+    🎓
+</button>	
+					
+					< button
+					onClick = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие события
+							if (window.confirm("Подтверждение на поиск нового астероида. Текущий, если он есть, будет потерян в просторах космоса навсегда.")) {
+								executeAction("initializeGrid");
+							}
+						}
+					}
+					style = {
+						{
+		width: '43.05px',
+height: '28.19px',
+							backgroundColor: getButtonColor("initializeGrid"),
+							cursor: "pointer"
+						}
+					} title="Начать новый астероид."> 🔭 < /button> 
+
+
+
+					
+< button
+    onClick={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие события
+        if (window.confirm("Подтверждение на запуск. Оттуда ещё никто не возвращался..")) {
+            setGotoLevel();
+        }
+    }}
+    style={{
+        width: '43.05px',
+        height: '28.19px',
+        borderStyle: gotoGameLevel === 110 ? "inset" : "outset", // Если пауза не активна
+        backgroundColor: gotoGameLevel === 110 ? "blue" : "#767999", // Если пауза активна
+        cursor: "pointer",
+    }}
+    title="Poehali!"
+>
+    🚀
+</button>
+				
+					
 					
 
-
 < button
-   
     onClick={(e) => {
         e.stopPropagation(); // Останавливаем всплытие события
-        setPause();
+        togglePause();
     }}
     style={{
-		width: '43.05px',
-height: '28.19px',
-        borderStyle: isGamePaused === 1 ? "inset" : "outset", // Если пауза не активна
-        backgroundColor: isGamePaused === 1 ? "blue" : "#767999", // Если пауза активна
+        width: '43.05px',
+        height: '28.19px',
+        borderStyle: isGamePaused === 0 ? "outset" : "inset", // Меняем стиль в зависимости от состояния
+        backgroundColor: isGamePaused === 0 ? "#767999" : "blue", // Меняем цвет в зависимости от состояния
         cursor: "pointer",
     }}
-title="Да-да, пауза в блокчейне."> ⏸️ </button>
+    title={isGamePaused === 0 ? "Снять паузу." : "Да-да, пауза в блокчейне."}
+>
+    {isGamePaused === 0 ? "⏸️" : "⏸️"} {/* Меняем текст в зависимости от состояния */}
+</button>
 
-< button
-    
-    onClick={(e) => {
-        e.stopPropagation(); // Останавливаем всплытие события
-        unsetPause();
-    }}
-    style={{
-		width: '43.05px',
-height: '28.19px',
-        borderStyle: isGamePaused === 0 ? "inset" : "outset", // Если пауза не активна
-        backgroundColor: isGamePaused === 0 ? "blue" : "#767999", // Если пауза не активна
-        cursor: "pointer",
-    }}
-title="Снять паузу."> ▶️ </button>
-
-
-
-
+        <button
+            onClick={() => {
+                setIsToggled(!isToggled); // Переключение состояния
+            }}
+            style={{
+                width: '43.05px',
+                height: '28.19px',
+                backgroundColor: isToggled ? 'blue' : '#767999', // Меняет цвет при переключении
+                cursor: "pointer",
+				 borderStyle: isToggled ? "inset" : "outset", // Если пауза не активна
+            }}
+            title="Синхронизация"
+        >
+            {isToggled ? "🔄" : "🔄"} {/* Меняет иконку при переключении */}
+        </button>		
 
 
 
@@ -2329,56 +4085,10 @@ height: '28.19px',
 					} title="Разместить печь."> 🔥 < /button>
 
 
-					< button
-					onMouseDown = {
-						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие клика к родителю
-							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
-
-							if (action === "placeFactory") {
-								setAction("getCell");
-							}
-							else {
-								setAction("placeFactory");
-							}
-						}
-					}
-					style = {
-						{
-								
-		width: '43.05px',
-height: '28.19px',					
-							borderStyle: getButtonborderStyle('placeFactory'),
-							backgroundColor: getButtonColor("placeFactory"),
-							cursor: "pointer"
-						}
-					} title="Разместить завод."> 🏭 < /button>
 
 
-					< button
-					onMouseDown = {
-						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие клика к родителю
-							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
 
-							if (action === "placeBulldozer") {
-								setAction("getCell");
-							}
-							else {
-								setAction("placeBulldozer");
-							}
-						}
-					}
-					style = {
-						{
-								
-		width: '43.05px',
-height: '28.19px',					
-							borderStyle: getButtonborderStyle('placeBulldozer'),
-							backgroundColor: getButtonColor("placeBulldozer"),
-							cursor: "pointer"
-						}
-					} title="Застроить повреждённые клетки"> 🏗️ < /button>
+
 
 
 
@@ -2410,7 +4120,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("placeManUD"),
 							cursor: "pointer"
 						}
-					} title="Манипулятор"> ⬇️ < /button>
+					} title="Разместить манипулятор"> ⬇️ < /button>
 
 
 
@@ -2493,6 +4203,57 @@ height: '28.19px',
 						}
 					} title="Манипулятор"> ⬆️ < /button>
 
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeFactory") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeFactory");
+							}
+						}
+					}
+					style = {
+						{
+								
+		width: '43.05px',
+height: '28.19px',					
+							borderStyle: getButtonborderStyle('placeFactory'),
+							backgroundColor: getButtonColor("placeFactory"),
+							cursor: "pointer"
+						}
+					} title="Разместить завод."> 🏭 < /button>
+
+					< button
+					onMouseDown = {
+						(e) => {
+							e.stopPropagation(); // Останавливаем всплытие клика к родителю
+							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+							if (action === "placeBulldozer") {
+								setAction("getCell");
+							}
+							else {
+								setAction("placeBulldozer");
+							}
+						}
+					}
+					style = {
+						{
+								
+		width: '43.05px',
+height: '28.19px',					
+							borderStyle: getButtonborderStyle('placeBulldozer'),
+							backgroundColor: getButtonColor("placeBulldozer"),
+							cursor: "pointer"
+						}
+					} title="Застроить повреждённые клетки"> 🏗️ < /button>
+
 					< button
 					onMouseDown = {
 						(e) => {
@@ -2516,7 +4277,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("placeBox"),
 							cursor: "pointer"
 						}
-					} title="Разместить Ящик"> 📦 < /button>
+					} title="Разместить ящик"> 📦 < /button>
 
 
 <button
@@ -2596,8 +4357,8 @@ height: '28.19px',
 					option value = "mansF" > 🧩10→↔️ < /option> <
 					option value = "furnaceF" > 🧩10→🔥 < /option> <
 					option value = "factoryF" > 🧩10→🏭 < /option> <
-					option value = "bulldozerF" > 🧩10→🏗️ < /option> <
-					option value = "wallF" > ⚙️200+🧩10+🔥1️→🧱15 < /option> <
+					option value = "bulldozerF" > 🧩100→🏗️ < /option> <
+					option value = "wallF" > ⚙️1к+🧩50+🔥5→🧱2 < /option> <
 
 
 					/
@@ -2653,15 +4414,14 @@ paddingTop: '5px',
     <option value="?x">?x</option> {/* Опция для начального значения */}
     <option value="1x">1x</option>
     <option value="2x">2x</option>
+    <option value="3x">3x</option>
     <option value="5x">5x</option>
+    <option value="7x">7x</option>
     <option value="10x">10x</option>
+    <option value="15x">15x</option>
+    <option value="20x">20x</option>
     <option value="25x">25x</option>	
     <option value="50x">50x</option>	
-    <option value="99x">99x</option>	
-	
-    <option value="200x">200x</option>	
-    <option value="400x">400x</option>	
-    <option value="1000x">1000x</option>	
 	
 	
 </select>
@@ -2669,7 +4429,7 @@ paddingTop: '5px',
 
 
 
-
+{/*
 
  < button
 					onClick = {
@@ -2688,7 +4448,7 @@ height: '28.19px',
 					} title="Криосон"> 🛌 < /button>
 
 
-					
+					*/}
 					
 					
 					
@@ -2711,7 +4471,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("updateCoal"), // Цвет кнопки
 							cursor: "pointer"
 						}
-					} title="Для отладки, я б не нажимал."> 🧮 < /button>
+					} title="Один шаг синхронизации"> 🔂 < /button>
 
 					{/*}
 
@@ -2791,7 +4551,37 @@ height: '28.19px',
     📄
 </button>
 
+<button
+    onClick={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие
+        executeAction("updatePlayerName"); // Вызываем функцию для обновления имени
+    }}
+    style={{
+        width: '43.05px',
+        height: '28.19px',
+        backgroundColor: getButtonColor("updatePlayerName"),
+        cursor: "pointer"
+    }}
+    title="Обновить имя"
+>
+    👤
+</button>
 
+<button
+    onClick={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие
+        executeAction("updatePlayerLink"); // Вызываем функцию для обновления ссылки
+    }}
+    style={{
+        width: '43.05px',
+        height: '28.19px',
+        backgroundColor: getButtonColor("updatePlayerLink"),
+        cursor: "pointer"
+    }}
+    title="Обновить ссылку"
+>
+    🌐
+</button>
 					
 					
 <button
@@ -2811,36 +4601,64 @@ height: '28.19px',
 					
 
 					
+			
+			{/*					
+					
+<button
+    onClick={() => {
+       // window.open("https://t.me/metagameonchain", "_blank");
+    }}
+    style={{
+        width: '43.05px',
+        height: '28.19px',
+        backgroundColor: '#767999', // Можно заменить на любой цвет
+        cursor: "pointer"
+    }}
+    title="DAO (Функция в разработке)"
+>
+    🏛️
+</button>					
+		
+			*/}
+		
+		
+		
+					
+<button
+    onClick={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие
+       openModal();
+    }}
+    style={{
+        width: '43.05px',
+        height: '28.19px',
+        backgroundColor: getButtonColor("updatePlayerLink"),
+        cursor: "pointer"
+    }}
+    title="Топ 100"
+>
+    🏆
+</button>					
+		
+<button
+    onClick={async (e) => {
+        e.stopPropagation(); // Останавливаем всплытие
+		const chain = await fetchContractsChain();
+        await getAllChronicles(chain);
+		setIsChronicleOpen(true);
+    }}
+    style={{
+        width: '43.05px',
+        height: '28.19px',
+        backgroundColor: getButtonColor("updatePlayerLink"),
+        cursor: "pointer"
+    }}
+    title="Летопись"
+>
+    📜
+</button>						
+					
 
-        <button
-            onClick={() => {
-                setIsToggled(!isToggled); // Переключение состояния
-            }}
-            style={{
-                width: '43.05px',
-                height: '28.19px',
-                backgroundColor: isToggled ? 'blue' : '#767999', // Меняет цвет при переключении
-                cursor: "pointer",
-				 borderStyle: isToggled ? "inset" : "outset", // Если пауза не активна
-            }}
-            title="Синхронизация"
-        >
-            {isToggled ? "🔄" : "🔄"} {/* Меняет иконку при переключении */}
-        </button>					
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
 					
 					
 					
@@ -2853,18 +4671,18 @@ height: '28.19px',
 					< p
 					style = {
 						{
-							display: 'flex', // Используем flexbox для выравнивания
-							justifyContent: 'center', // Центрируем по горизонтали
-							width: '100vw', // Ширина контейнера на весь экран
-							//height: '100vh', // Высота контейнера на весь экран
-							alignItems: 'flex-start', // Прижимаем сетку к верхнему краю
-							margin: '0',
-							color: '#bcbf00', // Устанавливаем цвет текста
-							fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
-							fontSize: '17px', // Размер шрифта
-							//border: "1px solid #ccc",
+display: 'flex', // Используем flexbox для выравнивания
+justifyContent: 'space-between', // Центрируем содержимое по горизонтали
+width: '305px', // Ширина контейнера
+alignItems: 'center', // Выравнивание по вертикали (если нужно)
+margin: '0 auto', // Центрируем контейнер по ширине
+color: '#bcbf00', // Устанавливаем цвет текста
+fontWeight: 'bold', // Дополнительно делаем текст жирным (опционально)
+fontSize: '17px', // Размер шрифта
+
 						}
-					} > Плотность метеоритов  {meteoriteFrequency.toFixed(4)}
+					} >     <span>{formattedDensity} метеорит/сек </span>
+    <span>путь {calculatedDistance} км </span>
 					 < /p>  < > {
 					grid && grid.length > 0 && ( < div style = {
 							{
