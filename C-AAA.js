@@ -411,7 +411,7 @@ IMainGrid.Playerstat memory playerstat = mainGrid.getPlayerstat(msg.sender);
         block.timestamp, // starttimee
         block.timestamp * 10**6, // lastmeteoritTimeChecked
         block.timestamp, // blocktimestamp
-        300,             // bulldozerAmount
+        500,             // bulldozerAmount
         0,            // early
         20 * 10**6,              // mmmtime
         100,              // mmmdrillSpeed
