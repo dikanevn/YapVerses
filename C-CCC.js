@@ -62,8 +62,7 @@ uint256 speedkoef;
     uint256 lastUpdateTime;
     uint256 frequencyFactor;
     uint256 gotoLevel;
-
-
+ bool allMeteorsProcessed; // Новый флаг
 
 
     }
@@ -126,6 +125,8 @@ function updateDepotGotoLevel(address user, uint256 gotoLevel) external;
 function setPendingChronicle(address user, uint256 recordId) external;
 function nextRecordId() external view returns (uint256);
 function incrementNextRecordId() external;
+ function updateDepotMeteorsProcessed(address user, bool status) external;
+
 
     function addChronicle(
         uint256 recordId,
@@ -573,13 +574,13 @@ if (newTheEndCount <= 100) {
     // Проверяем и обновляем лучший результат игрока
     if (playerstat.bestScore < depot.normalizedTime) {
         mainGrid.updateBestScore(senderFromBBB, depot.normalizedTime);
-       // emit PlayerBestScoreUpdated(msg.sender, depot.normalizedTime); // Логируем обновление лучшего результата
+
     }
     
-    // Обновляем топ-100 игроков
+
 updateTopPlayers(senderFromBBB);
 
-   // emit PlayerTopPlayersUpdated(msg.sender, depot.normalizedTime); // Логируем обновление топ-100 игроков
+
 }
 
 
@@ -604,20 +605,7 @@ updateTopPlayers(senderFromBBB);
 	
 }
 
-/*
-event PlayerBestScoreUpdated(address indexed player, uint256 newBestScore);
-event PlayerTopPlayersUpdated(address indexed player, uint256 normalizedTime);
 
-
-
-// Добавляем события
-event TopPlayersRetrieved(IMainGrid.TopPlayer[100] topPlayers);
-event PlayerDepotRetrieved(uint256 normalizedTime);
-event PlayerCheckedAgainstTop(uint256 index, uint256 scoreInTop, uint256 playerScore);
-event TopPlayersShifted(uint256 fromIndex, uint256 toIndex);
-event TopPlayerInserted(uint256 index, address indexed player, uint256 score);
-event TopPlayersUpdated(IMainGrid.TopPlayer[100] updatedTopPlayers);
-*/
 function updateTopPlayers(address user) internal {
     IMainGrid.TopPlayer[100] memory topPlayers = mainGrid.getTopPlayers();
     IMainGrid.Depot memory depot = mainGrid.getDepot(user);

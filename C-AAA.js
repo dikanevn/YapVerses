@@ -63,8 +63,7 @@ uint256 speedkoef;
     uint256 lastUpdateTime;
     uint256 frequencyFactor;
     uint256 gotoLevel;
-
-
+ bool allMeteorsProcessed; // Новый флаг
 
 
     }
@@ -128,6 +127,17 @@ function updateDepotGotoLevel(address user, uint256 gotoLevel) external;
 function setPendingChronicle(address user, uint256 recordId) external;
 function nextRecordId() external view returns (uint256);
 function incrementNextRecordId() external;
+ function updateDepotMeteorsProcessed(address user, bool status) external;
+
+
+
+
+
+
+
+
+
+
     function addChronicle(
         uint256 recordId,
         uint256 score,
@@ -433,6 +443,8 @@ mainGrid.updateDepotGotoLevel(user, 100); // Изначальный уровен
     if (playerstat.firstGameTimestamp == 0) {
         mainGrid.updateFirstGameTimestamp (user, block.timestamp); // Устанавливаем текущее время
     }
+ mainGrid.updateDepotMeteorsProcessed(user, false);	
+	
 	
 	}
 
@@ -456,10 +468,10 @@ function generateRandom(uint256 x, uint256 y, address user) internal view return
 	
 	
 function validateRequire(IMainGrid.Depot memory depot) internal view {
-    require(block.timestamp - depot.blocktimestamp < 60, "Wait for update");
+    require(block.timestamp - depot.blocktimestamp < 60, "Wait for update depot.blocktimestamp");
     require(depot.isPaused == 0, "paused");
     require(depot.theEndCount > 100, "Game Over");
-	require(depot.early < 60, "Wait for the update");
+	require(depot.early < 60, "Wait for the update early");
 }
 	
 	
@@ -575,28 +587,7 @@ function setTrainingCompleted(uint256 trainingCompleted, uint256 /* unused */) e
     event DebugCoordinates(uint256 x, uint256 y);
 	
 	
-    function collectDebugDataForCell(uint256 x, uint256 y) external {
-        IMainGrid.Depot memory depot = mainGrid.getDepot(msg.sender);
-        emit Debug("Depot gridSize", depot.gridSize);
-        emit Debug("Depot boxesAmount", depot.boxesAmount);
-        emit Debug("Depot paused", depot.isPaused);
-        emit Debug("Depot theEndCount", depot.theEndCount);
-        emit Debug("Depot blocktimestamp", depot.blocktimestamp);
-        emit Debug("Depot normalizedTime", depot.normalizedTime);
-        emit Debug("Depot lastUpdateTime", depot.lastUpdateTime);
-        emit Debug("Depot speedkoef", depot.speedkoef);
 
-        require(x < depot.gridSize && y < depot.gridSize, "Invalid coordinates");
-
-        IMainGrid.Cell memory cell = mainGrid.getCell(msg.sender, x, y);
-        emit DebugCoordinates(x, y);
-        emit DebugString("Cell tool", cell.tool);
-        emit DebugString("Cell content", cell.content);
-        emit Debug("Cell coalAmount", cell.coalAmount);
-        emit Debug("Cell ironAmount", cell.ironAmount);
-        emit Debug("Cell componentsAmount", cell.componentsAmount);
-        emit Debug("Cell wallPowerAmount", cell.wallPowerAmount);
-    }
 
 function placeBox(uint256 x, uint256 y, uint256 /* unused */) external {
     // Получаем данные депо через основной контракт
@@ -1021,53 +1012,29 @@ function unsetPause(uint256) external {
 
 
 function updateSpeedKoef(uint256 newSpeedKoef, uint256 /* unused */) external {
-   // emit DebugLog("updateSpeedKoef start", 0);
-
-    // Получаем данные депо
+  
     IMainGrid.Depot memory depot = mainGrid.getDepot(msg.sender);
-  //  emit DebugLog("lastUpdateTime", depot.lastUpdateTime);
+ validateRequire(depot); 
 
-    // Проверки
-    require(depot.isPaused == 0, "paused");
-    require(depot.theEndCount > 100, "Game Over");
-
-    // Рассчитываем прошедшее время с момента последнего обновления
     uint256 timeElapsed = block.timestamp - depot.lastUpdateTime;
-   // emit DebugLog("Time Elapsed", timeElapsed);
 
-    // Обновляем normalizedTime с учетом текущей скорости
-    uint256 additionalNormalizedTime = timeElapsed * depot.speedkoef; // Используем текущую скорость
+
+
+    uint256 additionalNormalizedTime = timeElapsed * depot.speedkoef; 
     uint256 updatedNormalizedTime = depot.normalizedTime + additionalNormalizedTime;
 
-   // emit DebugLog("Additional Normalized Time", additionalNormalizedTime);
-   // emit DebugLog("Updated Normalized Time", updatedNormalizedTime);
 
-    // Сохраняем обновления
-    mainGrid.updateDepotNormalizedTime(msg.sender, updatedNormalizedTime);  // Обновляем normalizedTime
-    mainGrid.updateDepotLastUpdateTime(msg.sender, block.timestamp);        // Обновляем lastUpdateTime
 
-    // Обновляем скорость
-   // uint256 oldSpeedKoef = depot.speedkoef;
-    mainGrid.updateDepotSpeedkoef(msg.sender, newSpeedKoef);                // Устанавливаем новую скорость
-/*
-    // Эмитим событие
-    emit SpeedKoefUpdated(
-        msg.sender,
-        oldSpeedKoef,
-        newSpeedKoef,
-        timeElapsed,
-        updatedNormalizedTime
-    );*/
+   
+    mainGrid.updateDepotNormalizedTime(msg.sender, updatedNormalizedTime);  
+    mainGrid.updateDepotLastUpdateTime(msg.sender, block.timestamp);        
+    mainGrid.updateDepotSpeedkoef(msg.sender, newSpeedKoef);                
+
 }
 
-    event EmptyFunctionCalled(address indexed caller, uint256 indexed nonce);
 
-    /**
-     * @dev Пустая функция, которая только эмитит событие.
-     * @param nonce Номер nonce, переданный вызовом.
-     */
     function EmptyFunctionForNonce(uint256 nonce) external {
-        emit EmptyFunctionCalled(msg.sender, nonce);
+       
     }	
 
 	

@@ -99,8 +99,7 @@ struct Depot {
     uint256 lastUpdateTime;
     uint256 frequencyFactor;
     uint256 gotoLevel;
-	
-	
+	bool allMeteorsProcessed; // Новый флаг	
 	
 }
 
@@ -619,6 +618,23 @@ function getTopPlayers() external view returns (IPreviousContract.TopPlayer[100]
 function setPendingChronicle(address user, uint256 recordId) external onlyAllowedContracts {
     pendingChronicles[user] = recordId;
 }
+
+
+
+function updateDepotMeteorsProcessed(address user, bool status) external {
+    depots[user].allMeteorsProcessed = status;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 

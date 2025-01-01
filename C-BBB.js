@@ -62,8 +62,7 @@ uint256 speedkoef;
     uint256 lastUpdateTime;
     uint256 frequencyFactor;
     uint256 gotoLevel;
-
-
+ bool allMeteorsProcessed; // Новый флаг
 
 
     }
@@ -126,6 +125,13 @@ function updateDepotGotoLevel(address user, uint256 gotoLevel) external;
 function setPendingChronicle(address user, uint256 recordId) external;
 function nextRecordId() external view returns (uint256);
 function incrementNextRecordId() external;
+ function updateDepotMeteorsProcessed(address user, bool status) external;
+
+
+
+
+
+
 
     function addChronicle(
         uint256 recordId,
@@ -644,14 +650,7 @@ function removeTool(uint256 x, uint256 y, uint256 unused) public {
 
 
 
-/*
-    event MeteoritCalled(address indexed user, uint256 timestamp, uint256 meteorCount);
-    event CellProcessed(address indexed user, uint256 cellIndex, bool updated);
-    event MainGridUpdated(address indexed user, uint256 totalUpdatedCells);
-    event DepotUpdated(address indexed user, uint256 timestamp);
-    event FunctionStarted(address indexed user, uint256 timestamp);
-    event FunctionFinished(address indexed user, uint256 timestamp);
-*/
+
 function updateCoal(uint256 externalRandom) public {
     address user = msg.sender;
 
@@ -688,6 +687,10 @@ function updateCoal(uint256 externalRandom) public {
         depot = mainGrid.getDepot(user);
     }
 
+if (!_shouldCallMeteorit(depot)) {
+    mainGrid.updateDepotMeteorsProcessed(msg.sender, true); // Устанавливаем флаг
+}
+
     // Вычисляем индексы ячеек
     uint256 totalCells = gridSize * gridSize;
     require(totalCells > 0, "Total cells must be greater than zero");
@@ -709,17 +712,15 @@ function updateCoal(uint256 externalRandom) public {
 
     mainGrid.updateDepotEarly(msg.sender, earlyUpdate);
 
-    if (earlyUpdate < 60) {
+    if (depot.allMeteorsProcessed) {
+		
         uint256 elapsedTime = block.timestamp - depot.lastUpdateTime;
-        require(elapsedTime <= type(uint256).max / depot.speedkoef, "Overflow in elapsedTime scaling");
+
 
         uint256 updatedNormalizedTime = depot.normalizedTime + elapsedTime * depot.speedkoef;
 		
 		
 		
-		
-        require(updatedNormalizedTime >= depot.normalizedTime, "Overflow in normalizedTime calculation");
-
         mainGrid.updateDepotLastUpdateTime(msg.sender, block.timestamp);
 		
 		if (depot.gotoLevel == 100){

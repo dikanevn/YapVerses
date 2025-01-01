@@ -69,14 +69,14 @@ let isNonceInitializing = false;
 const [currentNonce, setCurrentNonce] = useState(null);
 
 
-		const contractAddressMain = "0x70B613765AE92fd1D3BF12Af216671b04203712A";
+		const contractAddressMain = "0x2f980f9cFDaC8A95551bF4FBe4CDd5E8834D41f7";
 		
 		
 		
-		const contractAddressAAA = "0x87F4f3232427355757F6035300be96d5f31D9c03";
-		const contractAddressBBB = "0xb8C585fD2b4Eb15D302dED205C19CFCD08C53D51";
+		const contractAddressAAA = "0x25951Db3321bb435A1742669C6ba7c687d0943A4";
+		const contractAddressBBB = "0x0699acB15EDC9054a07fCB8D8eF92aF55E29E64E";
 		
-		const contractAddressCCC = "0xA1B0Df7606fC58FedD7fc5c9b4E437eD98c5728b";
+		const contractAddressCCC = "0x54eF620A6a9af0CDf1629748246186ff2DCfc4cc";
 
 		
 		const [grid, setGrid] = useState([]);
@@ -123,6 +123,24 @@ const [pendingRecord, setPendingRecord] = useState(null);
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");		
   const [hasPendingPopupBeenShown, setHasPendingPopupBeenShown] = useState(false);
+    const [translations, setTranslations] = useState({});
+    const [language, setLanguage] = useState('en'); // Язык по умолчанию
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		useEffect(() => {
 			// Очистка состояния при обновлении страницы
@@ -645,7 +663,8 @@ useEffect(() => {
 useEffect(() => {
     const interval = setInterval(() => {
 		if (parseInt(depot.theEndCount, 10) <= 100 && parseInt(depot.theEndCount, 10) != 0) {
-            setlogBigErrorMessage("ПОТРАЧЕНО");
+            setlogBigErrorMessage(t("wastedMessage"));
+
         } else {
 			if (isGamePaused === 0){
             setlogBigErrorMessage("");
@@ -654,10 +673,14 @@ useEffect(() => {
     }, 5000); // Интервал в 5 секунд
 
     return () => clearInterval(interval); // Очищаем интервал при размонтировании
-}, [depot.theEndCount,isGamePaused]);
+}, [depot.theEndCount,isGamePaused, translations]);
 
 
-
+useEffect(() => {
+    import(`./translations/${language}.json`)
+        .then((data) => setTranslations(data.default))
+        .catch((error) => console.error("Error loading translations:", error));
+}, [language]);
 
 	
 const [dynamicEarlyValue, setDynamicEarlyValue] = useState(0); // Состояние для увеличивающегося значения
@@ -823,14 +846,20 @@ const initializeNonce = async (provider, setNonceInitializing) => {
         const userAddress = await signer.getAddress();
         const nonce = await provider.getTransactionCount(userAddress, "latest");
         console.log(`Nonce инициализирован: ${nonce}`);
-			    setLogMessages((prev) => [
-        { text: `Nonce инициализирован:${nonce}`, color: '#bcbf00' },
-        ...prev,
-    ]);
-		    setLogMessages((prev) => [
-        { text: `Связь установлена.`, color: 'LimeGreen' },
-        ...prev,
-    ]);
+		
+setLogMessages((prev) => [
+    {
+        text: tWithParams("nonceInitialized", { nonce }),
+        color: '#bcbf00',
+    },
+    ...prev,
+]);
+
+setLogMessages((prev) => [
+    { text: t("connectionEstablished"), color: 'LimeGreen' },
+    ...prev,
+]);
+
         return nonce;
     } catch (error) {
         console.error("Хьюстон, у нас проблемы с нонсе:", error);
@@ -843,10 +872,13 @@ const initializeNonce = async (provider, setNonceInitializing) => {
 	
 useEffect(() => {
     setLogMessages((prev) => {
-        if (prev.some(msg => msg.text === "Устанавливаем связь с астероидом...")) {
+        if (prev.some(msg => msg.text === t("Establishing connection.."))) {
             return prev; // Сообщение уже существует, не добавляем
         }
-        return [{ text: "Устанавливаем связь...", color: '#bcbf00' }, ...prev];
+        return [
+            { text: t("Establishing connection.."), color: '#bcbf00' },
+            ...prev,
+        ];
     });
 
     // Добавляем серые точки через 500 и 1000 миллисекунд
@@ -869,7 +901,8 @@ useEffect(() => {
         clearTimeout(timer1);
         clearTimeout(timer2);
     };
-}, []);
+}, [translations]);
+
 
 
 
@@ -935,21 +968,21 @@ const sendTransaction = async (contractMethod, params = [], contractAddress, con
         }
     }
 
-    if (currentNonce === null) {
-		
-        setLogMessages((prev) => [
-            { text: `Дождитесь связи с астероидом.`, color: 'red' },
-            ...prev.slice(1),
-        ]);
+if (currentNonce === null) {
+    setLogMessages((prev) => [
+        { text: t("waitForConnection"), color: 'red' },
+        ...prev.slice(1),
+    ]);
 
-        setTimeout(() => {
-            setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
-        }, 500);
-		
-				setlogBigErrorMessage("Нет связи.");
-setTimeout(() => setlogBigErrorMessage(""), 2000);
-        return;
-    }
+    setTimeout(() => {
+        setLogMessages((prev) => [{ text: '.', color: 'gray' }, ...prev]);
+    }, 500);
+
+    setlogBigErrorMessage(t("noConnection"));
+    setTimeout(() => setlogBigErrorMessage(""), 2000);
+    return;
+}
+
 
     // Синхронизируем externalNonce с currentNonce при первом использовании
     if (externalNonce === null) {
@@ -2407,7 +2440,8 @@ const meteorFrequencyInSeconds = frequencyFactor / 20 ;
 useEffect(() => {
     const interval = setInterval(() => {
         if (isGamePaused === 1 && parseInt(depot.theEndCount, 10) > 100) {
-            setlogBigErrorMessage("Пауза");
+            setlogBigErrorMessage(t("pauseMessage"));
+
         } else if (isGamePaused === 0 && parseInt(depot.theEndCount, 10) > 100) {
             setlogBigErrorMessage("");
         }
@@ -2759,11 +2793,78 @@ const handleNever = async () => {
 
 
 
-/*
+useEffect(() => {
+    if (language) {
+        import(`./translations/${language}.json`)
+            .then((data) => {
+                console.log("Loaded translations:", data); // Проверяем структуру данных
+                setTranslations(data.default); // Доступ к данным через default
+            })
+            .catch((error) => {
+                console.error('Error loading translations:', error);
+                // Используем fallback
+                import(`./translations/en.json`)
+                    .then((fallbackData) => setTranslations(fallbackData.default));
+            });
+    }
+}, [language]);
+
+
+    const changeLanguage = (lang) => {
+        setLanguage(lang);
+    };
+	
+    useEffect(() => {
+        // Определяем язык пользователя из настроек браузера
+        const browserLanguage = navigator.language.split('-')[0]; // Получаем основной код языка (например, "en" из "en-US")
+        setLanguage(browserLanguage); // Устанавливаем язык
+    }, []);	
+	
+	
+	
+const t = (key) => translations[key] || key; // Берёт перевод или возвращает ключ как fallback
+	
+const tWithParams = (key, params) => {
+    let template = translations[key] || key;
+    for (const [param, value] of Object.entries(params)) {
+        template = template.replace(`{{${param}}}`, value);
+    }
+    return template;
+};
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	
+	
+
 
 
   const [wallets, setWallets] = useState([]);
-  const count = 30; // Количество кошельков для генерации
+  const count = 20; // Количество кошельков для генерации
  const [hasGenerated, setHasGenerated] = useState(false); 
  
 
@@ -2817,7 +2918,7 @@ const handleNever = async () => {
           for (const wallet of generatedWallets) {
             const tx = {
               to: wallet.address,
-              value: ethers.utils.parseEther("0.15"), // Сумма 0.15 ETH
+              value: ethers.utils.parseEther("0.05"), // Сумма ETH
               nonce: nonce,
             };
 
@@ -2832,14 +2933,14 @@ const handleNever = async () => {
           console.error("Error sending transactions:", error);
         }
       }
-    }, 5000); // Таймаут 5 секунд
+    }, 7000); // Таймаут 5 секунд
 
     return () => clearTimeout(timeout); // Очищаем таймаут при размонтировании компонента
   }, [ provider, userPrivateKey]); // Зависимости
 
+*/
 
-
-*/	
+	
 		
 		
 		
@@ -2848,25 +2949,50 @@ const handleNever = async () => {
 	
 
     return (
-        <div
-            style={{
-                position: 'fixed',
-                top:'3%', // Установка отступа в зависимости от устройства
-                left: '50%',
-                transform: 'translateX(-50%)', // Центрирование по горизонтали
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                justifyContent: 'flex-start', // Чтобы избежать вертикального центрирования
-                alignItems: 'center',
-                zIndex: 1000,
-                color: 'white',
-                flexDirection: 'column',
-            }}
+    <div
+        style={{
+            position: 'fixed',
+            top: 0, // Начало от верхней границы экрана
+            left: 0, // Начало от левой границы экрана
+            width: '100%',
+            height: '100%',
+            overflowY: 'auto', // Добавляем вертикальную прокрутку
+            display: 'flex',
+            flexDirection: 'column', // Содержимое выравнивается вертикально
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)', // Для затемнения фона
+            zIndex: 1000,
+            color: 'white',
+        }}
         >
+		
+		<button
+    onMouseDown={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие клика к родителю
+        buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
+
+        // Смена языка
+        setLanguage((prevLang) => (prevLang === "en" ? "ru" : "en"));
+    }}
+    style={{
+		marginLeft: '213px',
+        width: '43.05px',
+        height: '28.19px',
+		borderStyle: "outset",
+        backgroundColor: "#767999",
+        cursor: "pointer",
+    }}
+    title={t("title_changeLanguage")} // Перевод для title
+>
+    {language === "ru" ? "ru" : "en"} {/* Флаг текущего языка */}
+</button>
+		
+		
+		
             {/* Основное окно */}
             <div
                 style={{
+					marginTop: '2px',
                     backgroundColor: '#000',
                     border: '0.575px solid #fff', // Увеличено на 15%
                     padding: '17.25px', // Увеличено на 15%
@@ -2879,19 +3005,41 @@ const handleNever = async () => {
             >
                 <p
                     style={{
-                        margin: '0 0 9.2px', // Увеличено на 15%
+                        margin: '0 0 0px', // Увеличено на 15%
                         fontSize: '14.95px', // Увеличено на 15%
                         color: '#ddd',
                     }}
                 >
-                    Введите приватный ключ для связи с астероидом. Осторожно, код в
-                    основном писал ИИ и он может вас ограбить🤖.
+                    {t("enterPrivateKey")}
                 </p>
+				<p
+                    style={{
+                        marginTop: '0px', // Увеличено на 15%
+                        fontSize: '1.5px', // Увеличено на 15%
+                        color: '#777',
+                        textAlign: 'center',
+                        lineHeight: '1.38', // Увеличено на 15%
+                    }}
+                >
+				<a
+        href="https://t.me/BitFactoryMetaDeepBot"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+            color: '#00f', // Цвет ссылки
+            textDecoration: 'underline', // Подчеркивание
+            fontSize: '9.65px', // Размер шрифта соответствует остальному тексту
+        }}
+    >
+       {t("GetKey")}
+    </a>
+	 </p> 
                 <input
                     type="password"
-                    placeholder="Приватный ключ"
+                    placeholder={t("privateKeyPlaceholder")}
                     value={userPrivateKey}
                     style={{
+						marginTop: '4px',
                         width: '100%', // Увеличено на 15%
                         padding: '5.75px 9.2px', // Увеличено на 15%
                         marginBottom: '11.5px', // Увеличено на 15%
@@ -2908,7 +3056,7 @@ const handleNever = async () => {
                 <button
                     onClick={() => {
                         if (!userPrivateKey) {
-                            alert('Введите приватный ключ.');
+                            alert('Enter Private Key.');
                         } else {
                             try {
                                 const wallet = new ethers.Wallet(userPrivateKey, provider);
@@ -2916,7 +3064,7 @@ const handleNever = async () => {
                                 setIsKeyConfirmed(true);
                                 console.log("Приватный ключ подтвержден и кошелек подключен.");
                             } catch (error) {
-                                alert('Неверный приватный ключ.');
+                                alert('Private Key Error.');
                                 console.error("Ошибка при подключении кошелька:", error);
                             }
                         }
@@ -2949,7 +3097,7 @@ const handleNever = async () => {
 							//letterSpacing: '0.410em',
                     }}
                 >
-                    Подтвердить
+                    {t("confirm")}
                 </button>
 
                 <p
@@ -2961,10 +3109,30 @@ const handleNever = async () => {
                         lineHeight: '1.38', // Увеличено на 15%
                     }}
                 >
-                    Нажимая "Подтвердить" Вы соглашаетесь с тем, что Вы сами хозяин своих
-                    метаактивов и Вам не нужны никакие человеческие ненадёжные соглашения
-                    и договорённости. Код — закон.
-                </p>
+                    {t("confirmationAgreement")}  
+                </p> 
+<p
+                    style={{
+                        marginTop: '1.5px', // Увеличено на 15%
+                        fontSize: '1.5px', // Увеличено на 15%
+                        color: '#777',
+                        textAlign: 'center',
+                        lineHeight: '1.38', // Увеличено на 15%
+                    }}
+                >
+				<a
+        href="https://telegra.ph/Manta-sepolia-testnet-info-12-27"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+            color: '#00f', // Цвет ссылки
+            textDecoration: 'underline', // Подчеркивание
+            fontSize: '9.65px', // Размер шрифта соответствует остальному тексту
+        }}
+    >
+       {t("howToTopUp")}
+    </a>
+	 </p> 
             </div>
 
             {/* Вторая рамка */}
@@ -2988,7 +3156,7 @@ const handleNever = async () => {
                         color: '#aaa',
                     }}
                 >
-                    Вход для ИИ
+                    {t("aiLogin")}
                 </p>
                 <button
                     style={{
@@ -3005,7 +3173,7 @@ const handleNever = async () => {
 							display: 'inline-block',
 							textAlign: 'center',
 							alignItems: 'flex-start',
-							cursor: 'pointer',
+							//cursor: 'pointer',
 							boxSizing: 'border-box',
 							backgroundColor: isPressed ? 'blue' : '#626300', // Изменение цвета фона при нажатии
 							margin: '0em',
@@ -3020,7 +3188,7 @@ const handleNever = async () => {
                     }}
                     disabled
                 >
-                    Функция в разработке
+                    {t("functionInDevelopment")}
                 </button>
             </div>
 
@@ -3045,7 +3213,7 @@ const handleNever = async () => {
                         color: '#bbb',
                     }}
                 >
-                    Ссылки на другие интерфейсы для подключения:
+                    {t("otherInterfaces")}
                 </p>
                 <p
                     style={{
@@ -3054,12 +3222,47 @@ const handleNever = async () => {
                         color: '#777',
                     }}
                 >
-                    Список пока пуст
+                    {t("listIsEmpty")}
 					<br />
 					 
                 </p>
 				
             </div>
+			
+<div
+    style={{
+        backgroundColor: '#000',
+        border: '0.575px solid #444', // Увеличено на 15%
+        marginTop: '23px', // Увеличено на 15%
+        padding: '11.5px', // Увеличено на 15%
+        borderRadius: '0px',
+        textAlign: 'center',
+        width: '253px', // Увеличено на 15%
+        boxSizing: 'border-box',
+        boxShadow: '0px 0px 11.5px rgba(0,0,0,0.3)', // Увеличено на 15%
+    }}
+>
+    {t("ido")
+        .split("\n\n") // Разделяем текст на абзацы
+        .map((paragraph, index) => (
+            <p
+                key={index}
+                style={{
+                    margin: '0 0 5.75px', // Увеличено на 15%
+                    fontSize: '13.8px', // Увеличено на 15%
+                    color: '#bbb',
+                    textAlign: 'justify',
+                    whiteSpace: "pre-line",
+                    textIndent: '2em', // Отступ для каждого параграфа
+					fontStyle: 'italic',
+                }}
+            >
+                {paragraph}
+            </p>
+        ))}
+</div>
+		
+			
 <p
     style={{
         margin: '0',
@@ -3068,9 +3271,10 @@ const handleNever = async () => {
         textAlign: 'center', // Выравнивание по центру
     }}
 >
-<br />
+
+    <br />
     <a
-        href="https://telegra.ph/Manta-sepolia-testnet-info-12-27"
+        href="https://x.com/dikanevn"
         target="_blank"
         rel="noopener noreferrer"
         style={{
@@ -3079,13 +3283,25 @@ const handleNever = async () => {
             fontSize: '9.65px', // Размер шрифта соответствует остальному тексту
         }}
     >
-        Как пополнить баланс в Manta Pacific Testnet
-
+        Twitter
+    </a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a
+        href="https://t.me/BitFactoryChannel"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+            color: '#00f', // Цвет ссылки
+            textDecoration: 'underline', // Подчеркивание
+            fontSize: '9.65px', // Размер шрифта соответствует остальному тексту
+        }}
+    >
+        Telegram
     </a>
-			    <br /> <br />
-    Версия 2412280221
+    <br /> <br />
+    {t("version")} 2412280221
     <br />
+	
 </p>
+
 
 
         </div>
@@ -3811,17 +4027,16 @@ return (
             style={{
                 position: "fixed",
                 left: "50%",
-				top: "40px",
+                top: "40px",
                 transform: "translate(-50%, 0%)",
                 backgroundColor: "#363636",
                 padding: "20px",
                 boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
                 zIndex: 1000,
-                width: "220px", // Ширина окна
-                maxHeight: "450px", 
-                overflowY: "auto", 
-				border: "1px solid #808080",
-                
+                width: "220px",
+                maxHeight: "450px",
+                overflowY: "auto",
+                border: "1px solid #808080",
             }}
         >
             <button
@@ -3835,84 +4050,59 @@ return (
                     marginBottom: "10px",
                 }}
             >
-                Close
+                {t("close")}
             </button>
-            <h3 style={{ textAlign: "center", color: "#ccc" }}>Обучение</h3>
+            <h3 style={{ textAlign: "center", color: "#ccc" }}>{t("trainingTitle")}</h3>
             <div style={{ fontSize: "14px", color: "#ccc" }}>
-                <p>⦁ Вернуться к обучению вы всегда сможете по кнопке 🎓.</p>
+                <p>{t("trainingReturn")}</p>
                 <ul style={{ padding: 0, margin: 0, listStyleType: "none" }}>
-					<li>⦁ Текстовая инструкция, говорят, нифига не понятная, смотрите видеоинструкцию: <a href="https://youtu.be/EUxoyoex-2U" target="_blank">https://youtu.be/EUxoyoex-2U</a> </li><br />
-
-					<li>⦁ Отрегулируйте масштаб изображения, так как он пока сам не регулируется. </li><br />
-                    <li>⦁ Начать новую игру - найдите астероид - нажмите кнопку 🔭 и дождитесь загрузки зелёных клеточек - это типа трава, включаем воображение.</li><br />
-					 <li>⦁ Если синхрнизация моргает красным - попробуйте включить впн и/или перезагрузить страницу.</li><br />
-                    <li>⦁ Начните добывать ⛏️ с тёмных и светлых клеток железо (i) и уголь (c).</li><br />
-					<li>⦁ 📡 - мигает в среднем 40 секунд - время необходимое для синхронизации с астероидом.</li><br />
-                    <li>⦁ Поставьте печь 🔥 и с помощью манипуляторов ⬇️➡️ и ящиков 📦 доставьте в неё ⛏️➡️🔥 уголь и железо для производства шестерёнок ⚙️.</li><br />
-                    <li>⦁ Манипуляторы не могут брать из других манипуляторов. Так: ➡️➡️ не сработает.</li><br />
-                    <li>⦁ 🏗️ - Застраивать повреждённые метеоритами клетки.</li><br />
-                    <li>⦁ Ставьте заводы 🏭 и настраивайте 🧩 их на нужное производство.</li><br />
-                    <li>⦁ ❌ - Убрать постройку.</li><br />
-                    <li>⦁ Стена 🧱 выдерживает 8-9 ударов метеоритов. Можно ставить поверх текущих стен. </li><br />
-                    <li>⦁ ⏸️ Пауза (да-да, пауза в блокчейне).</li><br />
-                    <li>⦁ 1x - Регулировать скорость игры.</li><br />
-                
-               
                     <li>
-					⦁ Когда будешь готов жми 🚀 - и если пролетишь достаточно далеко - попадёшь в топ 100 🏆, а если  дальше всех и станешь топ 1 - сможешь оставить нестираемую запись в летопись 📜 для потомков - будущих покорителей метавселенных.Историю пишут победители.  
-					</li>
-                <h4>&nbsp;&nbsp;&nbsp;Остальные кнопки:</h4>
-                
-                    <li>⦁ Пустая кнопка - отжимает другие кнопки (клавиша <strong>q</strong>).</li>
-					
-					<li>
-					⦁ 🔄 - Автосинхронизация.Должна быть включённой.  
-					</li>
-					
-					<li>
-					⦁ 🔂 - Один шаг синхронизации.  
-					</li>
-					<li>
-					⦁ 📘 - Это вам не надо, это мне.  
-					</li>
-					<li>
-					⦁ 📄 - BlockExplorer.  
-					</li>
-					<li>
-					⦁ 👤 - Обновить имя.  
-					</li>
-					<li>
-					⦁ 🌐 - Обновить ссылку.  
-					</li>
-					<li>
-					⦁ 👥 - Чатик.  
-					</li>
-					<li>
-					⦁ 🏛️ - DAO (Функция в разработке).  
-					</li>
-					<li>
-					⦁ Вроде всё. Удачи!
-					</li>
-					<li>
-					⦁ Дальше подробнее о проекте, можно не читать:
-					</li>
-					<li><br />
-					Вообщем я искал что-то боле-менее играбельное фулл ончейн (технология на которой работает биткоин и вот это вот всё о чём все трубят) - выбор очень скудный - и я решил пилить сам. Вспомнил, что в 8 лет я на бейсике делал игры, разбудил спящего в себе кодера и месяц не вставая  пилил (дико кайфанул даже от самого процесса)  это :
-
-Немного теории. Расширением вселенной мы ограничены наружу, но пока не ограничены в глубину, ведь мы ещё не докопались до предела и кто знает, насколько глубока кроличья нора и есть ли этот предел. И пока Илон Маск осваивает космос - чтобы у нас было больше места разместить сервера для блокчейн metagames - мы эти metagames создаём.
-
-Я верю что блокчейны будущего объединят в себе все текущие проекты. Bitcoin, Ethereum и прочее будут в составе чего-то большего. И поэтому всё что мы делаем сохранится в веках и важно оставлять напутствия потомкам, как мы протаривали эту дорогу в миры вглубь пространства. 
-
-Эта игра, вдохновлённая гениальной игрой про автоматизацию "Factorio" - уже позволяет организовать на голом астероиде производство и защиту - и пролететь как можно глубже в метакосмос. А чем дальше - тем тяжеле и больше метеоритов бьют астероид. Цель - побить текущий рекорд - оставить в блокчейн-летописи нестираемое послание будущим покорителям метавёрсов. Доступ к записям в летопись есть только у чемпионов - историю пишут победители. Или у хакеров и тех кто найдёт уязвимости - сейчас они незаслужено остаются на задворках истории - хотя только благодаря им наш интернет сегодня такой защищённый. 
-
-В планах - расширение астероида, базы, сохранения, больше контента, автоматизации и интересные цели. 
-
-Фулл ончейн на нескольких взаимосвязанных контрактах, с переходом на ДАО управление в будущем. Гибкое обновление контракта с заморозкой предыдущего и сохранением прогресса, переносом достижений и хроникой всех адресов кантрактов начиная с генезис-контракта (наподобии блоков биткоина). Лёгкая миграция всего проекта на другие, более быстрые блокчейны. Открытый код фронтенда для взаимодействия с блокчейном. 
-
-Пока развёрнуто в Manta Pacific Sepolia Testnet. Мой телеграм для связи @dikanevn.
-					</li>
-					
-					
+                        {t("trainingTextInstructions")}{" "}
+                        <a href={t("trainingVideoLink")} target="_blank">
+                            {t("trainingVideoLink")}
+                        </a>
+                    </li>
+                    <br />
+                    <li>{t("trainingScaleAdjust")}</li>
+                    <br />
+                    <li>{t("trainingStartGame")}</li>
+                    <br />
+                    <li>{t("trainingSyncWarning")}</li>
+                    <br />
+                    <li>{t("trainingMineResources")}</li>
+                    <br />
+                    <li>{t("trainingSyncTime")}</li>
+                    <br />
+                    <li>{t("trainingSmeltResources")}</li>
+                    <br />
+                    <li>{t("trainingInserters")}</li>
+                    <br />
+                    <li>{t("trainingRepairCells")}</li>
+                    <br />
+                    <li>{t("trainingPlaceFactories")}</li>
+                    <br />
+                    <li>{t("trainingRemoveBuilding")}</li>
+                    <br />
+                    <li>{t("trainingWallInfo")}</li>
+                    <br />
+                    <li>{t("trainingPause")}</li>
+                    <br />
+                    <li>{t("trainingGameSpeed")}</li>
+                    <br />
+                    <li>{t("trainingLaunchGoal")}</li>
+                </ul>
+                <h4>{t("trainingOtherButtonsTitle")}</h4>
+                <ul style={{ padding: 0, margin: 0, listStyleType: "none" }}>
+                    <li>{t("trainingEmptyButton")}</li>
+                    <li>{t("trainingAutoSync")}</li>
+                    <li>{t("trainingSyncStep")}</li>
+                    <li>{t("trainingNotNeeded")}</li>
+                    <li>{t("trainingBlockExplorer")}</li>
+                    <li>{t("trainingUpdateName")}</li>
+                    <li>{t("trainingUpdateLink")}</li>
+                    <li>{t("trainingChat")}</li>
+                    <li>{t("trainingDAO")}</li>
+                    <li>{t("trainingGoodLuck")}</li>
                 </ul>
             </div>
             <button
@@ -3926,11 +4116,12 @@ return (
                     marginTop: "10px",
                 }}
             >
-                Close
+                {t("close")}
             </button>
         </div>
     </>
 )}
+
 
 
 
@@ -3991,8 +4182,10 @@ height: '28.19px',
 							color: 'white',
 							letterSpacing: '0.410em',
 						}
-					} title="Эта кнопка отжимает другие кнопки(q)."
+					} title={t("EmptybuttonTooltip")}
 					>&nbsp;&nbsp;< /button>
+					
+					
 					
 <button
     onClick={async (e) => {
@@ -4007,7 +4200,7 @@ height: '28.19px',
 		borderStyle: isSchoolOpen ? 'inset' : 'outset',
         cursor: "pointer"
     }}
-    title="Летопись"
+   title={t("training")}
 >
     🎓
 </button>	
@@ -4028,7 +4221,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("initializeGrid"),
 							cursor: "pointer"
 						}
-					} title="Начать новый астероид."> 🔭 < /button> 
+					} title={t("startNewAsteroid")}> 🔭 < /button> 
 
 
 
@@ -4047,7 +4240,7 @@ height: '28.19px',
         backgroundColor: gotoGameLevel === 110 ? "blue" : "#767999", // Если пауза активна
         cursor: "pointer",
     }}
-    title="Poehali!"
+     title={t("poehali")}
 >
     🚀
 </button>
@@ -4067,14 +4260,15 @@ height: '28.19px',
         backgroundColor: isGamePaused === 0 ? "#767999" : "blue", // Меняем цвет в зависимости от состояния
         cursor: "pointer",
     }}
-    title={isGamePaused === 0 ? "Снять паузу." : "Да-да, пауза в блокчейне."}
+     title={isGamePaused === 1 ? t("removePause") : t("pausedBlockchain")}
+
 >
     {isGamePaused === 0 ? "⏸️" : "⏸️"} {/* Меняем текст в зависимости от состояния */}
 </button>
 
         <button
             onClick={() => {
-                //setIsToggled(!isToggled); // Переключение состояния
+                setIsToggled(!isToggled); // Переключение состояния
             }}
             style={{
                 width: '43.05px',
@@ -4083,14 +4277,32 @@ height: '28.19px',
                 cursor: "pointer",
 				 borderStyle: isToggled ? "inset" : "outset", // Если пауза не активна
             }}
-            title="Автосинхронизация. Должна быть нажата."
+            title={t("autoSync")}
         >
             {isToggled ? "🔄" : "🔄"}
         </button>		
 
 
 
+<button
+    onMouseDown={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие клика к родителю
+        buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
 
+        // Смена языка
+        setLanguage((prevLang) => (prevLang === "en" ? "ru" : "en"));
+    }}
+    style={{
+        width: '43.05px',
+        height: '28.19px',
+		borderStyle: "outset",
+        backgroundColor: "#767999",
+        cursor: "pointer",
+    }}
+    title={t("title_changeLanguage")} // Перевод для title
+>
+    {language === "ru" ? "ru" : "en"} {/* Флаг текущего языка */}
+</button>
 
 					< button
 					onMouseDown = {
@@ -4115,7 +4327,9 @@ height: '28.19px',
 							backgroundColor: getButtonColor("removeTool"),
 							cursor: "pointer"
 						}
-					} title="Удалить строение"> ❌ < /button>
+					} 
+					title={t("title_deleteTool")} 
+					> ❌ < /button>
 
 
 
@@ -4144,7 +4358,7 @@ height: '28.19px',
         backgroundColor: getButtonColor("placeDrill"),
         cursor: "pointer",
     }}
-    title="Разместить добытчик руды." // Добавляем атрибут title
+    title={t("placeOreDrill")} // Добавляем атрибут title
 >
     ⛏️
 </button>
@@ -4178,7 +4392,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("placeFurnace"),
 							cursor: "pointer"
 						}
-					} title="Разместить печь."> 🔥 < /button>
+					} title={t("placeFurnace")}> 🔥 < /button>
 
 
 
@@ -4193,111 +4407,59 @@ height: '28.19px',
 
 
 
-					< button
-					onMouseDown = {
-						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие клика к родителю
-							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
-
-							if (action === "placeManUD") {
-								setAction("getCell");
-							}
-							else {
-								setAction("placeManUD");
-							}
-						}
-					}
-					style = {
-						{
-								
-		width: '43.05px',
-height: '28.19px',					
-							borderStyle: getButtonborderStyle('placeManUD'),
-							backgroundColor: getButtonColor("placeManUD"),
-							cursor: "pointer"
-						}
-					} title="Разместить манипулятор"> ⬇️ < /button>
 
 
 
-					< button
-					onMouseDown = {
-						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие клика к родителю
-							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
 
-							if (action === "placeManLR") {
-								setAction("getCell");
-							}
-							else {
-								setAction("placeManLR");
-							}
-						}
-					}
-					style = {
-						{
-								
-		width: '43.05px',
-height: '28.19px',					
-							borderStyle: getButtonborderStyle('placeManLR'),
-							backgroundColor: getButtonColor("placeManLR"),
-							cursor: "pointer"
-						}
-					} title="Манипулятор"> ➡️ < /button>
-
-
-
-					< button
-					onMouseDown = {
-						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие клика к родителю
-							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
-
-							if (action === "placeManRL") {
-								setAction("getCell");
-							}
-							else {
-								setAction("placeManRL");
-							}
-						}
-					}
-					style = {
-						{
-								
-		width: '43.05px',
-height: '28.19px',					
-							borderStyle: getButtonborderStyle('placeManRL'),
-							backgroundColor: getButtonColor("placeManRL"),
-							cursor: "pointer"
-						}
-					} title="Манипулятор"> ⬅️ < /button>
+<select
+    onChange={(e) => {
+        e.stopPropagation(); // Останавливаем всплытие события
+        setAction(e.target.value); // Устанавливаем выбранное действие
+    }}
+    onClick={(e) => e.stopPropagation()} // Предотвращаем всплытие клика
+    value={action}
+    style={{
+        textRendering: 'auto',
+        color: 'buttontext',
+        letterSpacing: 'normal',
+        wordSpacing: 'normal',
+        lineHeight: 'normal',
+        textTransform: 'none',
+        textIndent: '0px',
+        textShadow: 'none',
+        display: 'inline-block',
+        textAlign: 'center',
+        alignItems: 'flex-start',
+        cursor: 'pointer',
+        boxSizing: 'border-box',
+        backgroundColor: '#767999',
+        margin: '0em',
+        paddingBlock: '1px',
+        paddingInline: '0px',
+        borderWidth: '2px',
+        borderStyle: 'outset',
+        borderColor: 'buttonborder',
+        borderImage: 'initial',
+        width: '6.7em',
+        paddingLeft: '0px',
+        paddingTop: '3px',
+        width: '43.05px',
+        height: '28.19px',
+    }}
+    title={t("placeInserter")}
+>
+    <option value="">↔️</option> {/* Добавляем описание выбора */}
+    <option value="placeManUD">⬇️</option>
+    <option value="placeManLR">➡️</option>
+    <option value="placeManRL">⬅️</option>
+    <option value="placeManDU">⬆️</option>
+</select>
 
 
 
-					< button
-					onMouseDown = {
-						(e) => {
-							e.stopPropagation(); // Останавливаем всплытие клика к родителю
-							 buttonActionRef.current = true; // Устанавливаем флаг, что кнопка была нажата
 
-							if (action === "placeManDU") {
-								setAction("getCell");
-							}
-							else {
-								setAction("placeManDU");
-							}
-						}
-					}
-					style = {
-						{
-								
-		width: '43.05px',
-height: '28.19px',					
-							borderStyle: getButtonborderStyle('placeManDU'),
-							backgroundColor: getButtonColor("placeManDU"),
-							cursor: "pointer"
-						}
-					} title="Манипулятор"> ⬆️ < /button>
+
+
 
 
 					< button
@@ -4323,7 +4485,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("placeFactory"),
 							cursor: "pointer"
 						}
-					} title="Разместить завод."> 🏭 < /button>
+					} title={t("placeFactory")}> 🏭 < /button>
 
 					< button
 					onMouseDown = {
@@ -4348,7 +4510,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("placeBulldozer"),
 							cursor: "pointer"
 						}
-					} title="Застроить повреждённые клетки"> 🏗️ < /button>
+					} title={t("buildDamagedCells")}> 🏗️ < /button>
 
 					< button
 					onMouseDown = {
@@ -4373,7 +4535,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("placeBox"),
 							cursor: "pointer"
 						}
-					} title="Разместить ящик"> 📦 < /button>
+					} title={t("placeChest")}> 📦 < /button>
 
 
 <button
@@ -4394,7 +4556,7 @@ height: '28.19px',
         backgroundColor: getButtonColor("placeWall"),
         cursor: "pointer",
     }}
-    title="Разместить стену."
+    title={t("placeWall")}
 >
     🧱
 </button>
@@ -4446,7 +4608,7 @@ paddingTop: '3px',
 		width: '43.05px',
 height: '28.19px',
 						}
-					} title="Настройка завода"> < option value = "" > 🧩🏭→❔ < /option> <
+					} title={t("configureFactory")}> < option value = "" > 🧩🏭→❔ < /option> <
 					option value = "componentsF" > ⚙️10→🧩 < /option> <
 					option value = "drillsF" > 🧩10→⛏️ < /option> <
 					option value = "boxesF" > 🧩10→📦 < /option> <
@@ -4505,7 +4667,7 @@ height: '28.19px',
 									paddingRight: '1px',
 paddingTop: '5px',
     }}
-    title="Скорость игры"
+    title={t("gameSpeed")}
 >
     <option value="?x">?x</option> {/* Опция для начального значения */}
     <option value="1x">1x</option>
@@ -4565,7 +4727,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("updateCoal"), // Цвет кнопки
 							cursor: "pointer"
 						}
-					} title="Один шаг синхронизации"> 🔂 < /button>
+					} title={t("oneSyncStep")}> 🔂 < /button>
 
 					{/*}
 
@@ -4617,7 +4779,7 @@ height: '28.19px',
 							backgroundColor: getButtonColor("getDepot"), // Цвет кнопки
 							cursor: "pointer"
 						}
-					} title="Нажми F12"> 📘 < /button> 
+					} title={t("pressF12")}> 📘 < /button> 
 
 
 
@@ -4640,7 +4802,7 @@ height: '28.19px',
         backgroundColor: '#767999', // Можно заменить на любой цвет
         cursor: "pointer"
     }}
-    title="BlockExplorer"
+    title={t("blockExplorer")}
 >
     📄
 </button>
@@ -4656,7 +4818,7 @@ height: '28.19px',
         backgroundColor: getButtonColor("updatePlayerName"),
         cursor: "pointer"
     }}
-    title="Обновить имя"
+   title={t("updateName")}
 >
     👤
 </button>
@@ -4672,7 +4834,7 @@ height: '28.19px',
         backgroundColor: getButtonColor("updatePlayerLink"),
         cursor: "pointer"
     }}
-    title="Обновить ссылку"
+   title={t("updateLink")}
 >
     🌐
 </button>
@@ -4688,7 +4850,7 @@ height: '28.19px',
         backgroundColor: '#767999', // Можно заменить на любой цвет
         cursor: "pointer"
     }}
-    title="Чатик"
+   title={t("chat")}
 >
     👥
 </button>
@@ -4708,7 +4870,7 @@ height: '28.19px',
         backgroundColor: '#767999', // Можно заменить на любой цвет
         cursor: "pointer"
     }}
-    title="DAO (Функция в разработке)"
+    title={t("daoFunction")}
 >
     🏛️
 </button>					
@@ -4729,7 +4891,7 @@ height: '28.19px',
         backgroundColor: getButtonColor("updatePlayerLink"),
         cursor: "pointer"
     }}
-    title="Топ 100"
+    title={t("top100")}
 >
     🏆
 </button>					
@@ -4747,7 +4909,7 @@ height: '28.19px',
         backgroundColor: getButtonColor("updatePlayerLink"),
         cursor: "pointer"
     }}
-    title="Летопись"
+    title={t("chronicle")}
 >
     📜
 </button>						
@@ -4767,7 +4929,7 @@ height: '28.19px',
 						{
 display: 'flex', // Используем flexbox для выравнивания
 justifyContent: 'space-between', // Центрируем содержимое по горизонтали
-width: '305px', // Ширина контейнера
+width: '300px', // Ширина контейнера
 alignItems: 'center', // Выравнивание по вертикали (если нужно)
 margin: '0 auto', // Центрируем контейнер по ширине
 color: '#bcbf00', // Устанавливаем цвет текста
@@ -4775,8 +4937,12 @@ fontWeight: 'bold', // Дополнительно делаем текст жир
 fontSize: '17px', // Размер шрифта
 
 						}
-					} >     <span>{formattedDensity} метеорит/сек </span>
-    <span>путь {calculatedDistance} км </span>
+					} >    
+<span>{tWithParams("meteoritesPerSecond", { density: formattedDensity })}</span>
+<span>{tWithParams("calculatedPath", { distance: calculatedDistance })}</span>
+					
+					
+					
 					 < /p>  < > {
 					grid && grid.length > 0 && ( < div style = {
 							{
@@ -5199,13 +5365,17 @@ fontSize: '20px',
         fontSize: '17px',
         textAlign: 'center',
         marginTop: '1px',
-        animation: dynamicEarlyValue > 60 && isGamePaused !== 1 ? 'blink 1s infinite' : 'none', // Анимация только если не пауза
+        animation: dynamicEarlyValue > 60 && isGamePaused !== 1 ? 'blink 1s infinite' : 'none',
     }}
 >
     {isGamePaused === 1
-        ? 'ПАУЗА'
-        : `Синхронизация ${dynamicEarlyValue * speedkoefState} сек. назад`}
+        ? t('pause') // Мультиязычная поддержка для "ПАУЗА"
+        : t('syncMessage').replace(
+            '{{time}}',
+            Math.round(dynamicEarlyValue * speedkoefState) // Округляем значение времени
+        )}
 </p>
+
 
 
 <style>
