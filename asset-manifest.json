@@ -1,19 +1,19 @@
 {
   "files": {
     "main.css": "/BitFactory/static/css/main.0fb20968.css",
-    "main.js": "/BitFactory/static/js/main.f43830ec.js",
-    "static/js/389.8e73c5fd.chunk.js": "/BitFactory/static/js/389.8e73c5fd.chunk.js",
-    "static/js/671.0c5a9c35.chunk.js": "/BitFactory/static/js/671.0c5a9c35.chunk.js",
+    "main.js": "/BitFactory/static/js/main.c7850e00.js",
+    "static/js/389.383cebe2.chunk.js": "/BitFactory/static/js/389.383cebe2.chunk.js",
+    "static/js/671.b401f2f1.chunk.js": "/BitFactory/static/js/671.b401f2f1.chunk.js",
     "static/js/488.ed9650b7.chunk.js": "/BitFactory/static/js/488.ed9650b7.chunk.js",
     "static/media/Coal.png": "/BitFactory/static/media/Coal.61b886cc25687799067b.png",
     "static/media/contentEmpty.png": "/BitFactory/static/media/contentEmpty.4da1054b0af7c4bac384.png",
     "index.html": "/BitFactory/index.html",
     "main.0fb20968.css.map": "/BitFactory/static/css/main.0fb20968.css.map",
-    "main.f43830ec.js.map": "/BitFactory/static/js/main.f43830ec.js.map",
+    "main.c7850e00.js.map": "/BitFactory/static/js/main.c7850e00.js.map",
     "488.ed9650b7.chunk.js.map": "/BitFactory/static/js/488.ed9650b7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.0fb20968.css",
-    "static/js/main.f43830ec.js"
+    "static/js/main.c7850e00.js"
   ]
 }

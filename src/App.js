@@ -4209,9 +4209,10 @@ height: '28.19px',
 					onClick = {
 						(e) => {
 							e.stopPropagation(); // Останавливаем всплытие события
-							if (window.confirm("Подтверждение на поиск нового астероида. Текущий, если он есть, будет потерян в просторах космоса навсегда.")) {
-								executeAction("initializeGrid");
-							}
+							if (window.confirm(t("confirmNewAsteroid"))) {
+    executeAction("initializeGrid");
+}
+
 						}
 					}
 					style = {
@@ -4229,9 +4230,10 @@ height: '28.19px',
 < button
     onClick={(e) => {
         e.stopPropagation(); // Останавливаем всплытие события
-        if (window.confirm("Подтверждение на запуск. Правда, оттуда ещё никто не возвращался..")) {
-            setGotoLevel();
-        }
+if (window.confirm(t("confirmLaunch"))) {
+    setGotoLevel();
+}
+
     }}
     style={{
         width: '43.05px',
