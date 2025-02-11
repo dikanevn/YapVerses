@@ -1,30 +1,46 @@
 {
-  "name": "simple-grid-dapp",
+  "name": "YapVerses",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@craco/craco": "^7.1.0",
     "@ethersproject/experimental": "^5.7.0",
+    "@metaplex-foundation/js": "^0.20.1",
+    "@metaplex-foundation/umi-bundle-defaults": "^1.0.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/web3.js": "^1.98.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
     "cra-template": "1.2.0",
+    "crypto-browserify": "^3.12.1",
     "ethers": "^5.0.0",
+    "https-browserify": "^1.0.0",
     "i18next": "^23.2.3",
     "i18next-browser-languagedetector": "^6.1.1",
     "i18next-http-backend": "^3.0.1",
+    "os-browserify": "^0.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-draggable": "^4.4.6",
     "react-i18next": "^14.0.0",
     "react-scripts": "^5.0.1",
     "react-toastify": "^11.0.2",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
     "typescript": "^4.9.5",
+    "url": "^0.11.4",
     "web-vitals": "^4.2.4",
     "web3": "^4.16.0"
   },
-  "homepage": "https://dikanevn.github.io/BitFactory",
+  "homepage": "https://dikanevn.github.io/YapVerses",
   "scripts": {
-    "deploy": "git add build && git commit -m 'Deploy to GitHub Pages' && git push origin main",
-    "start": "cross-env HOST=0.0.0.0 react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "deploy": "gh-pages -d build",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build"
   },
@@ -47,7 +63,8 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^7.0.0",
     "cross-env": "^7.0.3",
-    "gh-pages": "^6.2.0"
+    "gh-pages": "^6.3.0"
   }
 }

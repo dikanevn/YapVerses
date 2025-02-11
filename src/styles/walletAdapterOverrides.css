@@ -1,0 +1,5 @@
+/* walletAdapterOverrides.css */
+/* Переопределяем скругление для кнопки WalletMultiButton */
+.wallet-adapter-button {
+  border-radius: 0 !important;
+}
