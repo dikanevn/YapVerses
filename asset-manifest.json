@@ -1,0 +1,19 @@
+{
+  "files": {
+    "main.css": "/YapVerses/static/css/main.1d42ff59.css",
+    "main.js": "/YapVerses/static/js/main.aae88ae1.js",
+    "static/js/389.22ad2742.chunk.js": "/YapVerses/static/js/389.22ad2742.chunk.js",
+    "static/js/671.1f5bb9fb.chunk.js": "/YapVerses/static/js/671.1f5bb9fb.chunk.js",
+    "static/js/488.ccd96dbd.chunk.js": "/YapVerses/static/js/488.ccd96dbd.chunk.js",
+    "static/media/Coal.png": "/YapVerses/static/media/Coal.61b886cc25687799067b.png",
+    "static/media/contentEmpty.png": "/YapVerses/static/media/contentEmpty.4da1054b0af7c4bac384.png",
+    "index.html": "/YapVerses/index.html",
+    "main.1d42ff59.css.map": "/YapVerses/static/css/main.1d42ff59.css.map",
+    "main.aae88ae1.js.map": "/YapVerses/static/js/main.aae88ae1.js.map",
+    "488.ccd96dbd.chunk.js.map": "/YapVerses/static/js/488.ccd96dbd.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.1d42ff59.css",
+    "static/js/main.aae88ae1.js"
+  ]
+}
