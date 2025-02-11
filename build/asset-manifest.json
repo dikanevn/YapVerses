@@ -1,19 +1,19 @@
 {
   "files": {
-    "main.css": "/BitFactory/static/css/main.0fb20968.css",
-    "main.js": "/BitFactory/static/js/main.42e33b51.js",
-    "static/js/389.60e552d6.chunk.js": "/BitFactory/static/js/389.60e552d6.chunk.js",
-    "static/js/671.b401f2f1.chunk.js": "/BitFactory/static/js/671.b401f2f1.chunk.js",
-    "static/js/488.ed9650b7.chunk.js": "/BitFactory/static/js/488.ed9650b7.chunk.js",
-    "static/media/Coal.png": "/BitFactory/static/media/Coal.61b886cc25687799067b.png",
-    "static/media/contentEmpty.png": "/BitFactory/static/media/contentEmpty.4da1054b0af7c4bac384.png",
-    "index.html": "/BitFactory/index.html",
-    "main.0fb20968.css.map": "/BitFactory/static/css/main.0fb20968.css.map",
-    "main.42e33b51.js.map": "/BitFactory/static/js/main.42e33b51.js.map",
-    "488.ed9650b7.chunk.js.map": "/BitFactory/static/js/488.ed9650b7.chunk.js.map"
+    "main.css": "/YapVerses/static/css/main.1d42ff59.css",
+    "main.js": "/YapVerses/static/js/main.aae88ae1.js",
+    "static/js/389.22ad2742.chunk.js": "/YapVerses/static/js/389.22ad2742.chunk.js",
+    "static/js/671.1f5bb9fb.chunk.js": "/YapVerses/static/js/671.1f5bb9fb.chunk.js",
+    "static/js/488.ccd96dbd.chunk.js": "/YapVerses/static/js/488.ccd96dbd.chunk.js",
+    "static/media/Coal.png": "/YapVerses/static/media/Coal.61b886cc25687799067b.png",
+    "static/media/contentEmpty.png": "/YapVerses/static/media/contentEmpty.4da1054b0af7c4bac384.png",
+    "index.html": "/YapVerses/index.html",
+    "main.1d42ff59.css.map": "/YapVerses/static/css/main.1d42ff59.css.map",
+    "main.aae88ae1.js.map": "/YapVerses/static/js/main.aae88ae1.js.map",
+    "488.ccd96dbd.chunk.js.map": "/YapVerses/static/js/488.ccd96dbd.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.0fb20968.css",
-    "static/js/main.42e33b51.js"
+    "static/css/main.1d42ff59.css",
+    "static/js/main.aae88ae1.js"
   ]
 }
