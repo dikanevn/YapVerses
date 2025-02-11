@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Transaction, SystemProgram, LAMPORTS_PER_SOL, Connection, PublicKey } from '@solana/web3.js';
- // Сост
+import { Metaplex, walletAdapterIdentity } from '@metaplex-foundation/js';
+
 function App() {
   // Состояние для сохранения адреса кошелька после подключения
   const [walletAddress, setWalletAddress] = useState(null);
@@ -66,6 +67,33 @@ function App() {
     }
   };
 
+  // Функция для минтинга pNFT через Metaplex JS
+  const mintPNFT = async () => {
+    if (!walletAddress) {
+      alert("Подключите кошелек для совершения транзакции.");
+      return;
+    }
+    try {
+      // Создаем соединение с devnet
+      const connection = new Connection("https://api.devnet.solana.com");
+      // Инициализируем Metaplex с идентичностью от Phantom кошелька
+      const metaplex = Metaplex.make(connection).use(walletAdapterIdentity(window.solana));
+
+      // Минтим pNFT с указанными данными
+      // Замените uri и name на свои значения
+      const { nft } = await metaplex.nfts().create({
+         uri: "https://your-arweave-link-to-metadata.json",
+         name: "Ваш pNFT",
+         sellerFeeBasisPoints: 500, // 5% комиссия
+      });
+
+      alert("pNFT минтен: " + nft.address.toString());
+    } catch (error) {
+      console.error("Ошибка при минтинге pNFT:", error);
+      alert("Ошибка при минтинге pNFT");
+    }
+  };
+
   return (
     <div style={{
       backgroundColor: 'black',
@@ -92,6 +120,19 @@ function App() {
             }}
           >
             Перевести 0.001 SOL
+          </button>
+          <button 
+            onClick={mintPNFT}
+            style={{
+              padding: '10px 20px',
+              fontSize: '16px',
+              cursor: 'pointer',
+              borderRadius: '5px',
+              border: 'none',
+              marginTop: '10px'
+            }}
+          >
+            Минт pNFT
           </button>
           <button 
             onClick={disconnectWallet} 
