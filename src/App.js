@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Transaction, SystemProgram, LAMPORTS_PER_SOL, Connection, PublicKey } from '@solana/web3.js';
-
+ // Сост
 function App() {
   // Состояние для сохранения адреса кошелька после подключения
   const [walletAddress, setWalletAddress] = useState(null);
